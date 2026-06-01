@@ -7,7 +7,7 @@ export const adminRoutes: RouteRecordRaw[] = [
     component: () => import('../layout/AdminLayout.vue'),
     meta: { roles: ROLE_GROUPS.ADMIN },
     children: [
-      { path: '', component: () => import('../view/AdminDashboardView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
+      { path: '', redirect: 'products' },
       { path: 'products', component: () => import('../view/ProductsView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
       { path: 'categories', component: () => import('../view/CategoriesView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
       { path: 'menus', component: () => import('../view/MenusView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },

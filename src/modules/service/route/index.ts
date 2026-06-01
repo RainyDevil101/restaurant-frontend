@@ -12,11 +12,12 @@ export const serviceRoutes: RouteRecordRaw[] = [
         component: () => import('../view/TableSelectionView.vue'),
         meta: { roles: ROLE_GROUPS.SERVICE },
       },
-      {
-        path: 'table/:id',
-        component: () => import('../view/OrderView.vue'),
-        meta: { roles: ROLE_GROUPS.SERVICE },
-      },
     ],
+  },
+  {
+    // Standalone — manages its own full-screen dark layout
+    path: '/service/table/:id',
+    component: () => import('../view/OrderView.vue'),
+    meta: { roles: ROLE_GROUPS.SERVICE },
   },
 ]

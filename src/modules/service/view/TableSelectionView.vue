@@ -1,6 +1,77 @@
 <script setup lang="ts">
+import { useTables } from '../composables/useTables'
+import TableCard from '../components/TableCard.vue'
+
+const { tables } = useTables()
 </script>
 
 <template>
-  <div>TableSelectionView</div>
+  <div class="table-selection">
+    <h1 class="page-title">Mesas</h1>
+
+    <div class="legend" role="list" aria-label="Estado de mesas">
+      <div class="legend-item" role="listitem">
+        <span class="legend-dot ocupada" aria-hidden="true" />
+        <span>Ocupada</span>
+      </div>
+      <div class="legend-item" role="listitem">
+        <span class="legend-dot por_cobrar" aria-hidden="true" />
+        <span>Por cobrar</span>
+      </div>
+      <div class="legend-item" role="listitem">
+        <span class="legend-dot libre" aria-hidden="true" />
+        <span>Libre</span>
+      </div>
+    </div>
+
+    <div class="table-grid">
+      <TableCard v-for="table in tables" :key="table.id" :table="table" />
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.table-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.libre      { background: #a8d5b5; }
+.legend-dot.ocupada    { background: #9baee0; }
+.legend-dot.por_cobrar { background: #f5d878; }
+
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+</style>

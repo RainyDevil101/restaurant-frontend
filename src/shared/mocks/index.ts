@@ -1,0 +1,5 @@
+export { mockAreas } from './areas'
+export { mockTables } from './tables'
+export { mockCategories, mockProducts, mockMenu, mockMenus } from './products'
+export { mockOrders } from './orders'
+export { mockUsers } from './users'
