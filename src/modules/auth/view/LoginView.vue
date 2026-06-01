@@ -2,5 +2,5 @@
 </script>
 
 <template>
-  <RouterView />
+  <div>LoginView</div>
 </template>
