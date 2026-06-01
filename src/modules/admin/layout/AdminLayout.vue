@@ -2,5 +2,7 @@
 </script>
 
 <template>
-  <RouterView />
+  <div class="admin-layout">
+    <RouterView />
+  </div>
 </template>
