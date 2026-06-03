@@ -1,15 +1,36 @@
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { mockTables } from '@/shared/mocks'
+import { listTables } from '@/shared/api/venue'
+import { ApiRequestError } from '@/shared/api/client'
+import type { Table } from '@/shared/types'
 
 export function useCurrentTable() {
   const route = useRoute()
+  const tables = ref<Table[]>([])
+  const loading = ref(false)
+  const error = ref('')
 
-  const table = computed(() => {
+  const tableId = computed(() => {
     const raw = route.params['id']
-    const id = Array.isArray(raw) ? (raw[0] ?? '') : (raw ?? '')
-    return mockTables.find((t) => t.id === id) ?? null
+    return Array.isArray(raw) ? (raw[0] ?? '') : (raw ?? '')
   })
 
-  return { table }
+  const table = computed(() => tables.value.find((t) => t.id === tableId.value) ?? null)
+
+  async function load() {
+    loading.value = true
+    error.value = ''
+    try {
+      tables.value = await listTables()
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudo cargar la mesa.'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  onMounted(load)
+
+  return { table, tableId, loading, error, reload: load }
 }

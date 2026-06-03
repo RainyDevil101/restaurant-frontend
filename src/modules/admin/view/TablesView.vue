@@ -1,12 +1,81 @@
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { useAdminTables } from '../composables/useAdminTables'
+import ModalDialog from '../components/ModalDialog.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import { ApiRequestError } from '@/shared/api/client'
 
-const { tables, search } = useAdminTables()
+const { tables, areas, search, loading, error, createTable, updateTable, removeTable } =
+  useAdminTables()
 
 const STATUS_MAP: Record<string, { color: string; label: string }> = {
   libre: { color: '#059669', label: 'Libre' },
   ocupada: { color: '#1D4ED8', label: 'Ocupada' },
   por_cobrar: { color: '#D97706', label: 'Por cobrar' },
+}
+
+const dialogOpen = ref(false)
+const editingId = ref<string | null>(null)
+const saving = ref(false)
+const formError = ref('')
+const form = reactive({ name: '', capacity: 2, areaId: '' })
+
+function openCreate() {
+  editingId.value = null
+  form.name = ''
+  form.capacity = 2
+  form.areaId = areas.value[0]?.id ?? ''
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+function openEdit(table: { id: string; name: string; capacity: number; areaId: string }) {
+  editingId.value = table.id
+  form.name = table.name
+  form.capacity = table.capacity
+  form.areaId = table.areaId
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+async function save() {
+  saving.value = true
+  formError.value = ''
+  const payload = { name: form.name, capacity: form.capacity, areaId: form.areaId }
+  try {
+    if (editingId.value) await updateTable(editingId.value, payload)
+    else await createTable(payload)
+    dialogOpen.value = false
+  } catch (err) {
+    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmOpen = ref(false)
+const deletingId = ref<string | null>(null)
+const deleting = ref(false)
+const deleteError = ref('')
+
+function openDelete(id: string) {
+  deletingId.value = id
+  deleteError.value = ''
+  confirmOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!deletingId.value) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await removeTable(deletingId.value)
+    confirmOpen.value = false
+  } catch (err) {
+    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
+  } finally {
+    deleting.value = false
+  }
 }
 </script>
 
@@ -14,7 +83,7 @@ const STATUS_MAP: Record<string, { color: string; label: string }> = {
   <div class="tables-view">
     <div class="page-header">
       <h1 class="page-title">Mesas</h1>
-      <button class="new-btn">
+      <button class="new-btn" @click="openCreate">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -53,6 +122,7 @@ const STATUS_MAP: Record<string, { color: string; label: string }> = {
           <th>Área</th>
           <th class="col-right">Capacidad</th>
           <th class="col-right">Estado</th>
+          <th class="col-actions">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -70,13 +140,64 @@ const STATUS_MAP: Record<string, { color: string; label: string }> = {
               {{ STATUS_MAP[table.status]?.label ?? table.status }}
             </span>
           </td>
+          <td class="col-actions">
+            <div class="row-actions">
+              <button class="action-btn" @click="openEdit(table)">Editar</button>
+              <button class="action-btn danger" @click="openDelete(table.id)">Eliminar</button>
+            </div>
+          </td>
         </tr>
 
         <tr v-if="tables.length === 0">
-          <td colspan="4" class="empty-row">Sin resultados</td>
+          <td colspan="5" class="empty-row">
+            <span v-if="loading">Cargando…</span>
+            <span v-else-if="error" class="error-text">{{ error }}</span>
+            <span v-else>Sin resultados</span>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <ModalDialog
+      v-if="dialogOpen"
+      :title="editingId ? 'Editar mesa' : 'Nueva mesa'"
+      :saving="saving"
+      :error="formError"
+      @close="dialogOpen = false"
+      @submit="save"
+    >
+      <div class="field">
+        <label class="field-label" for="table-name">Nombre</label>
+        <input id="table-name" v-model="form.name" class="field-input" required />
+      </div>
+      <div class="field">
+        <label class="field-label" for="table-cap">Capacidad</label>
+        <input
+          id="table-cap"
+          v-model.number="form.capacity"
+          class="field-input"
+          type="number"
+          min="1"
+          required
+        />
+      </div>
+      <div class="field">
+        <label class="field-label" for="table-area">Área</label>
+        <select id="table-area" v-model="form.areaId" class="field-input" required>
+          <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
+        </select>
+      </div>
+    </ModalDialog>
+
+    <ConfirmDialog
+      v-if="confirmOpen"
+      title="Eliminar mesa"
+      message="¿Seguro que deseas eliminar esta mesa? Esta acción no se puede deshacer."
+      :saving="deleting"
+      :error="deleteError"
+      @close="confirmOpen = false"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -169,6 +290,12 @@ thead th {
   text-align: right;
 }
 
+.col-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
 .data-row td {
   padding: 14px 12px;
   border-bottom: 1px solid #f3f4f6;
@@ -197,9 +324,71 @@ thead th {
   font-weight: 600;
 }
 
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+}
+
+.action-btn.danger {
+  color: #dc2626;
+}
+
+.action-btn.danger:hover {
+  background: #fee2e2;
+}
+
 .empty-row {
   text-align: center;
   color: #9ca3af;
   padding: 2.5rem 0;
+}
+
+.error-text {
+  color: #dc2626;
+}
+
+/* Form fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #111827;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  background: white;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary);
 }
 </style>

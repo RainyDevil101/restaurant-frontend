@@ -1,9 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { ROLE_GROUPS } from '@/modules/auth/constants'
+import { Route } from '@/shared/types'
 
 export const adminRoutes: RouteRecordRaw[] = [
   {
-    path: '/admin',
+    path: Route.ADMIN,
     component: () => import('../layout/AdminLayout.vue'),
     meta: { roles: ROLE_GROUPS.ADMIN },
     children: [

@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
+import { Route } from '@/shared/types'
 
 const router = useRouter()
 const auth = useAuthStore()
 
 const navItems = [
-  { label: 'Productos',   to: '/admin/products'    },
-  { label: 'Categorías',  to: '/admin/categories'  },
-  { label: 'Menús',       to: '/admin/menus'       },
-  { label: 'Áreas',       to: '/admin/areas'       },
-  { label: 'Mesas',       to: '/admin/tables'      },
-  { label: 'Usuarios',    to: '/admin/users'       },
+  { label: 'Productos',   to: Route.ADMIN_PRODUCTS   },
+  { label: 'Categorías',  to: Route.ADMIN_CATEGORIES },
+  { label: 'Menús',       to: Route.ADMIN_MENUS      },
+  { label: 'Áreas',       to: Route.ADMIN_AREAS      },
+  { label: 'Mesas',       to: Route.ADMIN_TABLES     },
+  { label: 'Usuarios',    to: Route.ADMIN_USERS      },
 ]
 </script>
 
@@ -34,8 +35,8 @@ const navItems = [
       </nav>
 
       <div class="sidebar-bottom">
-        <button class="mode-btn" @click="router.push('/service')">Tomar pedido</button>
-        <button class="mode-btn" @click="router.push('/checkout')">Ir a caja</button>
+        <button class="mode-btn" @click="router.push(Route.SERVICE)">Tomar pedido</button>
+        <button class="mode-btn" @click="router.push(Route.CHECKOUT)">Ir a caja</button>
         <div class="user-row">
           <svg
             xmlns="http://www.w3.org/2000/svg"

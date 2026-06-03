@@ -1,16 +1,118 @@
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { useProducts } from '../composables/useProducts'
 import { areaLabel } from '../helpers/areaLabel'
 import { formatCurrency } from '../helpers/formatCurrency'
+import ModalDialog from '../components/ModalDialog.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import { ApiRequestError } from '@/shared/api/client'
 
-const { products, search } = useProducts()
+const {
+  products,
+  categories,
+  search,
+  loading,
+  error,
+  createProduct,
+  updateProduct,
+  removeProduct,
+  toggleAvailability,
+} = useProducts()
+
+const actionError = ref('')
+
+async function toggle(id: string) {
+  actionError.value = ''
+  try {
+    await toggleAvailability(id)
+  } catch (err) {
+    actionError.value = err instanceof ApiRequestError ? err.message : 'No se pudo actualizar.'
+  }
+}
+
+const dialogOpen = ref(false)
+const editingId = ref<string | null>(null)
+const saving = ref(false)
+const formError = ref('')
+const form = reactive({ name: '', description: '', price: 0, categoryId: '' })
+
+function openCreate() {
+  editingId.value = null
+  form.name = ''
+  form.description = ''
+  form.price = 0
+  form.categoryId = categories.value[0]?.id ?? ''
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+function openEdit(product: {
+  id: string
+  name: string
+  description?: string
+  price: number
+  categoryId: string
+}) {
+  editingId.value = product.id
+  form.name = product.name
+  form.description = product.description ?? ''
+  form.price = product.price
+  form.categoryId = product.categoryId
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+async function save() {
+  saving.value = true
+  formError.value = ''
+  const payload = {
+    name: form.name,
+    description: form.description.trim() || undefined,
+    price: form.price,
+    categoryId: form.categoryId,
+  }
+  try {
+    if (editingId.value) await updateProduct(editingId.value, payload)
+    else await createProduct(payload)
+    dialogOpen.value = false
+  } catch (err) {
+    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmOpen = ref(false)
+const deletingId = ref<string | null>(null)
+const deleting = ref(false)
+const deleteError = ref('')
+
+function openDelete(id: string) {
+  deletingId.value = id
+  deleteError.value = ''
+  confirmOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!deletingId.value) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await removeProduct(deletingId.value)
+    confirmOpen.value = false
+  } catch (err) {
+    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
+  } finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="products-view">
     <div class="page-header">
       <h1 class="page-title">Productos</h1>
-      <button class="new-btn">
+      <button class="new-btn" @click="openCreate">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -42,6 +144,8 @@ const { products, search } = useProducts()
       <input v-model="search" class="search-input" placeholder="Buscar producto..." />
     </div>
 
+    <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
+
     <table class="data-table">
       <thead>
         <tr>
@@ -50,6 +154,7 @@ const { products, search } = useProducts()
           <th>Área</th>
           <th class="col-right">Precio</th>
           <th class="col-right">Estado</th>
+          <th class="col-actions">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -71,17 +176,78 @@ const { products, search } = useProducts()
           </td>
           <td class="col-right">{{ formatCurrency(product.price) }}</td>
           <td class="col-right">
-            <span :class="product.available ? 'status-available' : 'status-unavailable'">
+            <button
+              type="button"
+              class="status-toggle"
+              :class="product.available ? 'status-available' : 'status-unavailable'"
+              @click="toggle(product.id)"
+            >
               {{ product.available ? 'Disponible' : 'Agotado' }}
-            </span>
+            </button>
+          </td>
+          <td class="col-actions">
+            <div class="row-actions">
+              <button class="action-btn" @click="openEdit(product)">Editar</button>
+              <button class="action-btn danger" @click="openDelete(product.id)">Eliminar</button>
+            </div>
           </td>
         </tr>
 
         <tr v-if="products.length === 0">
-          <td colspan="5" class="empty-row">Sin resultados</td>
+          <td colspan="6" class="empty-row">
+            <span v-if="loading">Cargando…</span>
+            <span v-else-if="error" class="error-text">{{ error }}</span>
+            <span v-else>Sin resultados</span>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <ModalDialog
+      v-if="dialogOpen"
+      :title="editingId ? 'Editar producto' : 'Nuevo producto'"
+      :saving="saving"
+      :error="formError"
+      @close="dialogOpen = false"
+      @submit="save"
+    >
+      <div class="field">
+        <label class="field-label" for="prod-name">Nombre</label>
+        <input id="prod-name" v-model="form.name" class="field-input" required />
+      </div>
+      <div class="field">
+        <label class="field-label" for="prod-desc">Descripción</label>
+        <input id="prod-desc" v-model="form.description" class="field-input" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="prod-price">Precio</label>
+        <input
+          id="prod-price"
+          v-model.number="form.price"
+          class="field-input"
+          type="number"
+          min="0"
+          step="0.01"
+          required
+        />
+      </div>
+      <div class="field">
+        <label class="field-label" for="prod-cat">Categoría</label>
+        <select id="prod-cat" v-model="form.categoryId" class="field-input" required>
+          <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+    </ModalDialog>
+
+    <ConfirmDialog
+      v-if="confirmOpen"
+      title="Eliminar producto"
+      message="¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer."
+      :saving="deleting"
+      :error="deleteError"
+      @close="confirmOpen = false"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -153,6 +319,11 @@ const { products, search } = useProducts()
   color: #9ca3af;
 }
 
+.action-error {
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
 /* Table */
 .data-table {
   width: 100%;
@@ -172,6 +343,12 @@ thead th {
 
 .col-right {
   text-align: right;
+}
+
+.col-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
 }
 
 .data-row td {
@@ -206,18 +383,88 @@ thead th {
   border-radius: 20px;
 }
 
+.status-toggle {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
 .status-available {
   color: #059669;
-  font-weight: 600;
 }
 
 .status-unavailable {
   color: #9ca3af;
 }
 
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+}
+
+.action-btn.danger {
+  color: #dc2626;
+}
+
+.action-btn.danger:hover {
+  background: #fee2e2;
+}
+
 .empty-row {
   text-align: center;
   color: #9ca3af;
   padding: 2.5rem 0;
+}
+
+.error-text {
+  color: #dc2626;
+}
+
+/* Form fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #111827;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  background: white;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary);
 }
 </style>

@@ -1,5 +1,10 @@
-import { ref, computed } from 'vue'
-import type { Product } from '@/shared/types'
+import { ref, computed, onMounted } from 'vue'
+import { listProducts, listCategories, listMenus } from '@/shared/api/catalog'
+import { createOrder } from '@/shared/api/orders'
+import { updateTableStatus, listTables } from '@/shared/api/venue'
+import { ApiRequestError } from '@/shared/api/client'
+import { TABLE_STATUS } from '@/shared/types'
+import type { Product, Category } from '@/shared/types'
 
 interface OrderEntry {
   product: Product
@@ -8,6 +13,35 @@ interface OrderEntry {
 
 export function useOrder() {
   const entries = ref<OrderEntry[]>([])
+  const products = ref<Product[]>([])
+  const categories = ref<Category[]>([])
+  const menuProductIds = ref<string[]>([])
+  const loading = ref(false)
+  const error = ref('')
+  const submitting = ref(false)
+
+  async function load() {
+    loading.value = true
+    error.value = ''
+    try {
+      const [prods, cats, menus] = await Promise.all([
+        listProducts(),
+        listCategories(),
+        listMenus(),
+      ])
+      products.value = prods
+      categories.value = cats
+      const activeMenu = menus.find((m) => m.active)
+      menuProductIds.value = activeMenu ? activeMenu.productIds : []
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudo cargar el menú.'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  onMounted(load)
 
   const totalItems = computed(() => entries.value.reduce((sum, e) => sum + e.quantity, 0))
 
@@ -44,5 +78,44 @@ export function useOrder() {
     entries.value = []
   }
 
-  return { entries, totalItems, total, getQuantity, add, remove, clear }
+  async function submit(tableId: string) {
+    if (entries.value.length === 0) return
+    submitting.value = true
+    error.value = ''
+    try {
+      await createOrder({
+        tableId,
+        items: entries.value.map((e) => ({ productId: e.product.id, quantity: e.quantity })),
+      })
+      const tables = await listTables()
+      const table = tables.find((t) => t.id === tableId)
+      if (table && table.status === TABLE_STATUS.FREE) {
+        await updateTableStatus(tableId, TABLE_STATUS.OCCUPIED)
+      }
+      clear()
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudo enviar el pedido.'
+      throw err
+    } finally {
+      submitting.value = false
+    }
+  }
+
+  return {
+    entries,
+    products,
+    categories,
+    menuProductIds,
+    loading,
+    error,
+    submitting,
+    totalItems,
+    total,
+    getQuantity,
+    add,
+    remove,
+    clear,
+    submit,
+  }
 }

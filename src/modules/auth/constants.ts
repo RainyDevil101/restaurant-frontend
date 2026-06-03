@@ -1,13 +1,9 @@
-import type { Role } from './store'
+import { Role } from '@/shared/types'
 
-export const ROLES = {
-  WAITER: 'M' as Role,
-  CASHIER: 'C' as Role,
-  ADMIN: 'A' as Role,
-} as const
+export { Role }
 
 export const ROLE_GROUPS = {
-  SERVICE: [ROLES.WAITER, ROLES.ADMIN] satisfies Role[],
-  CHECKOUT: [ROLES.CASHIER, ROLES.ADMIN] satisfies Role[],
-  ADMIN: [ROLES.ADMIN] satisfies Role[],
+  SERVICE: [Role.MESERO, Role.ADMIN] as Role[],
+  CHECKOUT: [Role.CAJERO, Role.ADMIN] as Role[],
+  ADMIN: [Role.ADMIN] as Role[],
 } as const

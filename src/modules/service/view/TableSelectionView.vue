@@ -2,7 +2,7 @@
 import { useTables } from '../composables/useTables'
 import TableCard from '../components/TableCard.vue'
 
-const { tables } = useTables()
+const { tables, loading, error } = useTables()
 </script>
 
 <template>
@@ -24,7 +24,10 @@ const { tables } = useTables()
       </div>
     </div>
 
-    <div class="table-grid">
+    <p v-if="loading" class="state-msg">Cargando…</p>
+    <p v-else-if="error" class="state-msg">{{ error }}</p>
+    <p v-else-if="tables.length === 0" class="state-msg">No hay mesas registradas.</p>
+    <div v-else class="table-grid">
       <TableCard v-for="table in tables" :key="table.id" :table="table" />
     </div>
   </div>
@@ -73,5 +76,12 @@ const { tables } = useTables()
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+}
+
+.state-msg {
+  padding: 2rem 0;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.95rem;
 }
 </style>

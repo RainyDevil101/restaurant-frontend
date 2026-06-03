@@ -1,6 +1,12 @@
-import { ref, computed } from 'vue'
-import { mockTables, mockOrders } from '@/shared/mocks'
-import type { Table } from '@/shared/types'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import type { Socket } from 'socket.io-client'
+import { listTables } from '@/shared/api/venue'
+import { listProducts } from '@/shared/api/catalog'
+import { listOrders, type ApiOrder } from '@/shared/api/orders'
+import { connectOrdersSocket } from '@/shared/api/socket'
+import { ApiRequestError } from '@/shared/api/client'
+import { ORDER_STATUS, TABLE_STATUS } from '@/shared/types'
+import type { Table, Product } from '@/shared/types'
 
 export interface TableSummary {
   table: Table
@@ -17,19 +23,87 @@ export interface BillLine {
   subtotal: number
 }
 
+const SOCKET_EVENT = {
+  JOIN_CHECKOUT: 'joinCheckout',
+  ORDER_CREATED: 'orderCreated',
+  ORDER_STATUS_CHANGED: 'orderStatusChanged',
+} as const
+
 export function useCheckoutDashboard() {
   const selectedTableId = ref<string | null>(null)
+  const tables = ref<Table[]>([])
+  const orders = ref<ApiOrder[]>([])
+  const products = ref<Product[]>([])
+  const loading = ref(false)
+  const error = ref('')
+
+  let socket: Socket | null = null
+
+  const billableOrders = computed(() =>
+    orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED),
+  )
+
+  function categoryIdFor(productId: string): string {
+    return products.value.find((p) => p.id === productId)?.categoryId ?? ''
+  }
+
+  async function load() {
+    loading.value = true
+    error.value = ''
+    try {
+      const [tableList, orderList, productList] = await Promise.all([
+        listTables(),
+        listOrders(),
+        listProducts(),
+      ])
+      tables.value = tableList
+      orders.value = orderList
+      products.value = productList
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudo cargar el tablero.'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  function upsertOrder(incoming: ApiOrder) {
+    const idx = orders.value.findIndex((o) => o.id === incoming.id)
+    if (idx === -1) {
+      orders.value = [...orders.value, incoming]
+    } else {
+      orders.value = orders.value.map((o) => (o.id === incoming.id ? incoming : o))
+    }
+  }
+
+  onMounted(async () => {
+    await load()
+    socket = connectOrdersSocket()
+    socket.emit(SOCKET_EVENT.JOIN_CHECKOUT)
+    socket.on(SOCKET_EVENT.ORDER_CREATED, (order: ApiOrder) => {
+      upsertOrder(order)
+    })
+    socket.on(SOCKET_EVENT.ORDER_STATUS_CHANGED, (order: ApiOrder) => {
+      upsertOrder(order)
+    })
+  })
+
+  onUnmounted(() => {
+    if (socket) {
+      socket.off(SOCKET_EVENT.ORDER_CREATED)
+      socket.off(SOCKET_EVENT.ORDER_STATUS_CHANGED)
+      socket.disconnect()
+      socket = null
+    }
+  })
 
   const activeTables = computed((): TableSummary[] =>
-    mockTables
-      .filter((t) => t.status !== 'libre')
+    tables.value
+      .filter((t) => t.status !== TABLE_STATUS.FREE)
       .map((table) => {
-        const orders = mockOrders.filter((o) => o.tableId === table.id)
-        const total = orders.reduce(
-          (sum, o) => sum + o.items.reduce((s, i) => s + i.product.price * i.quantity, 0),
-          0,
-        )
-        const hasNewOrder = orders.some((o) => o.status === 'pendiente')
+        const tableOrders = billableOrders.value.filter((o) => o.tableId === table.id)
+        const total = tableOrders.reduce((sum, o) => sum + o.total, 0)
+        const hasNewOrder = tableOrders.some((o) => o.status === ORDER_STATUS.PENDING)
         return { table, total, hasNewOrder }
       }),
   )
@@ -40,23 +114,23 @@ export function useCheckoutDashboard() {
 
   const billLines = computed((): BillLine[] => {
     if (!selectedTableId.value) return []
-    const orders = mockOrders.filter((o) => o.tableId === selectedTableId.value)
+    const tableOrders = billableOrders.value.filter((o) => o.tableId === selectedTableId.value)
     const map = new Map<string, BillLine>()
 
-    for (const order of orders) {
+    for (const order of tableOrders) {
       for (const item of order.items) {
-        const existing = map.get(item.product.id)
+        const existing = map.get(item.productId)
         if (existing) {
           existing.quantity += item.quantity
-          existing.subtotal += item.product.price * item.quantity
+          existing.subtotal += item.subtotal
         } else {
-          map.set(item.product.id, {
-            productId: item.product.id,
-            productName: item.product.name,
-            categoryId: item.product.categoryId,
+          map.set(item.productId, {
+            productId: item.productId,
+            productName: item.productName,
+            categoryId: categoryIdFor(item.productId),
             quantity: item.quantity,
-            unitPrice: item.product.price,
-            subtotal: item.product.price * item.quantity,
+            unitPrice: item.unitPrice,
+            subtotal: item.subtotal,
           })
         }
       }
@@ -67,5 +141,14 @@ export function useCheckoutDashboard() {
 
   const billTotal = computed(() => billLines.value.reduce((sum, l) => sum + l.subtotal, 0))
 
-  return { activeTables, selectedTableId, selectedSummary, billLines, billTotal }
+  return {
+    activeTables,
+    selectedTableId,
+    selectedSummary,
+    billLines,
+    billTotal,
+    loading,
+    error,
+    reload: load,
+  }
 }

@@ -2,9 +2,9 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
+import { Route } from '@/shared/types'
 import { useCurrentTable } from '../composables/useCurrentTable'
 import { useOrder } from '../composables/useOrder'
-import { mockCategories, mockProducts, mockMenu } from '@/shared/mocks'
 import CategoryTabs from '../components/CategoryTabs.vue'
 import ProductRow from '../components/ProductRow.vue'
 import OrderItemRow from '../components/OrderItemRow.vue'
@@ -12,8 +12,20 @@ import ConfirmRemoveDialog from '../components/ConfirmRemoveDialog.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { table } = useCurrentTable()
-const { entries, totalItems, add, remove, clear } = useOrder()
+const { table, tableId } = useCurrentTable()
+const {
+  entries,
+  products,
+  categories,
+  menuProductIds,
+  loading,
+  error,
+  submitting,
+  totalItems,
+  add,
+  remove,
+  submit,
+} = useOrder()
 
 const searchQuery = ref('')
 const selectedCategoryId = ref<string | null>(null)
@@ -42,11 +54,11 @@ function cancelRemove() {
   pendingRemoveId.value = null
 }
 
-const menuProductSet = new Set(mockMenu.productIds)
+const menuProductSet = computed(() => new Set(menuProductIds.value))
 
 const filteredProducts = computed(() =>
-  mockProducts.filter((p) => {
-    if (!menuProductSet.has(p.id)) return false
+  products.value.filter((p) => {
+    if (!menuProductSet.value.has(p.id)) return false
     if (selectedCategoryId.value !== null && p.categoryId !== selectedCategoryId.value) return false
     const q = searchQuery.value.trim().toLowerCase()
     if (q && !p.name.toLowerCase().includes(q) && !p.description?.toLowerCase().includes(q))
@@ -56,12 +68,16 @@ const filteredProducts = computed(() =>
 )
 
 function goBack() {
-  router.push('/service')
+  router.push(Route.SERVICE)
 }
 
-function handleSubmit() {
-  clear()
-  router.push('/service')
+async function handleSubmit() {
+  try {
+    await submit(tableId.value)
+    router.push(Route.SERVICE)
+  } catch {
+    // error surfaced via the composable's error ref
+  }
 }
 </script>
 
@@ -129,19 +145,23 @@ function handleSubmit() {
       </div>
 
       <!-- Category chips — wrapping -->
-      <CategoryTabs v-model="selectedCategoryId" :categories="mockCategories" />
+      <CategoryTabs v-model="selectedCategoryId" :categories="categories" />
 
       <hr class="divider" />
 
       <!-- Browse product list -->
       <div class="product-list">
-        <ProductRow
-          v-for="product in filteredProducts"
-          :key="product.id"
-          :product="product"
-          @add="add(product)"
-        />
-        <p v-if="filteredProducts.length === 0" class="empty-msg">Sin resultados.</p>
+        <p v-if="loading" class="empty-msg">Cargando…</p>
+        <p v-else-if="error" class="empty-msg">{{ error }}</p>
+        <template v-else>
+          <ProductRow
+            v-for="product in filteredProducts"
+            :key="product.id"
+            :product="product"
+            @add="add(product)"
+          />
+          <p v-if="filteredProducts.length === 0" class="empty-msg">Sin resultados.</p>
+        </template>
       </div>
 
       <!-- Current order section -->
@@ -188,7 +208,11 @@ function handleSubmit() {
 
     <!-- Bottom action -->
     <div class="bottom-bar">
-      <button class="submit-btn" :disabled="entries.length === 0" @click="handleSubmit">
+      <button
+        class="submit-btn"
+        :disabled="entries.length === 0 || submitting"
+        @click="handleSubmit"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -199,7 +223,7 @@ function handleSubmit() {
         >
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
         </svg>
-        Enviar a caja
+        {{ submitting ? 'Enviando…' : 'Enviar a caja' }}
       </button>
     </div>
   </div>

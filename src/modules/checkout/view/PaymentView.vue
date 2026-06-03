@@ -1,20 +1,37 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { Route } from '@/shared/types'
 import { usePayment } from '../composables/usePayment'
 import { formatCurrency } from '../helpers/formatCurrency'
 import { areaLabel } from '../helpers/areaLabel'
 import { PAYMENT_METHOD } from '@/shared/types'
 
 const router = useRouter()
-const { table, billLines, billTotal, method, cashReceived, change, canConfirm } = usePayment()
+const {
+  table,
+  billLines,
+  billTotal,
+  method,
+  cashReceived,
+  change,
+  canConfirm,
+  loading,
+  error,
+  processing,
+  confirmPayment,
+} = usePayment()
 
 function goBack() {
-  router.push('/checkout')
+  router.push(Route.CHECKOUT)
 }
 
-function confirmPayment() {
-  // TODO: call API to register payment and close table
-  router.push('/checkout')
+async function handleConfirm() {
+  try {
+    await confirmPayment()
+    router.push(Route.CHECKOUT)
+  } catch {
+    // error surfaced via the composable's error ref
+  }
 }
 </script>
 
@@ -157,8 +174,14 @@ function confirmPayment() {
           </div>
         </template>
 
-        <button class="confirm-btn" :disabled="!canConfirm" @click="confirmPayment">
-          Confirmar pago · {{ formatCurrency(billTotal) }}
+        <p v-if="error" class="error-msg">{{ error }}</p>
+
+        <button
+          class="confirm-btn"
+          :disabled="!canConfirm || processing || loading"
+          @click="handleConfirm"
+        >
+          {{ processing ? 'Procesando…' : `Confirmar pago · ${formatCurrency(billTotal)}` }}
         </button>
       </div>
     </div>
@@ -439,5 +462,11 @@ function confirmPayment() {
 .confirm-btn:disabled {
   background: #c8d8d6;
   cursor: not-allowed;
+}
+
+.error-msg {
+  font-size: 0.875rem;
+  color: #991b1b;
+  text-align: center;
 }
 </style>

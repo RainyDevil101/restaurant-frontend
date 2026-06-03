@@ -7,8 +7,9 @@
 
 <style>
 :root {
-  --color-primary: #0d9488;
-  --color-primary-dark: #0f766e;
+  --color-primary: #0D9488;
+  --color-primary-dark: #0F766E;
+  --color-primary-soft: #CCFBF1;
 }
 
 *,

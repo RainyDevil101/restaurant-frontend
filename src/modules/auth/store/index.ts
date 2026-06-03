@@ -1,7 +1,9 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { loadSession, saveSession, clearSession } from '@/shared/session'
+import { Role, Route } from '@/shared/types'
 
-export type Role = 'M' | 'C' | 'A'
+export { Role }
 
 export interface User {
   id: string
@@ -12,30 +14,36 @@ export interface User {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
+  const persisted = loadSession()
+  const user = ref<User | null>(persisted?.user ?? null)
+  const token = ref<string | null>(persisted?.token ?? null)
 
   const isLoggedIn = computed(() => user.value !== null)
 
   const roleHome = computed((): string => {
     switch (user.value?.role) {
-      case 'M':
-        return '/service'
-      case 'C':
-        return '/checkout'
-      case 'A':
-        return '/admin'
+      case Role.MESERO:
+        return Route.SERVICE
+      case Role.CAJERO:
+        return Route.CHECKOUT
+      case Role.ADMIN:
+        return Route.ADMIN
       default:
-        return '/'
+        return Route.LOGIN
     }
   })
 
-  function login(newUser: User) {
+  function login(newUser: User, newToken: string) {
     user.value = newUser
+    token.value = newToken
+    saveSession({ token: newToken, user: newUser })
   }
 
   function logout() {
     user.value = null
+    token.value = null
+    clearSession()
   }
 
-  return { user, isLoggedIn, roleHome, login, logout }
+  return { user, token, isLoggedIn, roleHome, login, logout }
 })

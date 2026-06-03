@@ -1,4 +1,5 @@
-import type { Role } from '@/modules/auth/store'
+import { Role } from '@/shared/types'
+import { colors } from '@/shared/styles/colors'
 
 interface RoleBadge {
   label: string
@@ -7,9 +8,9 @@ interface RoleBadge {
 }
 
 const ROLE_BADGES: Record<Role, RoleBadge> = {
-  M: { label: 'Servicio',       bg: '#DBEAFE', color: '#1D4ED8' },
-  C: { label: 'Caja',           bg: '#EDE9FE', color: '#6D28D9' },
-  A: { label: 'Administración', bg: '#F3F4F6', color: '#374151' },
+  [Role.MESERO]: { label: 'Servicio',       bg: colors.table.occupied.bg,       color: colors.table.occupied.text       },
+  [Role.CAJERO]: { label: 'Caja',           bg: colors.area.bar.bg,             color: colors.area.bar.text             },
+  [Role.ADMIN]:  { label: 'Administración', bg: colors.neutral.surface,         color: colors.neutral.secondary         },
 }
 
 export function roleLabel(role: Role): RoleBadge {

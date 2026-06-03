@@ -1,8 +1,19 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { mockTables, mockOrders } from '@/shared/mocks'
-import type { PaymentMethod } from '@/shared/types'
-import { PAYMENT_METHOD } from '@/shared/types'
+import { listTables, updateTableStatus } from '@/shared/api/venue'
+import { listProducts } from '@/shared/api/catalog'
+import { listOrdersByTable } from '@/shared/api/orders'
+import { consolidateBill, payBill } from '@/shared/api/billing'
+import { ApiRequestError } from '@/shared/api/client'
+import { ORDER_STATUS, PAYMENT_METHOD, TABLE_STATUS } from '@/shared/types'
+import type { PaymentMethod, Table, Product } from '@/shared/types'
+
+interface PaymentBillLine {
+  productName: string
+  categoryId: string
+  quantity: number
+  subtotal: number
+}
 
 export function usePayment() {
   const route = useRoute()
@@ -12,31 +23,62 @@ export function usePayment() {
     return Array.isArray(raw) ? (raw[0] ?? '') : (raw ?? '')
   })
 
-  const table = computed(() => mockTables.find((t) => t.id === tableId.value) ?? null)
+  const table = ref<Table | null>(null)
+  const lines = ref<PaymentBillLine[]>([])
+  const loading = ref(false)
+  const error = ref('')
+  const processing = ref(false)
 
-  const billLines = computed(() => {
-    const orders = mockOrders.filter((o) => o.tableId === tableId.value)
-    const map = new Map<string, { productName: string; categoryId: string; quantity: number; subtotal: number }>()
+  async function load() {
+    loading.value = true
+    error.value = ''
+    try {
+      const [tables, orders, products] = await Promise.all([
+        listTables(),
+        listOrdersByTable(tableId.value),
+        listProducts(),
+      ])
+      table.value = tables.find((t) => t.id === tableId.value) ?? null
+      lines.value = buildLines(orders, products)
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudo cargar la cuenta.'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  function buildLines(
+    orders: { status: string; items: { productId: string; productName: string; quantity: number; subtotal: number }[] }[],
+    products: Product[],
+  ): PaymentBillLine[] {
+    const categoryOf = (productId: string) =>
+      products.find((p) => p.id === productId)?.categoryId ?? ''
+    const map = new Map<string, PaymentBillLine>()
 
     for (const order of orders) {
+      if (order.status !== ORDER_STATUS.DELIVERED) continue
       for (const item of order.items) {
-        const existing = map.get(item.product.id)
+        const existing = map.get(item.productId)
         if (existing) {
           existing.quantity += item.quantity
-          existing.subtotal += item.product.price * item.quantity
+          existing.subtotal += item.subtotal
         } else {
-          map.set(item.product.id, {
-            productName: item.product.name,
-            categoryId: item.product.categoryId,
+          map.set(item.productId, {
+            productName: item.productName,
+            categoryId: categoryOf(item.productId),
             quantity: item.quantity,
-            subtotal: item.product.price * item.quantity,
+            subtotal: item.subtotal,
           })
         }
       }
     }
     return Array.from(map.values())
-  })
+  }
 
+  onMounted(load)
+
+  const billLines = computed(() => lines.value)
   const billTotal = computed(() => billLines.value.reduce((sum, l) => sum + l.subtotal, 0))
 
   const method = ref<PaymentMethod>(PAYMENT_METHOD.CASH)
@@ -48,9 +90,44 @@ export function usePayment() {
   })
 
   const canConfirm = computed(() => {
+    if (billTotal.value <= 0) return false
     if (method.value === PAYMENT_METHOD.CARD) return true
     return cashReceived.value !== null && cashReceived.value >= billTotal.value
   })
 
-  return { table, billLines, billTotal, method, cashReceived, change, canConfirm }
+  async function confirmPayment() {
+    processing.value = true
+    error.value = ''
+    try {
+      if (table.value && table.value.status === TABLE_STATUS.OCCUPIED) {
+        table.value = await updateTableStatus(tableId.value, TABLE_STATUS.PENDING_PAYMENT)
+      }
+      await consolidateBill(tableId.value)
+      const amount =
+        method.value === PAYMENT_METHOD.CASH && cashReceived.value !== null
+          ? cashReceived.value
+          : billTotal.value
+      await payBill(tableId.value, { method: method.value, amount })
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudo registrar el pago.'
+      throw err
+    } finally {
+      processing.value = false
+    }
+  }
+
+  return {
+    table,
+    billLines,
+    billTotal,
+    method,
+    cashReceived,
+    change,
+    canConfirm,
+    loading,
+    error,
+    processing,
+    confirmPayment,
+  }
 }

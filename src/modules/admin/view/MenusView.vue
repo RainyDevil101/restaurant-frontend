@@ -1,14 +1,101 @@
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { useMenus } from '../composables/useMenus'
+import ModalDialog from '../components/ModalDialog.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import { ApiRequestError } from '@/shared/api/client'
 
-const { menus, search } = useMenus()
+const {
+  menus,
+  products,
+  search,
+  loading,
+  error,
+  createMenu,
+  updateMenu,
+  removeMenu,
+  toggleActive,
+} = useMenus()
+
+const actionError = ref('')
+
+async function toggle(id: string) {
+  actionError.value = ''
+  try {
+    await toggleActive(id)
+  } catch (err) {
+    actionError.value = err instanceof ApiRequestError ? err.message : 'No se pudo actualizar.'
+  }
+}
+
+const dialogOpen = ref(false)
+const editingId = ref<string | null>(null)
+const saving = ref(false)
+const formError = ref('')
+const form = reactive<{ name: string; productIds: string[] }>({ name: '', productIds: [] })
+
+function openCreate() {
+  editingId.value = null
+  form.name = ''
+  form.productIds = []
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+function openEdit(menu: { id: string; name: string; productIds: string[] }) {
+  editingId.value = menu.id
+  form.name = menu.name
+  form.productIds = [...menu.productIds]
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+async function save() {
+  saving.value = true
+  formError.value = ''
+  const payload = { name: form.name, productIds: form.productIds }
+  try {
+    if (editingId.value) await updateMenu(editingId.value, payload)
+    else await createMenu(payload)
+    dialogOpen.value = false
+  } catch (err) {
+    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmOpen = ref(false)
+const deletingId = ref<string | null>(null)
+const deleting = ref(false)
+const deleteError = ref('')
+
+function openDelete(id: string) {
+  deletingId.value = id
+  deleteError.value = ''
+  confirmOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!deletingId.value) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await removeMenu(deletingId.value)
+    confirmOpen.value = false
+  } catch (err) {
+    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
+  } finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="menus-view">
     <div class="page-header">
       <h1 class="page-title">Menús</h1>
-      <button class="new-btn">
+      <button class="new-btn" @click="openCreate">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -40,12 +127,15 @@ const { menus, search } = useMenus()
       <input v-model="search" class="search-input" placeholder="Buscar menú..." />
     </div>
 
+    <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
+
     <table class="data-table">
       <thead>
         <tr>
           <th>Nombre</th>
           <th class="col-right">Productos</th>
           <th class="col-right">Estado</th>
+          <th class="col-actions">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -55,17 +145,66 @@ const { menus, search } = useMenus()
           </td>
           <td class="col-right">{{ menu.productCount }} productos</td>
           <td class="col-right">
-            <span :class="menu.active ? 'status-active' : 'status-inactive'">
+            <button
+              type="button"
+              class="status-toggle"
+              :class="menu.active ? 'status-active' : 'status-inactive'"
+              @click="toggle(menu.id)"
+            >
               {{ menu.active ? 'Activo' : 'Inactivo' }}
-            </span>
+            </button>
+          </td>
+          <td class="col-actions">
+            <div class="row-actions">
+              <button class="action-btn" @click="openEdit(menu)">Editar</button>
+              <button class="action-btn danger" @click="openDelete(menu.id)">Eliminar</button>
+            </div>
           </td>
         </tr>
 
         <tr v-if="menus.length === 0">
-          <td colspan="3" class="empty-row">Sin resultados</td>
+          <td colspan="4" class="empty-row">
+            <span v-if="loading">Cargando…</span>
+            <span v-else-if="error" class="error-text">{{ error }}</span>
+            <span v-else>Sin resultados</span>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <ModalDialog
+      v-if="dialogOpen"
+      :title="editingId ? 'Editar menú' : 'Nuevo menú'"
+      :saving="saving"
+      :error="formError"
+      @close="dialogOpen = false"
+      @submit="save"
+    >
+      <div class="field">
+        <label class="field-label" for="menu-name">Nombre</label>
+        <input id="menu-name" v-model="form.name" class="field-input" required />
+      </div>
+      <div class="field">
+        <span class="field-label">Productos ({{ form.productIds.length }})</span>
+        <div class="product-picker">
+          <label v-for="p in products" :key="p.id" class="picker-row">
+            <input v-model="form.productIds" type="checkbox" :value="p.id" />
+            <span>{{ p.name }}</span>
+          </label>
+          <p v-if="products.length === 0" class="picker-empty">No hay productos.</p>
+        </div>
+      </div>
+    </ModalDialog>
+
+    <ConfirmDialog
+      v-if="confirmOpen"
+      title="Eliminar menú"
+      message="¿Seguro que deseas eliminar este menú? Esta acción no se puede deshacer."
+      :saving="deleting"
+      :error="deleteError"
+      @close="confirmOpen = false"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -137,6 +276,11 @@ const { menus, search } = useMenus()
   color: #9ca3af;
 }
 
+.action-error {
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
 /* Table */
 .data-table {
   width: 100%;
@@ -156,6 +300,12 @@ thead th {
 
 .col-right {
   text-align: right;
+}
+
+.col-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
 }
 
 .data-row td {
@@ -178,19 +328,121 @@ thead th {
   color: #111827;
 }
 
+.status-toggle {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
 .status-active {
   color: #059669;
-  font-weight: 600;
 }
 
 .status-inactive {
   color: #9ca3af;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
   font-weight: 600;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+}
+
+.action-btn.danger {
+  color: #dc2626;
+}
+
+.action-btn.danger:hover {
+  background: #fee2e2;
 }
 
 .empty-row {
   text-align: center;
   color: #9ca3af;
   padding: 2.5rem 0;
+}
+
+.error-text {
+  color: #dc2626;
+}
+
+/* Form fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #111827;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary);
+}
+
+.product-picker {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+}
+
+.picker-row:last-child {
+  border-bottom: none;
+}
+
+.picker-row:hover {
+  background: #fafafa;
+}
+
+.picker-empty {
+  padding: 1rem 12px;
+  font-size: 0.85rem;
+  color: #9ca3af;
 }
 </style>

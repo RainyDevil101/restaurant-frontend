@@ -6,7 +6,7 @@ import { areaLabel } from '../helpers/areaLabel'
 import { TABLE_STATUS } from '@/shared/types'
 
 const router = useRouter()
-const { activeTables, selectedTableId, selectedSummary, billLines, billTotal } =
+const { activeTables, selectedTableId, selectedSummary, billLines, billTotal, loading, error } =
   useCheckoutDashboard()
 
 function selectTable(id: string) {
@@ -26,7 +26,10 @@ function registerPayment() {
     <aside class="left-panel">
       <h2 class="panel-title">Pedidos activos</h2>
 
-      <ul class="table-list">
+      <p v-if="loading" class="state-msg">Cargando…</p>
+      <p v-else-if="error" class="state-msg">{{ error }}</p>
+      <p v-else-if="activeTables.length === 0" class="state-msg">Sin pedidos activos.</p>
+      <ul v-else class="table-list">
         <li
           v-for="summary in activeTables"
           :key="summary.table.id"
@@ -182,6 +185,12 @@ function registerPayment() {
 .table-list {
   list-style: none;
   flex: 1;
+}
+
+.state-msg {
+  padding: 1.25rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
 }
 
 .table-row {

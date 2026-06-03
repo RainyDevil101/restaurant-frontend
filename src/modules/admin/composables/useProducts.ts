@@ -1,18 +1,80 @@
-import { ref, computed } from 'vue'
-import { mockProducts, mockCategories } from '@/shared/mocks'
+import { ref, computed, onMounted } from 'vue'
+import {
+  listProducts,
+  listCategories,
+  createProduct as apiCreateProduct,
+  updateProduct as apiUpdateProduct,
+  deleteProduct as apiDeleteProduct,
+  toggleProductAvailability as apiToggleAvailability,
+  type ProductInput,
+} from '@/shared/api/catalog'
+import { ApiRequestError } from '@/shared/api/client'
+import type { Category, Product } from '@/shared/types'
 
 export function useProducts() {
   const search = ref('')
+  const items = ref<Product[]>([])
+  const categories = ref<Category[]>([])
+  const loading = ref(false)
+  const error = ref('')
+
+  async function load() {
+    loading.value = true
+    error.value = ''
+    try {
+      const [products, cats] = await Promise.all([listProducts(), listCategories()])
+      items.value = products
+      categories.value = cats
+    } catch (err) {
+      error.value =
+        err instanceof ApiRequestError ? err.message : 'No se pudieron cargar los productos.'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  onMounted(load)
 
   const products = computed(() => {
     const q = search.value.trim().toLowerCase()
-    return mockProducts
+    return items.value
       .map((p) => ({
         ...p,
-        categoryName: mockCategories.find((c) => c.id === p.categoryId)?.name ?? '—',
+        categoryName: categories.value.find((c) => c.id === p.categoryId)?.name ?? '—',
       }))
       .filter((p) => !q || p.name.toLowerCase().includes(q))
   })
 
-  return { products, search }
+  async function createProduct(input: ProductInput) {
+    await apiCreateProduct(input)
+    await load()
+  }
+
+  async function updateProduct(id: string, input: Partial<ProductInput>) {
+    await apiUpdateProduct(id, input)
+    await load()
+  }
+
+  async function removeProduct(id: string) {
+    await apiDeleteProduct(id)
+    await load()
+  }
+
+  async function toggleAvailability(id: string) {
+    await apiToggleAvailability(id)
+    await load()
+  }
+
+  return {
+    products,
+    categories,
+    search,
+    loading,
+    error,
+    reload: load,
+    createProduct,
+    updateProduct,
+    removeProduct,
+    toggleAvailability,
+  }
 }

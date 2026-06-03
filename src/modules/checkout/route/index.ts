@@ -1,9 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { ROLE_GROUPS } from '@/modules/auth/constants'
+import { Route } from '@/shared/types'
 
 export const checkoutRoutes: RouteRecordRaw[] = [
   {
-    path: '/checkout',
+    path: Route.CHECKOUT,
     component: () => import('../layout/CheckoutLayout.vue'),
     meta: { roles: ROLE_GROUPS.CHECKOUT },
     children: [

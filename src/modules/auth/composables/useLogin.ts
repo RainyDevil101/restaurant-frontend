@@ -1,8 +1,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store'
-import { mockUsers, MOCK_CREDENTIALS } from '@/shared/mocks/users'
-import { ROLES } from '../constants'
+import { requestLogin } from '../api'
+import { ApiRequestError } from '@/shared/api/client'
 
 export function useLogin() {
   const router = useRouter()
@@ -14,36 +14,33 @@ export function useLogin() {
   const error = ref('')
   const loading = ref(false)
 
-  const matchedUser = computed(() =>
-    mockUsers.find((u) => u.email === email.value.trim().toLowerCase()) ?? null,
-  )
-
-  // Meseros authenticate with a numeric PIN; admin/cajero with a password
-  const isPin = computed(() => matchedUser.value?.role === ROLES.WAITER)
-  const credentialLabel = computed(() => (isPin.value ? 'PIN' : 'Contraseña'))
+  const credentialLabel = computed(() => 'Contraseña o PIN')
   const inputType = computed(() => (showCredential.value ? 'text' : 'password'))
-  const inputMode = computed(() => (isPin.value ? ('numeric' as const) : undefined))
+  const inputMode = computed(() => undefined)
 
   async function submit() {
     error.value = ''
-    const user = matchedUser.value
 
-    if (!user) {
-      error.value = 'Correo no encontrado.'
-      return
-    }
-
-    // Dev-only plain-text check; production uses bcrypt.compare() for both passwords and PINs
-    if (credential.value !== MOCK_CREDENTIALS[user.email]) {
-      error.value = isPin.value ? 'PIN incorrecto.' : 'Contraseña incorrecta.'
+    const trimmedEmail = email.value.trim().toLowerCase()
+    if (!trimmedEmail || !credential.value) {
+      error.value = 'Ingresa tu correo y credencial.'
       return
     }
 
     loading.value = true
-    await new Promise((r) => setTimeout(r, 350))
-    authStore.login(user)
-    router.push(authStore.roleHome)
-    loading.value = false
+    try {
+      const { accessToken, user } = await requestLogin(trimmedEmail, credential.value)
+      authStore.login(user, accessToken)
+      router.push(authStore.roleHome)
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        error.value = err.statusCode === 401 ? 'Credenciales incorrectas.' : err.message
+      } else {
+        error.value = 'No se pudo conectar con el servidor.'
+      }
+    } finally {
+      loading.value = false
+    }
   }
 
   return {
@@ -53,7 +50,6 @@ export function useLogin() {
     credentialLabel,
     inputType,
     inputMode,
-    isPin,
     error,
     loading,
     submit,

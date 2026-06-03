@@ -1,3 +1,6 @@
+export { Role } from './role'
+export { Route } from './route'
+
 export type { Area, Table, TableStatus } from './table'
 export { TABLE_STATUS } from './table'
 

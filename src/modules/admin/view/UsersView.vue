@@ -1,15 +1,110 @@
 <script setup lang="ts">
+import { ref, reactive } from 'vue'
 import { useUsers } from '../composables/useUsers'
 import { roleLabel } from '../helpers/roleLabel'
+import ModalDialog from '../components/ModalDialog.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+import { ApiRequestError } from '@/shared/api/client'
+import { Role, type User } from '@/modules/auth/store'
 
-const { users, search } = useUsers()
+const { users, search, loading, error, createUser, updateUser, removeUser } = useUsers()
+
+const roleOptions = [Role.MESERO, Role.CAJERO, Role.ADMIN]
+
+const dialogOpen = ref(false)
+const editingId = ref<string | null>(null)
+const saving = ref(false)
+const formError = ref('')
+const form = reactive({
+  name: '',
+  email: '',
+  role: Role.MESERO as Role,
+  credential: '',
+  active: true,
+})
+
+function openCreate() {
+  editingId.value = null
+  form.name = ''
+  form.email = ''
+  form.role = Role.MESERO
+  form.credential = ''
+  form.active = true
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+function openEdit(user: User) {
+  editingId.value = user.id
+  form.name = user.name
+  form.email = user.email
+  form.role = user.role
+  form.credential = ''
+  form.active = user.active
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+async function save() {
+  saving.value = true
+  formError.value = ''
+  try {
+    if (editingId.value) {
+      const input: Parameters<typeof updateUser>[1] = {
+        name: form.name,
+        email: form.email,
+        role: form.role,
+        active: form.active,
+      }
+      if (form.credential) input.credential = form.credential
+      await updateUser(editingId.value, input)
+    } else {
+      await createUser({
+        name: form.name,
+        email: form.email,
+        role: form.role,
+        credential: form.credential,
+      })
+    }
+    dialogOpen.value = false
+  } catch (err) {
+    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
+  } finally {
+    saving.value = false
+  }
+}
+
+const confirmOpen = ref(false)
+const deletingId = ref<string | null>(null)
+const deleting = ref(false)
+const deleteError = ref('')
+
+function openDelete(id: string) {
+  deletingId.value = id
+  deleteError.value = ''
+  confirmOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!deletingId.value) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await removeUser(deletingId.value)
+    confirmOpen.value = false
+  } catch (err) {
+    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
+  } finally {
+    deleting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="users-view">
     <div class="page-header">
       <h1 class="page-title">Usuarios</h1>
-      <button class="new-btn">
+      <button class="new-btn" @click="openCreate">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -48,6 +143,7 @@ const { users, search } = useUsers()
           <th>Correo</th>
           <th>Rol</th>
           <th class="col-right">Estado</th>
+          <th class="col-actions">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -67,13 +163,78 @@ const { users, search } = useUsers()
               {{ user.active ? 'Activo' : 'Inactivo' }}
             </span>
           </td>
+          <td class="col-actions">
+            <div class="row-actions">
+              <button class="action-btn" @click="openEdit(user)">Editar</button>
+              <button class="action-btn danger" @click="openDelete(user.id)">Eliminar</button>
+            </div>
+          </td>
         </tr>
 
         <tr v-if="users.length === 0">
-          <td colspan="4" class="empty-row">Sin resultados</td>
+          <td colspan="5" class="empty-row">
+            <span v-if="loading">Cargando…</span>
+            <span v-else-if="error" class="error-text">{{ error }}</span>
+            <span v-else>Sin resultados</span>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <ModalDialog
+      v-if="dialogOpen"
+      :title="editingId ? 'Editar usuario' : 'Nuevo usuario'"
+      :saving="saving"
+      :error="formError"
+      @close="dialogOpen = false"
+      @submit="save"
+    >
+      <div class="field">
+        <label class="field-label" for="user-name">Nombre</label>
+        <input id="user-name" v-model="form.name" class="field-input" required />
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="user-email">Correo</label>
+        <input id="user-email" v-model="form.email" type="email" class="field-input" required />
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="user-role">Rol</label>
+        <select id="user-role" v-model="form.role" class="field-input">
+          <option v-for="role in roleOptions" :key="role" :value="role">
+            {{ roleLabel(role).label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="user-credential">Contraseña</label>
+        <input
+          id="user-credential"
+          v-model="form.credential"
+          type="password"
+          class="field-input"
+          :required="!editingId"
+          :placeholder="editingId ? 'Dejar en blanco para no cambiar' : ''"
+        />
+      </div>
+
+      <label v-if="editingId" class="check-field">
+        <input v-model="form.active" type="checkbox" />
+        <span>Activo</span>
+      </label>
+    </ModalDialog>
+
+    <ConfirmDialog
+      v-if="confirmOpen"
+      title="Eliminar usuario"
+      message="¿Seguro que deseas eliminar este usuario? Quedará desactivado y no podrá iniciar sesión."
+      :saving="deleting"
+      :error="deleteError"
+      @close="confirmOpen = false"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -164,6 +325,12 @@ thead th {
   text-align: right;
 }
 
+.col-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
 .data-row td {
   padding: 14px 12px;
   border-bottom: 1px solid #f3f4f6;
@@ -205,9 +372,77 @@ thead th {
   color: #9ca3af;
 }
 
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+}
+
+.action-btn.danger {
+  color: #dc2626;
+}
+
+.action-btn.danger:hover {
+  background: #fee2e2;
+}
+
 .empty-row {
   text-align: center;
   color: #9ca3af;
   padding: 2.5rem 0;
+}
+
+.error-text {
+  color: #dc2626;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #111827;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary);
+}
+
+.check-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #374151;
 }
 </style>
