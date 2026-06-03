@@ -1,16 +1,19 @@
-import { mockCategories } from '@/shared/mocks'
+import type { Category } from '@/shared/types'
+import { colors } from '@/shared/styles/colors'
 
-const PALETTE: Record<string, string> = {
-  'cat-1': '#10B981',
-  'cat-2': '#3B82F6',
-  'cat-3': '#F59E0B',
-  'cat-4': '#8B5CF6',
+function hashId(id: string): number {
+  let hash = 0
+  for (let index = 0; index < id.length; index++) {
+    hash = (hash * 31 + id.charCodeAt(index)) | 0
+  }
+  return Math.abs(hash)
 }
 
 export function categoryColor(categoryId: string): string {
-  return PALETTE[categoryId] ?? '#9CA3AF'
+  const { palette, fallback } = colors.category
+  return palette[hashId(categoryId) % palette.length] ?? fallback
 }
 
-export function categoryName(categoryId: string): string {
-  return mockCategories.find((c) => c.id === categoryId)?.name ?? ''
+export function categoryName(categoryId: string, categories: Category[]): string {
+  return categories.find((category) => category.id === categoryId)?.name ?? ''
 }

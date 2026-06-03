@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
+import { Role, Route } from '@/shared/types'
 
+const router = useRouter()
 const auth = useAuthStore()
+const isAdmin = auth.user?.role === Role.ADMIN
 </script>
 
 <template>
@@ -12,6 +16,12 @@ const auth = useAuthStore()
         <span class="brand-section">· Caja</span>
       </div>
       <div class="header-right">
+        <button v-if="isAdmin" class="admin-back-btn" @click="router.push(Route.ADMIN)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+          Admin
+        </button>
         <div class="live-indicator">
           <span class="live-dot" aria-hidden="true" />
           <span>En vivo</span>
@@ -109,6 +119,25 @@ const auth = useAuthStore()
   align-items: center;
   gap: 6px;
   font-size: 0.875rem;
+  color: #374151;
+}
+
+.admin-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  transition: background 0.12s, color 0.12s;
+}
+
+.admin-back-btn:hover {
+  background: #f3f4f6;
   color: #374151;
 }
 

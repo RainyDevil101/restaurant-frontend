@@ -190,6 +190,7 @@ async function handleSubmit() {
             v-for="entry in entries"
             :key="entry.product.id"
             :entry="entry"
+            :categories="categories"
             @add="add(entry.product)"
             @remove="requestRemove(entry.product.id, entry.product.name)"
           />

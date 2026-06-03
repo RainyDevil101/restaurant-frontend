@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Category } from '@/shared/types'
 import { categoryColor, categoryName } from '../helpers/categoryColor'
 
 interface OrderEntry {
@@ -6,7 +7,7 @@ interface OrderEntry {
   quantity: number
 }
 
-defineProps<{ entry: OrderEntry }>()
+defineProps<{ entry: OrderEntry; categories: Category[] }>()
 const emit = defineEmits<{ add: []; remove: [] }>()
 </script>
 
@@ -20,7 +21,7 @@ const emit = defineEmits<{ add: []; remove: [] }>()
           :style="{ background: categoryColor(entry.product.categoryId) }"
           aria-hidden="true"
         />
-        {{ categoryName(entry.product.categoryId) }}
+        {{ categoryName(entry.product.categoryId, categories) }}
       </span>
     </div>
     <div class="qty-control">

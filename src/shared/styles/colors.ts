@@ -29,4 +29,9 @@ export const colors = {
     comedor: { text: '#475569', bg: '#F1F5F9' },
     bar:     { text: '#7E22CE', bg: '#F3E8FF' },
   },
+
+  category: {
+    palette:  ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6'],
+    fallback: '#9CA3AF',
+  },
 } as const

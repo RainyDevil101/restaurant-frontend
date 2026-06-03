@@ -1,13 +1,35 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
+import { Role, Route } from '@/shared/types'
 
+const router = useRouter()
 const auth = useAuthStore()
+const isAdmin = auth.user?.role === Role.ADMIN
 </script>
 
 <template>
   <div class="service-layout">
     <header class="header">
-      <button class="menu-btn" aria-label="Abrir menú">
+      <button
+        v-if="isAdmin"
+        class="menu-btn"
+        aria-label="Volver a administración"
+        @click="router.push(Route.ADMIN)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          width="22"
+          height="22"
+          aria-hidden="true"
+        >
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+        </svg>
+        <span class="back-label">Admin</span>
+      </button>
+      <button v-else class="menu-btn" aria-label="Abrir menú">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -64,14 +86,21 @@ const auth = useAuthStore()
   background: none;
   border: none;
   color: white;
-  padding: 4px;
+  padding: 4px 8px;
   display: flex;
   align-items: center;
+  gap: 4px;
   border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .menu-btn:active {
   background: rgba(255, 255, 255, 0.15);
+}
+
+.back-label {
+  font-size: 0.875rem;
 }
 
 .user-info {

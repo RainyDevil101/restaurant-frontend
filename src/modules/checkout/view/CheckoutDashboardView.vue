@@ -15,7 +15,7 @@ function selectTable(id: string) {
 
 function registerPayment() {
   if (selectedTableId.value) {
-    router.push(`/checkout/table/${selectedTableId.value}/payment`)
+    router.push(`/checkout/table/${selectedTableId.value}`)
   }
 }
 </script>
