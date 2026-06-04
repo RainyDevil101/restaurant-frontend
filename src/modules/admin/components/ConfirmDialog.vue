@@ -14,7 +14,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
 
         <div class="modal-footer">
           <button type="button" class="btn-cancel" @click="emit('close')">Cancelar</button>
-          <button type="button" class="btn-danger" :disabled="saving" @click="emit('confirm')">
+          <button type="button" class="btn-danger" :disabled="saving || Boolean(error)" @click="emit('confirm')">
             {{ saving ? 'Eliminando…' : 'Eliminar' }}
           </button>
         </div>
