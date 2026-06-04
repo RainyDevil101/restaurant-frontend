@@ -67,7 +67,7 @@ describe('createResourceStore ensureLoaded', () => {
   })
 
   it('fetches when empty', async () => {
-    const fetcher = vi.fn(() => Promise.resolve(seed))
+    const fetcher = vi.fn<() => Promise<Item[]>>(() => Promise.resolve(seed))
     const store = createResourceStore<Item>(fetcher)
     await store.ensureLoaded()
     expect(fetcher).toHaveBeenCalledTimes(1)
@@ -75,7 +75,7 @@ describe('createResourceStore ensureLoaded', () => {
   })
 
   it('skips refetch when fresh', async () => {
-    const fetcher = vi.fn(() => Promise.resolve(seed))
+    const fetcher = vi.fn<() => Promise<Item[]>>(() => Promise.resolve(seed))
     const store = createResourceStore<Item>(fetcher)
     await store.ensureLoaded()
     await store.ensureLoaded()
@@ -83,7 +83,7 @@ describe('createResourceStore ensureLoaded', () => {
   })
 
   it('refetches when stale', async () => {
-    const fetcher = vi.fn(() => Promise.resolve(seed))
+    const fetcher = vi.fn<() => Promise<Item[]>>(() => Promise.resolve(seed))
     const store = createResourceStore<Item>(fetcher)
     await store.ensureLoaded()
     vi.advanceTimersByTime(DEFAULT_TTL_MS + 1)
