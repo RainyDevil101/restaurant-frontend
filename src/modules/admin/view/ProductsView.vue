@@ -6,6 +6,7 @@ import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
 import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants'
+import type { Product } from '@/shared/types'
 
 const {
   products,
@@ -75,18 +76,14 @@ async function createCategoryInline() {
   }
 }
 
-function openEdit(product: {
-  id: string
-  name: string
-  description?: string
-  price: number
-  categoryId: string
-}) {
+function openEdit(product: Product) {
   editingId.value = product.id
   form.name = product.name
   form.description = product.description ?? ''
   form.price = product.price
   form.categoryId = product.categoryId
+  inlineCatName.value = ''
+  inlineCatError.value = ''
   formError.value = ''
   dialogOpen.value = true
 }
@@ -432,14 +429,6 @@ thead th {
 
 .col-muted {
   color: #6b7280;
-}
-
-.area-tag {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
 }
 
 .status-toggle {
