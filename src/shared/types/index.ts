@@ -11,5 +11,3 @@ export { ORDER_STATUS } from './order'
 
 export type { Bill, BillItem, Payment, PaymentMethod } from './billing'
 export { PAYMENT_METHOD } from './billing'
-
-export type { DailySalesReport } from './report'

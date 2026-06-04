@@ -15,7 +15,6 @@ export const adminRoutes: RouteRecordRaw[] = [
       { path: 'areas', component: () => import('../view/AreasView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
       { path: 'tables', component: () => import('../view/TablesView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
       { path: 'users', component: () => import('../view/UsersView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
-      { path: 'reports', component: () => import('../view/ReportsView.vue'), meta: { roles: ROLE_GROUPS.ADMIN } },
     ],
   },
 ]

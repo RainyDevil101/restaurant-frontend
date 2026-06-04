@@ -11,5 +11,4 @@ export enum Route {
   ADMIN_AREAS = '/admin/areas',
   ADMIN_TABLES = '/admin/tables',
   ADMIN_USERS = '/admin/users',
-  ADMIN_REPORTS = '/admin/reports',
 }
