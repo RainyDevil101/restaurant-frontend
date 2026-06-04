@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Menu, Product } from '@/shared/types'
+import Badge from '@/shared/components/Badge.vue'
 import { formatCurrency } from '../helpers/formatCurrency'
 
 const props = defineProps<{ menu: Menu; products: Product[] }>()
@@ -16,7 +17,7 @@ const memberNames = props.menu.productIds
     <div class="combo-info">
       <div class="combo-head">
         <span class="combo-name">{{ menu.name }}</span>
-        <span class="combo-badge">Combo</span>
+        <Badge tone="teal" class="combo-badge">Combo</Badge>
       </div>
       <span v-if="memberNames" class="combo-members">{{ memberNames }}</span>
       <span class="combo-price">{{ formatCurrency(menu.price) }}</span>
@@ -67,12 +68,6 @@ const memberNames = props.menu.productIds
 
 .combo-badge {
   flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
-  color: var(--color-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
 }
 
 .combo-members {

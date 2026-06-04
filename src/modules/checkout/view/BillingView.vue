@@ -2,7 +2,25 @@
 import { useRouter } from 'vue-router'
 import { useBilling } from '../composables/useBilling'
 import { formatCurrency } from '../helpers/formatCurrency'
+import Badge from '@/shared/components/Badge.vue'
 import { Route } from '@/shared/types'
+import type { OrderStatus } from '@/shared/types'
+
+const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' | 'red'> = {
+  pendiente: 'amber',
+  en_proceso: 'blue',
+  listo: 'green',
+  entregado: 'gray',
+  cancelado: 'red',
+}
+
+const orderStatusLabel: Record<OrderStatus, string> = {
+  pendiente: 'Pendiente',
+  en_proceso: 'En proceso',
+  listo: 'Listo',
+  entregado: 'Entregado',
+  cancelado: 'Cancelado',
+}
 
 const router = useRouter()
 const {
@@ -41,18 +59,18 @@ function goToPayment() {
       </div>
 
       <div v-if="!loading && orders.length > 0" class="status-chips">
-        <span v-if="ordersByStatus.pending > 0" class="chip chip--pending">
+        <Badge v-if="ordersByStatus.pending > 0" tone="amber">
           {{ ordersByStatus.pending }} pendiente{{ ordersByStatus.pending > 1 ? 's' : '' }}
-        </span>
-        <span v-if="ordersByStatus.inProgress > 0" class="chip chip--progress">
+        </Badge>
+        <Badge v-if="ordersByStatus.inProgress > 0" tone="blue">
           {{ ordersByStatus.inProgress }} en proceso
-        </span>
-        <span v-if="ordersByStatus.ready > 0" class="chip chip--ready">
+        </Badge>
+        <Badge v-if="ordersByStatus.ready > 0" tone="green">
           {{ ordersByStatus.ready }} listo{{ ordersByStatus.ready > 1 ? 's' : '' }}
-        </span>
-        <span v-if="ordersByStatus.delivered > 0" class="chip chip--delivered">
+        </Badge>
+        <Badge v-if="ordersByStatus.delivered > 0" tone="gray">
           {{ ordersByStatus.delivered }} entregado{{ ordersByStatus.delivered > 1 ? 's' : '' }}
-        </span>
+        </Badge>
       </div>
     </div>
 
@@ -78,15 +96,9 @@ function goToPayment() {
           <li v-for="order in orders" :key="order.id" class="order-card">
             <div class="order-header">
               <span class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</span>
-              <span class="order-badge" :class="`badge--${order.status}`">
-                {{ {
-                  pendiente: 'Pendiente',
-                  en_proceso: 'En proceso',
-                  listo: 'Listo',
-                  entregado: 'Entregado',
-                  cancelado: 'Cancelado',
-                }[order.status] }}
-              </span>
+              <Badge :tone="orderStatusTone[order.status]">
+                {{ orderStatusLabel[order.status] }}
+              </Badge>
             </div>
             <ul class="order-items">
               <li v-for="item in order.items" :key="item.itemId" class="order-item">
@@ -116,7 +128,7 @@ function goToPayment() {
             <div v-for="line in billLines" :key="line.productId" class="bill-line">
               <div class="line-left">
                 <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-                <span v-if="line.kind === 'combo'" class="combo-badge">Combo</span>
+                <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
               </div>
               <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
             </div>
@@ -209,18 +221,6 @@ function goToPayment() {
   margin-left: auto;
 }
 
-.chip {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-}
-
-.chip--pending  { background: #fef3cd; color: #92690a; }
-.chip--progress { background: #dbeafe; color: #1e40af; }
-.chip--ready    { background: #dcfce7; color: #166534; }
-.chip--delivered { background: #f3f4f6; color: #374151; }
-
 /* States */
 .state-block {
   flex: 1;
@@ -312,19 +312,6 @@ function goToPayment() {
   font-variant-numeric: tabular-nums;
 }
 
-.order-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 20px;
-}
-
-.badge--pendiente  { background: #fef3cd; color: #92690a; }
-.badge--en_proceso { background: #dbeafe; color: #1e40af; }
-.badge--listo      { background: #dcfce7; color: #166534; }
-.badge--entregado  { background: #f3f4f6; color: #374151; }
-.badge--cancelado  { background: #fee2e2; color: #991b1b; }
-
 .order-items {
   list-style: none;
   padding: 8px 14px;
@@ -403,22 +390,6 @@ function goToPayment() {
 .line-desc {
   font-size: 0.9rem;
   color: #1a1a1a;
-}
-
-.combo-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
-  color: var(--color-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.area-tag {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
 }
 
 .line-price {

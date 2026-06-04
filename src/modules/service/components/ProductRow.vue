@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Product } from '@/shared/types'
+import Badge from '@/shared/components/Badge.vue'
 
 const props = defineProps<{ product: Product }>()
 const emit = defineEmits<{ add: [] }>()
@@ -13,7 +14,7 @@ function handleAdd() {
 <template>
   <div class="product-row" :class="{ disabled: !product.available }">
     <span class="product-name">{{ product.name }}</span>
-    <span v-if="!product.available" class="status-badge">Desactivado</span>
+    <Badge v-if="!product.available" tone="gray" class="status-badge">Desactivado</Badge>
     <button
       v-else
       class="add-btn"
@@ -56,12 +57,6 @@ function handleAdd() {
 
 .status-badge {
   flex-shrink: 0;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #9ca3af;
-  font-size: 0.75rem;
-  font-weight: 600;
 }
 
 .add-btn {

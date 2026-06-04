@@ -2,7 +2,20 @@
 import { useRouter } from 'vue-router'
 import { useCheckoutDashboard } from '../composables/useCheckoutDashboard'
 import { formatCurrency } from '../helpers/formatCurrency'
-import { TABLE_STATUS } from '@/shared/types'
+import Badge from '@/shared/components/Badge.vue'
+import type { TableStatus } from '@/shared/types'
+
+const tableStatusTone: Record<TableStatus, 'gray' | 'blue' | 'amber'> = {
+  libre: 'gray',
+  ocupada: 'blue',
+  por_cobrar: 'amber',
+}
+
+const tableStatusLabel: Record<TableStatus, string> = {
+  libre: 'Libre',
+  ocupada: 'Ocupada',
+  por_cobrar: 'Por cobrar',
+}
 
 const router = useRouter()
 const { activeTables, selectedTableId, selectedSummary, billLines, billTotal, loading, error } =
@@ -40,12 +53,9 @@ function registerPayment() {
         >
           <div class="row-top">
             <span class="table-name">{{ summary.table.name }}</span>
-            <span
-              class="status-badge"
-              :class="summary.table.status"
-            >
-              {{ summary.table.status === TABLE_STATUS.OCCUPIED ? 'Ocupada' : 'Por cobrar' }}
-            </span>
+            <Badge :tone="tableStatusTone[summary.table.status]">
+              {{ tableStatusLabel[summary.table.status] }}
+            </Badge>
           </div>
           <div class="row-bottom">
             <span v-if="summary.hasNewOrder" class="new-order-indicator">
@@ -71,7 +81,7 @@ function registerPayment() {
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <span v-if="line.kind === 'combo'" class="combo-badge">Combo</span>
+              <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>
@@ -219,23 +229,6 @@ function registerPayment() {
   color: #1a1a1a;
 }
 
-.status-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-}
-
-.status-badge.ocupada {
-  background: #dce4f2;
-  color: #3d5a99;
-}
-
-.status-badge.por_cobrar {
-  background: #fef3ce;
-  color: #92690a;
-}
-
 .row-bottom {
   display: flex;
   align-items: center;
@@ -324,22 +317,6 @@ function registerPayment() {
 .line-desc {
   font-size: 0.975rem;
   color: #1a1a1a;
-}
-
-.combo-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
-  color: var(--color-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.area-tag {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 20px;
 }
 
 .line-price {

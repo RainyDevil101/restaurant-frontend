@@ -23,6 +23,14 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    name: 'app/shared-component-names',
+    files: ['src/shared/components/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': ['error', { ignores: ['Badge'] }],
+    },
+  },
+
+  {
     ...pluginCypress.configs.recommended,
     files: [
       'cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}',

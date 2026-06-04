@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Category } from '@/shared/types'
+import Badge from '@/shared/components/Badge.vue'
 import type { OrderEntry } from '../composables/useOrder'
 import { categoryColor, categoryName } from '../helpers/categoryColor'
 
@@ -11,7 +12,7 @@ const emit = defineEmits<{ add: []; remove: [] }>()
   <div class="order-item-row">
     <div class="item-name-wrap">
       <span class="item-name">{{ entry.kind === 'combo' ? entry.menu.name : entry.product.name }}</span>
-      <span v-if="entry.kind === 'combo'" class="combo-tag">Combo</span>
+      <Badge v-if="entry.kind === 'combo'" tone="teal" class="combo-tag">Combo</Badge>
       <span v-else class="category-tag">
         <span
           class="category-dot"
@@ -91,12 +92,6 @@ const emit = defineEmits<{ add: []; remove: [] }>()
 
 .combo-tag {
   align-self: flex-start;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
-  color: var(--color-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
 }
 
 .qty-control {

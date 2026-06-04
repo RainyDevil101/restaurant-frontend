@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { Route } from '@/shared/types'
 import { usePayment } from '../composables/usePayment'
 import { formatCurrency } from '../helpers/formatCurrency'
+import Badge from '@/shared/components/Badge.vue'
 import { PAYMENT_METHOD } from '@/shared/types'
 
 const router = useRouter()
@@ -64,7 +65,7 @@ async function handleConfirm() {
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <span v-if="line.kind === 'combo'" class="combo-badge">Combo</span>
+              <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>
@@ -273,22 +274,6 @@ async function handleConfirm() {
 .line-desc {
   font-size: 0.9rem;
   color: #1a1a1a;
-}
-
-.combo-badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
-  color: var(--color-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.area-tag {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
 }
 
 .line-price {
