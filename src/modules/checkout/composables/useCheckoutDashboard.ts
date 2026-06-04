@@ -88,7 +88,9 @@ export function useCheckoutDashboard() {
 
   const activeTables = computed((): TableSummary[] =>
     tables.value
-      .filter((t) => t.status !== TABLE_STATUS.FREE)
+      .filter(
+        (t) => t.status !== TABLE_STATUS.FREE && billableOrders.value.some((o) => o.tableId === t.id),
+      )
       .map((table) => {
         const tableOrders = billableOrders.value.filter((o) => o.tableId === table.id)
         const total = tableOrders.reduce((sum, o) => sum + o.total, 0)
