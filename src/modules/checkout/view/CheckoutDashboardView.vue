@@ -5,8 +5,8 @@ import { formatCurrency } from '../helpers/formatCurrency'
 import Badge from '@/shared/components/Badge.vue'
 import type { TableStatus } from '@/shared/types'
 
-const tableStatusTone: Record<TableStatus, 'gray' | 'blue' | 'amber'> = {
-  libre: 'gray',
+const tableStatusTone: Record<TableStatus, 'gray' | 'blue' | 'amber' | 'green'> = {
+  libre: 'green',
   ocupada: 'blue',
   por_cobrar: 'amber',
 }
