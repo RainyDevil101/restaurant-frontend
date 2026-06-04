@@ -1,5 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
-import { listProducts, listCategories, listMenus } from '@/shared/api/catalog'
+import { listProducts, listCategories } from '@/shared/api/catalog'
 import { createOrder } from '@/shared/api/orders'
 import { updateTableStatus, listTables } from '@/shared/api/venue'
 import { ApiRequestError } from '@/shared/api/client'
@@ -15,7 +15,6 @@ export function useOrder() {
   const entries = ref<OrderEntry[]>([])
   const products = ref<Product[]>([])
   const categories = ref<Category[]>([])
-  const menuProductIds = ref<string[]>([])
   const loading = ref(false)
   const error = ref('')
   const submitting = ref(false)
@@ -24,15 +23,9 @@ export function useOrder() {
     loading.value = true
     error.value = ''
     try {
-      const [prods, cats, menus] = await Promise.all([
-        listProducts(),
-        listCategories(),
-        listMenus(),
-      ])
+      const [prods, cats] = await Promise.all([listProducts(), listCategories()])
       products.value = prods
       categories.value = cats
-      const activeMenu = menus.find((m) => m.active)
-      menuProductIds.value = activeMenu ? activeMenu.productIds : []
     } catch (err) {
       error.value =
         err instanceof ApiRequestError ? err.message : 'No se pudo cargar el menú.'
@@ -106,7 +99,6 @@ export function useOrder() {
     entries,
     products,
     categories,
-    menuProductIds,
     loading,
     error,
     submitting,

@@ -1,14 +1,25 @@
 <script setup lang="ts">
 import type { Product } from '@/shared/types'
 
-defineProps<{ product: Product }>()
+const props = defineProps<{ product: Product }>()
 const emit = defineEmits<{ add: [] }>()
+
+function handleAdd() {
+  if (!props.product.available) return
+  emit('add')
+}
 </script>
 
 <template>
-  <div class="product-row">
+  <div class="product-row" :class="{ disabled: !product.available }">
     <span class="product-name">{{ product.name }}</span>
-    <button class="add-btn" :aria-label="`Agregar ${product.name}`" @click="emit('add')">
+    <span v-if="!product.available" class="status-badge">Desactivado</span>
+    <button
+      v-else
+      class="add-btn"
+      :aria-label="`Agregar ${product.name}`"
+      @click="handleAdd"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -33,10 +44,24 @@ const emit = defineEmits<{ add: [] }>()
   gap: 12px;
 }
 
+.product-row.disabled .product-name {
+  color: #b0b0b0;
+}
+
 .product-name {
   font-size: 1rem;
   font-weight: 600;
   color: #1a1a1a;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .add-btn {

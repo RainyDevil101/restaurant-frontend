@@ -5,6 +5,7 @@ import { useAuthStore } from '@/modules/auth/store'
 import { Route } from '@/shared/types'
 import { useCurrentTable } from '../composables/useCurrentTable'
 import { useOrder } from '../composables/useOrder'
+import type { Product } from '@/shared/types'
 import CategoryTabs from '../components/CategoryTabs.vue'
 import ProductRow from '../components/ProductRow.vue'
 import OrderItemRow from '../components/OrderItemRow.vue'
@@ -17,7 +18,6 @@ const {
   entries,
   products,
   categories,
-  menuProductIds,
   loading,
   error,
   submitting,
@@ -54,11 +54,8 @@ function cancelRemove() {
   pendingRemoveId.value = null
 }
 
-const menuProductSet = computed(() => new Set(menuProductIds.value))
-
 const filteredProducts = computed(() =>
   products.value.filter((p) => {
-    if (!menuProductSet.value.has(p.id)) return false
     if (selectedCategoryId.value !== null && p.categoryId !== selectedCategoryId.value) return false
     const q = searchQuery.value.trim().toLowerCase()
     if (q && !p.name.toLowerCase().includes(q) && !p.description?.toLowerCase().includes(q))
@@ -66,6 +63,11 @@ const filteredProducts = computed(() =>
     return true
   }),
 )
+
+function addAvailable(product: Product) {
+  if (!product.available) return
+  add(product)
+}
 
 function goBack() {
   router.push(Route.SERVICE)
@@ -158,7 +160,7 @@ async function handleSubmit() {
             v-for="product in filteredProducts"
             :key="product.id"
             :product="product"
-            @add="add(product)"
+            @add="addAvailable(product)"
           />
           <p v-if="filteredProducts.length === 0" class="empty-msg">Sin resultados.</p>
         </template>
