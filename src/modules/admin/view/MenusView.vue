@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useMenus } from '../composables/useMenus'
+import { useAdminDialog } from '../composables/useAdminDialog'
+import { useAdminConfirm } from '../composables/useAdminConfirm'
 import { formatCurrency } from '../helpers/formatCurrency'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminSearchBar from '../components/AdminSearchBar.vue'
+import AdminPagination from '../components/AdminPagination.vue'
+import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
@@ -20,7 +26,6 @@ const {
   sortBy,
   sortDir,
   toggleSort,
-  setPage,
   createMenu,
   updateMenu,
   removeMenu,
@@ -38,15 +43,21 @@ async function toggle(id: string) {
   }
 }
 
-const dialogOpen = ref(false)
-const editingId = ref<string | null>(null)
-const saving = ref(false)
-const formError = ref('')
 const form = reactive<{ name: string; productIds: string[]; price: number }>({
   name: '',
   productIds: [],
   price: 0,
 })
+const {
+  dialogOpen,
+  editingId,
+  saving,
+  formError,
+  openCreate: _openCreate,
+  openEdit: _openEdit,
+  runSave,
+} = useAdminDialog()
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
 
 function clampPrice() {
   form.price = Math.round(form.price)
@@ -55,21 +66,17 @@ function clampPrice() {
 }
 
 function openCreate() {
-  editingId.value = null
   form.name = ''
   form.productIds = []
   form.price = 0
-  formError.value = ''
-  dialogOpen.value = true
+  _openCreate()
 }
 
 function openEdit(menu: { id: string; name: string; productIds: string[]; price: number }) {
-  editingId.value = menu.id
   form.name = menu.name
   form.productIds = [...menu.productIds]
   form.price = menu.price
-  formError.value = ''
-  dialogOpen.value = true
+  _openEdit(menu.id)
 }
 
 async function save() {
@@ -86,81 +93,23 @@ async function save() {
     formError.value = ADMIN_LABELS.menu.priceInvalid
     return
   }
-  saving.value = true
-  formError.value = ''
   const payload = { name: trimmedName, productIds: form.productIds, price: form.price }
-  try {
+  await runSave(async () => {
     if (editingId.value) await updateMenu(editingId.value, payload)
     else await createMenu(payload)
-    dialogOpen.value = false
-  } catch (err) {
-    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
-  } finally {
-    saving.value = false
-  }
-}
-
-const confirmOpen = ref(false)
-const deletingId = ref<string | null>(null)
-const deleting = ref(false)
-const deleteError = ref('')
-
-function openDelete(id: string) {
-  deletingId.value = id
-  deleteError.value = ''
-  confirmOpen.value = true
+  })
 }
 
 async function confirmDelete() {
-  if (!deletingId.value) return
-  deleting.value = true
-  deleteError.value = ''
-  try {
-    await removeMenu(deletingId.value)
-    confirmOpen.value = false
-  } catch (err) {
-    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
-  } finally {
-    deleting.value = false
-  }
+  await runDelete(removeMenu)
 }
 </script>
 
 <template>
   <div class="menus-view">
-    <div class="page-header">
-      <h1 class="page-title">Menús</h1>
-      <button class="new-btn" @click="openCreate">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        >
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
-        Nuevo menú
-      </button>
-    </div>
+    <AdminPageHeader title="Menús" new-label="Nuevo menú" @create="openCreate" />
 
-    <div class="search-wrap">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="16"
-        height="16"
-        class="search-icon"
-        aria-hidden="true"
-      >
-        <path
-          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-        />
-      </svg>
-      <input v-model="search" class="search-input" placeholder="Buscar menú..." />
-    </div>
+    <AdminSearchBar v-model="search" placeholder="Buscar menú..." />
 
     <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
 
@@ -238,31 +187,12 @@ async function confirmDelete() {
       </tbody>
     </table>
 
-    <div class="pagination">
-      <div class="page-size">
-        <label for="page-size">Filas por página</label>
-        <select id="page-size" v-model.number="pageSize" class="page-size-select">
-          <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }}</option>
-        </select>
-      </div>
-      <div class="page-nav">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page <= 1"
-          aria-label="Página anterior"
-          @click="setPage(page - 1)"
-        >◀</button>
-        <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page >= totalPages"
-          aria-label="Página siguiente"
-          @click="setPage(page + 1)"
-        >▶</button>
-      </div>
-    </div>
+    <AdminPagination
+      v-model:page="page"
+      v-model:pageSize="pageSize"
+      :total-pages="totalPages"
+      :page-size-options="PAGE_SIZE_OPTIONS"
+    />
 
     <ModalDialog
       v-if="dialogOpen"
@@ -272,12 +202,10 @@ async function confirmDelete() {
       @close="dialogOpen = false"
       @submit="save"
     >
-      <div class="field">
-        <label class="field-label" for="menu-name">Nombre</label>
+      <AdminFormField label="Nombre" for="menu-name">
         <input id="menu-name" v-model="form.name" class="field-input" required />
-      </div>
-      <div class="field">
-        <label class="field-label" for="menu-price">Precio</label>
+      </AdminFormField>
+      <AdminFormField label="Precio" for="menu-price">
         <input
           id="menu-price"
           v-model.number="form.price"
@@ -289,17 +217,16 @@ async function confirmDelete() {
           required
           @input="clampPrice"
         />
-      </div>
-      <div class="field">
-        <span class="field-label">Productos ({{ form.productIds.length }})</span>
-        <div class="product-picker">
+      </AdminFormField>
+      <AdminFormField :label="`Productos (${form.productIds.length})`" for="menu-products">
+        <div id="menu-products" class="product-picker">
           <label v-for="p in products" :key="p.id" class="picker-row">
             <input v-model="form.productIds" type="checkbox" :value="p.id" />
             <span>{{ p.name }}</span>
           </label>
           <p v-if="products.length === 0" class="picker-empty">No hay productos.</p>
         </div>
-      </div>
+      </AdminFormField>
     </ModalDialog>
 
     <ConfirmDialog
@@ -308,7 +235,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar este menú? Esta acción no se puede deshacer."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false; deletingId = null"
+      @close="closeConfirm"
       @confirm="confirmDelete"
     />
   </div>
@@ -320,66 +247,6 @@ async function confirmDelete() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-.new-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.new-btn:hover {
-  background: var(--color-primary-dark);
-}
-
-/* Search */
-.search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f3f4f6;
-  border-radius: 10px;
-  padding: 9px 14px;
-  max-width: 320px;
-}
-
-.search-icon {
-  flex-shrink: 0;
-  color: #9ca3af;
-}
-
-.search-input {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 0.875rem;
-  color: #1a1a1a;
-  font-family: inherit;
-}
-
-.search-input::placeholder {
-  color: #9ca3af;
 }
 
 .action-error {
@@ -525,101 +392,6 @@ thead th {
 
 .error-text {
   color: #dc2626;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.page-size {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.page-size-select {
-  padding: 6px 10px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  color: #111827;
-  font-family: inherit;
-  background: white;
-  outline: none;
-}
-
-.page-size-select:focus {
-  border-color: var(--color-primary);
-}
-
-.page-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-status {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.page-btn {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  color: #374151;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-}
-
-.page-btn:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-
-.page-btn:disabled {
-  color: #d1d5db;
-  cursor: not-allowed;
-}
-
-/* Form fields */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.field-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: #111827;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.field-input:focus {
-  border-color: var(--color-primary);
 }
 
 .product-picker {

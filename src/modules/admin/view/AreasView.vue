@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import { useAreas } from '../composables/useAreas'
+import { useAdminDialog } from '../composables/useAdminDialog'
+import { useAdminConfirm } from '../composables/useAdminConfirm'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminPagination from '../components/AdminPagination.vue'
+import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import { ApiRequestError } from '@/shared/api/client'
 import { ADMIN_LABELS, PAGE_SIZE_OPTIONS } from '../constants'
 
 const {
@@ -17,30 +21,31 @@ const {
   sortBy,
   sortDir,
   toggleSort,
-  setPage,
   createArea,
   updateArea,
   removeArea,
 } = useAreas()
 
-const dialogOpen = ref(false)
-const editingId = ref<string | null>(null)
-const saving = ref(false)
-const formError = ref('')
 const form = reactive({ name: '' })
+const {
+  dialogOpen,
+  editingId,
+  saving,
+  formError,
+  openCreate: _openCreate,
+  openEdit: _openEdit,
+  runSave,
+} = useAdminDialog()
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
 
 function openCreate() {
-  editingId.value = null
   form.name = ''
-  formError.value = ''
-  dialogOpen.value = true
+  _openCreate()
 }
 
 function openEdit(area: { id: string; name: string }) {
-  editingId.value = area.id
   form.name = area.name
-  formError.value = ''
-  dialogOpen.value = true
+  _openEdit(area.id)
 }
 
 async function save() {
@@ -49,63 +54,20 @@ async function save() {
     formError.value = ADMIN_LABELS.area.nameRequired
     return
   }
-  saving.value = true
-  formError.value = ''
-  try {
+  await runSave(async () => {
     if (editingId.value) await updateArea(editingId.value, { name: trimmedName })
     else await createArea({ name: trimmedName })
-    dialogOpen.value = false
-  } catch (err) {
-    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
-  } finally {
-    saving.value = false
-  }
-}
-
-const confirmOpen = ref(false)
-const deletingId = ref<string | null>(null)
-const deleting = ref(false)
-const deleteError = ref('')
-
-function openDelete(id: string) {
-  deletingId.value = id
-  deleteError.value = ''
-  confirmOpen.value = true
+  })
 }
 
 async function confirmDelete() {
-  if (!deletingId.value) return
-  deleting.value = true
-  deleteError.value = ''
-  try {
-    await removeArea(deletingId.value)
-    confirmOpen.value = false
-  } catch (err) {
-    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
-  } finally {
-    deleting.value = false
-  }
+  await runDelete(removeArea)
 }
 </script>
 
 <template>
   <div class="areas-view">
-    <div class="page-header">
-      <h1 class="page-title">Áreas</h1>
-      <button class="new-btn" @click="openCreate">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        >
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
-        Nueva área
-      </button>
-    </div>
+    <AdminPageHeader title="Áreas" new-label="Nueva área" @create="openCreate" />
 
     <table class="data-table">
       <thead>
@@ -163,31 +125,12 @@ async function confirmDelete() {
       </tbody>
     </table>
 
-    <div class="pagination">
-      <div class="page-size">
-        <label for="page-size">Filas por página</label>
-        <select id="page-size" v-model.number="pageSize" class="page-size-select">
-          <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }}</option>
-        </select>
-      </div>
-      <div class="page-nav">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page <= 1"
-          aria-label="Página anterior"
-          @click="setPage(page - 1)"
-        >◀</button>
-        <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page >= totalPages"
-          aria-label="Página siguiente"
-          @click="setPage(page + 1)"
-        >▶</button>
-      </div>
-    </div>
+    <AdminPagination
+      v-model:page="page"
+      v-model:pageSize="pageSize"
+      :total-pages="totalPages"
+      :page-size-options="PAGE_SIZE_OPTIONS"
+    />
 
     <ModalDialog
       v-if="dialogOpen"
@@ -197,10 +140,9 @@ async function confirmDelete() {
       @close="dialogOpen = false"
       @submit="save"
     >
-      <div class="field">
-        <label class="field-label" for="area-name">Nombre</label>
+      <AdminFormField label="Nombre" for="area-name">
         <input id="area-name" v-model="form.name" class="field-input" required />
-      </div>
+      </AdminFormField>
     </ModalDialog>
 
     <ConfirmDialog
@@ -209,7 +151,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar esta área? Esta acción no se puede deshacer."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false; deletingId = null"
+      @close="closeConfirm"
       @confirm="confirmDelete"
     />
   </div>
@@ -221,36 +163,6 @@ async function confirmDelete() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-.new-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.new-btn:hover {
-  background: var(--color-primary-dark);
 }
 
 /* Table */
@@ -379,100 +291,5 @@ thead th {
 
 .error-text {
   color: #dc2626;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.page-size {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.page-size-select {
-  padding: 6px 10px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  color: #111827;
-  font-family: inherit;
-  background: white;
-  outline: none;
-}
-
-.page-size-select:focus {
-  border-color: var(--color-primary);
-}
-
-.page-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-status {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.page-btn {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  color: #374151;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-}
-
-.page-btn:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-
-.page-btn:disabled {
-  color: #d1d5db;
-  cursor: not-allowed;
-}
-
-/* Form fields */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.field-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: #111827;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.field-input:focus {
-  border-color: var(--color-primary);
 }
 </style>

@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
 import { useProducts } from '../composables/useProducts'
-import { formatCurrency } from '../helpers/formatCurrency'
-import ModalDialog from '../components/ModalDialog.vue'
+import { useProductForm } from '../composables/useProductForm'
+import { useAvailabilityToggle } from '../composables/useAvailabilityToggle'
+import { useAdminConfirm } from '../composables/useAdminConfirm'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminSearchBar from '../components/AdminSearchBar.vue'
+import AdminPagination from '../components/AdminPagination.vue'
+import ProductFormDialog from '../components/ProductFormDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import { ApiRequestError } from '@/shared/api/client'
-import { ADMIN_LABELS, PRODUCT_PRICE_MAX, PAGE_SIZE_OPTIONS } from '../constants'
-import type { Product } from '@/shared/types'
+import { formatCurrency } from '../helpers/formatCurrency'
+import { PAGE_SIZE_OPTIONS } from '../constants'
 
 const {
   products,
@@ -21,7 +24,6 @@ const {
   sortBy,
   sortDir,
   toggleSort,
-  setPage,
   createProduct,
   updateProduct,
   removeProduct,
@@ -29,166 +31,36 @@ const {
   createCategory,
 } = useProducts()
 
-const actionError = ref('')
+const { toggle, actionError } = useAvailabilityToggle(toggleAvailability)
+const {
+  dialogOpen,
+  editingId,
+  saving,
+  formError,
+  closeDialog,
+  form,
+  inlineCat,
+  clampPrice,
+  openCreate,
+  openEdit,
+  save,
+} = useProductForm({ categories, createProduct, updateProduct, createCategory })
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
 
-async function toggle(id: string) {
-  actionError.value = ''
-  try {
-    await toggleAvailability(id)
-  } catch (err) {
-    actionError.value = err instanceof ApiRequestError ? err.message : 'No se pudo actualizar.'
-  }
-}
-
-const dialogOpen = ref(false)
-const editingId = ref<string | null>(null)
-const saving = ref(false)
-const formError = ref('')
-const form = reactive({ name: '', description: '', price: 0, categoryId: '' })
-
-const creatingCategory = ref(false)
-const inlineCatName = ref('')
-const inlineCatError = ref('')
-
-function openCreate() {
-  editingId.value = null
-  form.name = ''
-  form.description = ''
-  form.price = 0
-  form.categoryId = categories.value[0]?.id ?? ''
-  inlineCatName.value = ''
-  inlineCatError.value = ''
-  formError.value = ''
-  dialogOpen.value = true
-}
-
-function clampPrice() {
-  form.price = Math.round(form.price)
-  if (form.price > PRODUCT_PRICE_MAX) form.price = PRODUCT_PRICE_MAX
-  if (form.price < 0) form.price = 0
-}
-
-async function createCategoryInline() {
-  const name = inlineCatName.value.trim()
-  if (!name) return
-  creatingCategory.value = true
-  inlineCatError.value = ''
-  try {
-    const created = await createCategory({ name })
-    form.categoryId = created.id
-    inlineCatName.value = ''
-  } catch (err) {
-    inlineCatError.value = err instanceof ApiRequestError ? err.message : 'No se pudo crear.'
-  } finally {
-    creatingCategory.value = false
-  }
-}
-
-function openEdit(product: Product) {
-  editingId.value = product.id
-  form.name = product.name
-  form.description = product.description ?? ''
-  form.price = product.price
-  form.categoryId = product.categoryId
-  inlineCatName.value = ''
-  inlineCatError.value = ''
-  formError.value = ''
-  dialogOpen.value = true
-}
-
-async function save() {
-  if (!form.name.trim()) {
-    formError.value = ADMIN_LABELS.product.nameRequired
-    return
-  }
-  if (!form.categoryId) {
-    formError.value = ADMIN_LABELS.product.categoryRequired
-    return
-  }
-  if (!Number.isInteger(form.price) || form.price < 0 || form.price > PRODUCT_PRICE_MAX) {
-    formError.value = ADMIN_LABELS.product.priceInvalid
-    return
-  }
-  saving.value = true
-  formError.value = ''
-  const payload = {
-    name: form.name,
-    description: form.description.trim() || undefined,
-    price: form.price,
-    categoryId: form.categoryId,
-  }
-  try {
-    if (editingId.value) await updateProduct(editingId.value, payload)
-    else await createProduct(payload)
-    dialogOpen.value = false
-  } catch (err) {
-    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
-  } finally {
-    saving.value = false
-  }
-}
-
-const confirmOpen = ref(false)
-const deletingId = ref<string | null>(null)
-const deleting = ref(false)
-const deleteError = ref('')
-
-function openDelete(id: string) {
-  deletingId.value = id
-  deleteError.value = ''
-  confirmOpen.value = true
+function patchForm(patch: Partial<typeof form>) {
+  Object.assign(form, patch)
 }
 
 async function confirmDelete() {
-  if (!deletingId.value) return
-  deleting.value = true
-  deleteError.value = ''
-  try {
-    await removeProduct(deletingId.value)
-    confirmOpen.value = false
-  } catch (err) {
-    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
-  } finally {
-    deleting.value = false
-  }
+  await runDelete(removeProduct)
 }
 </script>
 
 <template>
   <div class="products-view">
-    <div class="page-header">
-      <h1 class="page-title">Productos</h1>
-      <button class="new-btn" @click="openCreate">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        >
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
-        Nuevo producto
-      </button>
-    </div>
+    <AdminPageHeader title="Productos" new-label="Nuevo producto" @create="openCreate" />
 
-    <div class="search-wrap">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="16"
-        height="16"
-        class="search-icon"
-        aria-hidden="true"
-      >
-        <path
-          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-        />
-      </svg>
-      <input v-model="search" class="search-input" placeholder="Buscar producto..." />
-    </div>
+    <AdminSearchBar v-model="search" placeholder="Buscar producto..." />
 
     <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
 
@@ -198,19 +70,25 @@ async function confirmDelete() {
           <th>
             <button type="button" class="sort-header" @click="toggleSort('name')">
               Producto
-              <span class="sort-indicator">{{ sortBy === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+              <span class="sort-indicator">{{
+                sortBy === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : ''
+              }}</span>
             </button>
           </th>
           <th>
             <button type="button" class="sort-header" @click="toggleSort('categoryName')">
               Categoría
-              <span class="sort-indicator">{{ sortBy === 'categoryName' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+              <span class="sort-indicator">{{
+                sortBy === 'categoryName' ? (sortDir === 'asc' ? '▲' : '▼') : ''
+              }}</span>
             </button>
           </th>
           <th class="col-right">
             <button type="button" class="sort-header sort-header-right" @click="toggleSort('price')">
               Precio
-              <span class="sort-indicator">{{ sortBy === 'price' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+              <span class="sort-indicator">{{
+                sortBy === 'price' ? (sortDir === 'asc' ? '▲' : '▼') : ''
+              }}</span>
             </button>
           </th>
           <th class="col-right">Estado</th>
@@ -261,97 +139,27 @@ async function confirmDelete() {
       </tbody>
     </table>
 
-    <div class="pagination">
-      <div class="page-size">
-        <label for="page-size">Filas por página</label>
-        <select id="page-size" v-model.number="pageSize" class="page-size-select">
-          <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }}</option>
-        </select>
-      </div>
-      <div class="page-nav">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page <= 1"
-          aria-label="Página anterior"
-          @click="setPage(page - 1)"
-        >◀</button>
-        <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page >= totalPages"
-          aria-label="Página siguiente"
-          @click="setPage(page + 1)"
-        >▶</button>
-      </div>
-    </div>
+    <AdminPagination
+      v-model:page="page"
+      v-model:pageSize="pageSize"
+      :total-pages="totalPages"
+      :page-size-options="PAGE_SIZE_OPTIONS"
+    />
 
-    <ModalDialog
-      v-if="dialogOpen"
-      :title="editingId ? 'Editar producto' : 'Nuevo producto'"
+    <ProductFormDialog
+      :open="dialogOpen"
+      :editing-id="editingId"
       :saving="saving"
       :error="formError"
-      @close="dialogOpen = false"
+      :form="form"
+      :categories="categories"
+      :inline-cat="inlineCat"
+      @close="closeDialog"
       @submit="save"
-    >
-      <div class="field">
-        <label class="field-label" for="prod-name">Nombre</label>
-        <input id="prod-name" v-model="form.name" class="field-input" required />
-      </div>
-      <div class="field">
-        <label class="field-label" for="prod-desc">Descripción</label>
-        <input id="prod-desc" v-model="form.description" class="field-input" />
-      </div>
-      <div class="field">
-        <label class="field-label" for="prod-price">Precio</label>
-        <input
-          id="prod-price"
-          v-model.number="form.price"
-          class="field-input"
-          type="number"
-          min="0"
-          :max="PRODUCT_PRICE_MAX"
-          step="1"
-          required
-          @input="clampPrice"
-        />
-      </div>
-      <div class="field">
-        <label
-          class="field-label"
-          :for="categories.length === 0 && !editingId ? 'inline-cat-input' : 'prod-cat'"
-        >Categoría</label>
-        <template v-if="categories.length === 0 && !editingId">
-          <div class="no-cat-notice" role="alert">
-            <span class="no-cat-title">{{ ADMIN_LABELS.product.noCategoriesNotice }}</span>
-            <span class="no-cat-hint">{{ ADMIN_LABELS.product.noCategoriesHint }}</span>
-          </div>
-          <div class="inline-cat-form">
-            <input
-              id="inline-cat-input"
-              v-model="inlineCatName"
-              class="field-input inline-cat-input"
-              :placeholder="ADMIN_LABELS.product.categoryNamePlaceholder"
-              :disabled="creatingCategory"
-            />
-            <button
-              type="button"
-              class="inline-cat-btn"
-              :disabled="creatingCategory || !inlineCatName.trim()"
-              @click="createCategoryInline"
-            >
-              {{ creatingCategory ? ADMIN_LABELS.product.creating : ADMIN_LABELS.product.createCategoryLabel }}
-            </button>
-          </div>
-          <p v-if="inlineCatError" class="inline-cat-error">{{ inlineCatError }}</p>
-        </template>
-        <select v-else id="prod-cat" v-model="form.categoryId" class="field-input" required>
-          <option value="" disabled>{{ ADMIN_LABELS.product.categoryPlaceholder }}</option>
-          <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-        </select>
-      </div>
-    </ModalDialog>
+      @clamp-price="clampPrice"
+      @update:form="patchForm"
+      @update:inline-cat-input="(v) => (inlineCat.inputName.value = v)"
+    />
 
     <ConfirmDialog
       v-if="confirmOpen"
@@ -359,7 +167,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false"
+      @close="closeConfirm"
       @confirm="confirmDelete"
     />
   </div>
@@ -371,66 +179,6 @@ async function confirmDelete() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-.new-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.new-btn:hover {
-  background: var(--color-primary-dark);
-}
-
-/* Search */
-.search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f3f4f6;
-  border-radius: 10px;
-  padding: 9px 14px;
-  max-width: 320px;
-}
-
-.search-icon {
-  flex-shrink: 0;
-  color: #9ca3af;
-}
-
-.search-input {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 0.875rem;
-  color: #1a1a1a;
-  font-family: inherit;
-}
-
-.search-input::placeholder {
-  color: #9ca3af;
 }
 
 .action-error {
@@ -580,162 +328,5 @@ thead th {
 
 .error-text {
   color: #dc2626;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.page-size {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.page-size-select {
-  padding: 6px 10px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  color: #111827;
-  font-family: inherit;
-  background: white;
-  outline: none;
-}
-
-.page-size-select:focus {
-  border-color: var(--color-primary);
-}
-
-.page-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-status {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.page-btn {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  color: #374151;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-}
-
-.page-btn:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-
-.page-btn:disabled {
-  color: #d1d5db;
-  cursor: not-allowed;
-}
-
-/* Form fields */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.field-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: #111827;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-  background: white;
-}
-
-.field-input:focus {
-  border-color: var(--color-primary);
-}
-
-/* No-categories notice */
-.no-cat-notice {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px;
-  background: #fffbeb;
-  border: 1.5px solid #fcd34d;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-
-.no-cat-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #92400e;
-}
-
-.no-cat-hint {
-  font-size: 0.8rem;
-  color: #b45309;
-}
-
-/* Inline category creation */
-.inline-cat-form {
-  display: flex;
-  gap: 8px;
-}
-
-.inline-cat-input {
-  flex: 1;
-}
-
-.inline-cat-btn {
-  flex-shrink: 0;
-  padding: 10px 16px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.inline-cat-btn:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-}
-
-.inline-cat-btn:disabled {
-  background: #c8d8d6;
-  cursor: not-allowed;
-}
-
-.inline-cat-error {
-  font-size: 0.8rem;
-  color: #dc2626;
-  margin-top: 4px;
 }
 </style>

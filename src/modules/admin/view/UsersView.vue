@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import { useUsers } from '../composables/useUsers'
+import { useAdminDialog } from '../composables/useAdminDialog'
+import { useAdminConfirm } from '../composables/useAdminConfirm'
 import { roleLabel } from '../helpers/roleLabel'
+import AdminPageHeader from '../components/AdminPageHeader.vue'
+import AdminSearchBar from '../components/AdminSearchBar.vue'
+import AdminPagination from '../components/AdminPagination.vue'
+import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import { ApiRequestError } from '@/shared/api/client'
 import { Role, type User } from '@/modules/auth/store'
 import { ADMIN_LABELS, PAGE_SIZE_OPTIONS } from '../constants'
 
@@ -22,7 +27,6 @@ const {
   sortBy,
   sortDir,
   toggleSort,
-  setPage,
   createUser,
   updateUser,
   removeUser,
@@ -30,10 +34,6 @@ const {
 
 const roleOptions = [Role.MESERO, Role.CAJERO, Role.ADMIN]
 
-const dialogOpen = ref(false)
-const editingId = ref<string | null>(null)
-const saving = ref(false)
-const formError = ref('')
 const form = reactive({
   name: '',
   email: '',
@@ -41,27 +41,33 @@ const form = reactive({
   credential: '',
   active: true,
 })
+const {
+  dialogOpen,
+  editingId,
+  saving,
+  formError,
+  openCreate: _openCreate,
+  openEdit: _openEdit,
+  runSave,
+} = useAdminDialog()
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
 
 function openCreate() {
-  editingId.value = null
   form.name = ''
   form.email = ''
   form.role = Role.MESERO
   form.credential = ''
   form.active = true
-  formError.value = ''
-  dialogOpen.value = true
+  _openCreate()
 }
 
 function openEdit(user: User) {
-  editingId.value = user.id
   form.name = user.name
   form.email = user.email
   form.role = user.role
   form.credential = ''
   form.active = user.active
-  formError.value = ''
-  dialogOpen.value = true
+  _openEdit(user.id)
 }
 
 async function save() {
@@ -83,9 +89,7 @@ async function save() {
     formError.value = ADMIN_LABELS.user.credentialRequired
     return
   }
-  saving.value = true
-  formError.value = ''
-  try {
+  await runSave(async () => {
     if (editingId.value) {
       const input: Parameters<typeof updateUser>[1] = {
         name: trimmedName,
@@ -103,75 +107,19 @@ async function save() {
         credential: form.credential,
       })
     }
-    dialogOpen.value = false
-  } catch (err) {
-    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
-  } finally {
-    saving.value = false
-  }
-}
-
-const confirmOpen = ref(false)
-const deletingId = ref<string | null>(null)
-const deleting = ref(false)
-const deleteError = ref('')
-
-function openDelete(id: string) {
-  deletingId.value = id
-  deleteError.value = ''
-  confirmOpen.value = true
+  })
 }
 
 async function confirmDelete() {
-  if (!deletingId.value) return
-  deleting.value = true
-  deleteError.value = ''
-  try {
-    await removeUser(deletingId.value)
-    confirmOpen.value = false
-  } catch (err) {
-    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
-  } finally {
-    deleting.value = false
-  }
+  await runDelete(removeUser)
 }
 </script>
 
 <template>
   <div class="users-view">
-    <div class="page-header">
-      <h1 class="page-title">Usuarios</h1>
-      <button class="new-btn" @click="openCreate">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        >
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
-        Nuevo usuario
-      </button>
-    </div>
+    <AdminPageHeader title="Usuarios" new-label="Nuevo usuario" @create="openCreate" />
 
-    <div class="search-wrap">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="16"
-        height="16"
-        class="search-icon"
-        aria-hidden="true"
-      >
-        <path
-          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-        />
-      </svg>
-      <input v-model="search" class="search-input" placeholder="Buscar usuario..." />
-    </div>
+    <AdminSearchBar v-model="search" placeholder="Buscar usuario..." />
 
     <table class="data-table">
       <thead>
@@ -242,31 +190,12 @@ async function confirmDelete() {
       </tbody>
     </table>
 
-    <div class="pagination">
-      <div class="page-size">
-        <label for="page-size">Filas por página</label>
-        <select id="page-size" v-model.number="pageSize" class="page-size-select">
-          <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }}</option>
-        </select>
-      </div>
-      <div class="page-nav">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page <= 1"
-          aria-label="Página anterior"
-          @click="setPage(page - 1)"
-        >◀</button>
-        <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="page >= totalPages"
-          aria-label="Página siguiente"
-          @click="setPage(page + 1)"
-        >▶</button>
-      </div>
-    </div>
+    <AdminPagination
+      v-model:page="page"
+      v-model:pageSize="pageSize"
+      :total-pages="totalPages"
+      :page-size-options="PAGE_SIZE_OPTIONS"
+    />
 
     <ModalDialog
       v-if="dialogOpen"
@@ -276,27 +205,23 @@ async function confirmDelete() {
       @close="dialogOpen = false"
       @submit="save"
     >
-      <div class="field">
-        <label class="field-label" for="user-name">Nombre</label>
+      <AdminFormField label="Nombre" for="user-name">
         <input id="user-name" v-model="form.name" class="field-input" required />
-      </div>
+      </AdminFormField>
 
-      <div class="field">
-        <label class="field-label" for="user-email">Correo</label>
+      <AdminFormField label="Correo" for="user-email">
         <input id="user-email" v-model="form.email" type="email" class="field-input" required />
-      </div>
+      </AdminFormField>
 
-      <div class="field">
-        <label class="field-label" for="user-role">Rol</label>
+      <AdminFormField label="Rol" for="user-role">
         <select id="user-role" v-model="form.role" class="field-input">
           <option v-for="role in roleOptions" :key="role" :value="role">
             {{ roleLabel(role).label }}
           </option>
         </select>
-      </div>
+      </AdminFormField>
 
-      <div class="field">
-        <label class="field-label" for="user-credential">Contraseña</label>
+      <AdminFormField label="Contraseña" for="user-credential">
         <input
           id="user-credential"
           v-model="form.credential"
@@ -305,7 +230,7 @@ async function confirmDelete() {
           :required="!editingId"
           :placeholder="editingId ? 'Dejar en blanco para no cambiar' : ''"
         />
-      </div>
+      </AdminFormField>
 
       <label v-if="editingId" class="check-field">
         <input v-model="form.active" type="checkbox" />
@@ -319,7 +244,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar este usuario? Quedará desactivado y no podrá iniciar sesión."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false; deletingId = null"
+      @close="closeConfirm"
       @confirm="confirmDelete"
     />
   </div>
@@ -333,65 +258,7 @@ async function confirmDelete() {
   gap: 1.25rem;
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-.new-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.15s;
-}
-
-.new-btn:hover {
-  background: var(--color-primary-dark);
-}
-
-.search-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f3f4f6;
-  border-radius: 10px;
-  padding: 9px 14px;
-  max-width: 320px;
-}
-
-.search-icon {
-  flex-shrink: 0;
-  color: #9ca3af;
-}
-
-.search-input {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  font-size: 0.875rem;
-  color: #1a1a1a;
-  font-family: inherit;
-}
-
-.search-input::placeholder {
-  color: #9ca3af;
-}
-
+/* Table */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -533,100 +400,6 @@ thead th {
 
 .error-text {
   color: #dc2626;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.page-size {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.page-size-select {
-  padding: 6px 10px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  color: #111827;
-  font-family: inherit;
-  background: white;
-  outline: none;
-}
-
-.page-size-select:focus {
-  border-color: var(--color-primary);
-}
-
-.page-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-status {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.page-btn {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  color: #374151;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.8rem;
-}
-
-.page-btn:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-
-.page-btn:disabled {
-  color: #d1d5db;
-  cursor: not-allowed;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.field-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  color: #111827;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.field-input:focus {
-  border-color: var(--color-primary);
 }
 
 .check-field {
