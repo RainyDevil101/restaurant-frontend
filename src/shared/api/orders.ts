@@ -20,6 +20,7 @@ export interface ApiOrder {
   status: OrderStatus
   items: ApiOrderItem[]
   total: number
+  paid: boolean
 }
 
 export interface OrderItemInput {

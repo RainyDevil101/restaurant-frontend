@@ -9,10 +9,8 @@ export function useTableOrders(tableId: () => string) {
   const error = ref('')
   const deliveringId = ref<string | null>(null)
 
-  const inProgress = computed(() =>
-    orders.value.filter(
-      (o) => o.status !== ORDER_STATUS.DELIVERED && o.status !== ORDER_STATUS.CANCELLED,
-    ),
+  const openAccountOrders = computed(() =>
+    orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED && !o.paid),
   )
 
   async function load() {
@@ -34,12 +32,16 @@ export function useTableOrders(tableId: () => string) {
   }
 
   async function markDelivered(orderId: string) {
+    const previous = orders.value
     deliveringId.value = orderId
     error.value = ''
+    orders.value = orders.value.map((o) =>
+      o.id === orderId ? { ...o, status: ORDER_STATUS.DELIVERED } : o,
+    )
     try {
       await updateOrderStatus(orderId, ORDER_STATUS.DELIVERED)
-      orders.value = orders.value.filter((o) => o.id !== orderId)
     } catch (err) {
+      orders.value = previous
       error.value =
         err instanceof ApiRequestError
           ? err.message
@@ -52,5 +54,5 @@ export function useTableOrders(tableId: () => string) {
   onMounted(load)
   watch(tableId, load)
 
-  return { inProgress, loading, error, deliveringId, load, markDelivered }
+  return { openAccountOrders, loading, error, deliveringId, load, markDelivered }
 }

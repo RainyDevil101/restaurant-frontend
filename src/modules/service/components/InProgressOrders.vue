@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Badge from '@/shared/components/Badge.vue'
 import type { ApiOrder } from '@/shared/api/orders'
+import { ORDER_STATUS } from '@/shared/types'
 import { formatCurrency } from '../helpers/formatCurrency'
 
 defineProps<{
@@ -21,7 +22,7 @@ function itemCount(order: ApiOrder): number {
 <template>
   <section class="in-progress">
     <header class="header">
-      <span>Pedidos en curso</span>
+      <span>Cuenta de la mesa</span>
     </header>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -29,7 +30,8 @@ function itemCount(order: ApiOrder): number {
     <ul class="order-list">
       <li v-for="order in orders" :key="order.id" class="order-card">
         <div class="order-top">
-          <Badge tone="amber">Pendiente</Badge>
+          <Badge v-if="order.status === ORDER_STATUS.PENDING" tone="amber">Pendiente</Badge>
+          <Badge v-else tone="teal">Entregado · pendiente de cobro</Badge>
           <span class="total">{{ formatCurrency(order.total) }}</span>
         </div>
 
@@ -43,6 +45,7 @@ function itemCount(order: ApiOrder): number {
         <div class="order-bottom">
           <span class="count">{{ itemCount(order) }} ítems</span>
           <button
+            v-if="order.status === ORDER_STATUS.PENDING"
             type="button"
             class="deliver-btn"
             :disabled="deliveringId === order.id"

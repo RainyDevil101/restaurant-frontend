@@ -33,7 +33,7 @@ const {
   submit,
 } = useOrder()
 const {
-  inProgress,
+  openAccountOrders,
   error: ordersError,
   deliveringId,
   load: reloadOrders,
@@ -101,8 +101,8 @@ async function handleSubmit() {
       <OrderHeaderRow :table-name="table?.name ?? 'Mesa'" />
 
       <InProgressOrders
-        v-if="inProgress.length > 0"
-        :orders="inProgress"
+        v-if="openAccountOrders.length > 0"
+        :orders="openAccountOrders"
         :error="ordersError"
         :delivering-id="deliveringId"
         @deliver="markDelivered"

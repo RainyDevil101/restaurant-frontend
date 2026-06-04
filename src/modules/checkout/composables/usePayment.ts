@@ -50,6 +50,7 @@ export function usePayment() {
   function buildLines(
     orders: {
       status: string
+      paid: boolean
       items: {
         productId: string
         productName: string
@@ -62,7 +63,7 @@ export function usePayment() {
     const map = new Map<string, PaymentBillLine>()
 
     for (const order of orders) {
-      if (order.status !== ORDER_STATUS.DELIVERED) continue
+      if (order.status !== ORDER_STATUS.DELIVERED || order.paid) continue
       for (const item of order.items) {
         const existing = map.get(item.productId)
         if (existing) {

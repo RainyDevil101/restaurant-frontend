@@ -48,7 +48,7 @@ export function useBilling() {
   onMounted(load)
 
   const activeOrders = computed(() =>
-    orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED),
+    orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED && !o.paid),
   )
 
   const billLines = computed((): BillingLine[] => {

@@ -38,7 +38,7 @@ export function useCheckoutDashboard() {
   let socket: Socket | null = null
 
   const billableOrders = computed(() =>
-    orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED),
+    orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED && !o.paid),
   )
 
   async function load() {
