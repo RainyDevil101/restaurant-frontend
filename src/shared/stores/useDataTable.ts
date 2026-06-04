@@ -20,6 +20,7 @@ export interface DataTable<T> {
   search: Ref<string>
   totalItems: ComputedRef<number>
   totalPages: ComputedRef<number>
+  fillerCount: ComputedRef<number>
   sortBy: Ref<string>
   sortDir: Ref<SortDir>
   toggleSort: (field: string) => void
@@ -61,6 +62,8 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
     return sorted.value.slice(start, start + pageSize.value)
   })
 
+  const fillerCount = computed(() => Math.max(0, pageSize.value - rows.value.length))
+
   function setPage(n: number): void {
     const clamped = Math.min(Math.max(1, n), totalPages.value)
     page.value = clamped
@@ -98,6 +101,7 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
     search,
     totalItems,
     totalPages,
+    fillerCount,
     sortBy,
     sortDir,
     toggleSort,

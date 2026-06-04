@@ -67,6 +67,7 @@ export function useAdminTables() {
     page: table.page,
     pageSize: table.pageSize,
     totalPages: table.totalPages,
+    fillerCount: table.fillerCount,
     sortBy: table.sortBy,
     sortDir: table.sortDir,
     toggleSort: table.toggleSort,

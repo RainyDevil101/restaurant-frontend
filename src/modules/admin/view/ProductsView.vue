@@ -17,6 +17,7 @@ const {
   page,
   pageSize,
   totalPages,
+  fillerCount,
   sortBy,
   sortDir,
   toggleSort,
@@ -239,6 +240,15 @@ async function confirmDelete() {
               <button class="action-btn danger" @click="openDelete(product.id)">Eliminar</button>
             </div>
           </td>
+        </tr>
+
+        <tr
+          v-for="i in products.length === 0 ? 0 : fillerCount"
+          :key="'filler-' + i"
+          class="filler-row"
+          aria-hidden="true"
+        >
+          <td colspan="5"></td>
         </tr>
 
         <tr v-if="products.length === 0">
@@ -485,6 +495,10 @@ thead th {
   white-space: nowrap;
 }
 
+.data-table tbody tr {
+  height: 56px;
+}
+
 .data-row td {
   padding: 14px 12px;
   border-bottom: 1px solid #f3f4f6;
@@ -492,7 +506,11 @@ thead th {
   vertical-align: middle;
 }
 
-.data-row:last-child td {
+.filler-row td {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table tbody tr:last-child td {
   border-bottom: none;
 }
 

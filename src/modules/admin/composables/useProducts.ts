@@ -81,6 +81,7 @@ export function useProducts() {
     pageSize: table.pageSize,
     totalItems: table.totalItems,
     totalPages: table.totalPages,
+    fillerCount: table.fillerCount,
     sortBy: table.sortBy,
     sortDir: table.sortDir,
     toggleSort: table.toggleSort,
