@@ -1,16 +1,15 @@
 import { Role } from '@/shared/types'
-import { colors } from '@/shared/styles/colors'
+import type { BadgeTone } from '@/shared/components/Badge.vue'
 
 interface RoleBadge {
   label: string
-  bg: string
-  color: string
+  tone: BadgeTone
 }
 
 const ROLE_BADGES: Record<Role, RoleBadge> = {
-  [Role.MESERO]: { label: 'Servicio',       bg: colors.table.occupied.bg,       color: colors.table.occupied.text       },
-  [Role.CAJERO]: { label: 'Caja',           bg: colors.area.bar.bg,             color: colors.area.bar.text             },
-  [Role.ADMIN]:  { label: 'Administración', bg: colors.neutral.surface,         color: colors.neutral.secondary         },
+  [Role.MESERO]: { label: 'Servicio', tone: 'blue' },
+  [Role.CAJERO]: { label: 'Caja', tone: 'purple' },
+  [Role.ADMIN]: { label: 'Administración', tone: 'gray' },
 }
 
 export function roleLabel(role: Role): RoleBadge {

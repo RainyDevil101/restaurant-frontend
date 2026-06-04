@@ -1,7 +1,11 @@
+<script lang="ts">
+export type BadgeTone = 'gray' | 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'teal'
+</script>
+
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    tone?: 'gray' | 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'teal'
+    tone?: BadgeTone
   }>(),
   { tone: 'gray' },
 )

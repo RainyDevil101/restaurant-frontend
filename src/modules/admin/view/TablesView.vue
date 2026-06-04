@@ -9,6 +9,7 @@ import AdminPagination from '../components/AdminPagination.vue'
 import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import Badge from '@/shared/components/Badge.vue'
 import { ADMIN_LABELS, TABLE_CAPACITY_MAX, PAGE_SIZE_OPTIONS } from '../constants'
 import type { TableRow } from '../composables/useAdminTables'
 
@@ -134,12 +135,9 @@ async function confirmDelete() {
           <td class="col-muted">{{ table.areaName }}</td>
           <td class="col-right">{{ table.capacity }} pers.</td>
           <td class="col-right">
-            <span
-              class="status-label"
-              :style="{ color: STATUS_MAP[table.status]?.color ?? '#6b7280' }"
-            >
-              {{ STATUS_MAP[table.status]?.label ?? table.status }}
-            </span>
+            <Badge :tone="STATUS_MAP[table.status]?.tone ?? 'gray'">{{
+              STATUS_MAP[table.status]?.label ?? table.status
+            }}</Badge>
           </td>
           <td class="col-actions">
             <div class="row-actions">
@@ -314,10 +312,6 @@ thead th {
 
 .col-muted {
   color: #6b7280;
-}
-
-.status-label {
-  font-weight: 600;
 }
 
 .row-actions {

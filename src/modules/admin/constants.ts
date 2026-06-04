@@ -1,3 +1,5 @@
+import type { BadgeTone } from '@/shared/components/Badge.vue'
+
 export const PRODUCT_PRICE_MAX = 99_999_999
 export const TABLE_CAPACITY_MAX = 20
 
@@ -28,10 +30,10 @@ export const ADMIN_LABELS = {
     areaRequired: 'Selecciona un área para la mesa.',
     capacityInvalid: 'La capacidad debe ser un número entero entre 1 y 20.',
     statusLabels: {
-      libre:     { label: 'Libre',     color: '#059669' },
-      ocupada:   { label: 'Ocupada',   color: '#1D4ED8' },
-      por_cobrar: { label: 'Por cobrar', color: '#D97706' },
-    } as Record<string, { label: string; color: string }>,
+      libre: { label: 'Libre', tone: 'green' },
+      ocupada: { label: 'Ocupada', tone: 'blue' },
+      por_cobrar: { label: 'Por cobrar', tone: 'amber' },
+    } as Record<string, { label: string; tone: BadgeTone }>,
   },
   area: {
     nameRequired: 'El nombre del área es obligatorio.',

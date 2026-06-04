@@ -10,6 +10,7 @@ import AdminPagination from '../components/AdminPagination.vue'
 import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import Badge from '@/shared/components/Badge.vue'
 import { Role, type User } from '@/modules/auth/store'
 import { ADMIN_LABELS, PAGE_SIZE_OPTIONS } from '../constants'
 
@@ -151,17 +152,10 @@ async function confirmDelete() {
           <td class="col-name">{{ user.name }}</td>
           <td class="col-muted">{{ user.email }}</td>
           <td>
-            <span
-              class="role-badge"
-              :style="{ background: roleLabel(user.role).bg, color: roleLabel(user.role).color }"
-            >
-              {{ roleLabel(user.role).label }}
-            </span>
+            <Badge :tone="roleLabel(user.role).tone">{{ roleLabel(user.role).label }}</Badge>
           </td>
           <td class="col-right">
-            <span :class="user.active ? 'status-active' : 'status-inactive'">
-              {{ user.active ? 'Activo' : 'Inactivo' }}
-            </span>
+            <Badge :tone="user.active ? 'green' : 'gray'">{{ user.active ? 'Activo' : 'Inactivo' }}</Badge>
           </td>
           <td class="col-actions">
             <div class="row-actions">
@@ -345,23 +339,6 @@ thead th {
 
 .col-muted {
   color: #6b7280;
-}
-
-.role-badge {
-  display: inline-block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-}
-
-.status-active {
-  color: #059669;
-  font-weight: 600;
-}
-
-.status-inactive {
-  color: #9ca3af;
 }
 
 .row-actions {
