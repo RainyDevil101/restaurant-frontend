@@ -44,6 +44,7 @@ const emit = defineEmits<{
 <style scoped>
 .category-tabs {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
