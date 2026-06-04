@@ -6,7 +6,9 @@ import {
   updateProduct as apiUpdateProduct,
   deleteProduct as apiDeleteProduct,
   toggleProductAvailability as apiToggleAvailability,
+  createCategory as apiCreateCategory,
   type ProductInput,
+  type CategoryInput,
 } from '@/shared/api/catalog'
 import { ApiRequestError } from '@/shared/api/client'
 import type { Category, Product } from '@/shared/types'
@@ -65,6 +67,12 @@ export function useProducts() {
     await load()
   }
 
+  async function createCategory(input: CategoryInput) {
+    const created = await apiCreateCategory(input)
+    await load()
+    return created
+  }
+
   return {
     products,
     categories,
@@ -76,5 +84,6 @@ export function useProducts() {
     updateProduct,
     removeProduct,
     toggleAvailability,
+    createCategory,
   }
 }

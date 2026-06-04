@@ -4,6 +4,7 @@ import { useCategories } from '../composables/useCategories'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
+import { ADMIN_LABELS } from '../constants'
 
 const { categories, search, loading, error, createCategory, updateCategory, removeCategory } =
   useCategories()
@@ -29,11 +30,16 @@ function openEdit(category: { id: string; name: string }) {
 }
 
 async function save() {
+  const trimmedName = form.name.trim()
+  if (!trimmedName) {
+    formError.value = ADMIN_LABELS.category.nameRequired
+    return
+  }
   saving.value = true
   formError.value = ''
   try {
-    if (editingId.value) await updateCategory(editingId.value, { name: form.name })
-    else await createCategory({ name: form.name })
+    if (editingId.value) await updateCategory(editingId.value, { name: trimmedName })
+    else await createCategory({ name: trimmedName })
     dialogOpen.value = false
   } catch (err) {
     formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
@@ -121,7 +127,14 @@ async function confirmDelete() {
           <td class="col-actions">
             <div class="row-actions">
               <button class="action-btn" @click="openEdit(category)">Editar</button>
-              <button class="action-btn danger" @click="openDelete(category.id)">Eliminar</button>
+              <button
+                class="action-btn danger"
+                :disabled="category.productCount > 0"
+                :title="category.productCount > 0 ? ADMIN_LABELS.category.deleteBlockedTitle : undefined"
+                @click="openDelete(category.id)"
+              >
+                Eliminar
+              </button>
             </div>
           </td>
         </tr>
@@ -303,6 +316,11 @@ thead th {
 
 .action-btn.danger:hover {
   background: #fee2e2;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .empty-row {

@@ -2,7 +2,6 @@
 import { useRouter } from 'vue-router'
 import { useCheckoutDashboard } from '../composables/useCheckoutDashboard'
 import { formatCurrency } from '../helpers/formatCurrency'
-import { areaLabel } from '../helpers/areaLabel'
 import { TABLE_STATUS } from '@/shared/types'
 
 const router = useRouter()
@@ -72,12 +71,6 @@ function registerPayment() {
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <span
-                class="area-tag"
-                :style="{ background: areaLabel(line.categoryId).bg, color: areaLabel(line.categoryId).color }"
-              >
-                {{ areaLabel(line.categoryId).text }}
-              </span>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>

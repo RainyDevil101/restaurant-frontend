@@ -6,6 +6,11 @@ import { Role, Route } from '@/shared/types'
 const router = useRouter()
 const auth = useAuthStore()
 const isAdmin = auth.user?.role === Role.ADMIN
+
+function logout() {
+  auth.logout()
+  router.push(Route.LOGIN)
+}
 </script>
 
 <template>
@@ -57,6 +62,7 @@ const isAdmin = auth.user?.role === Role.ADMIN
           </svg>
         </div>
         <span class="user-name">{{ auth.user?.name }}</span>
+        <button class="logout-btn" aria-label="Cerrar sesión" @click="logout">Salir</button>
       </div>
     </header>
 
@@ -123,6 +129,20 @@ const isAdmin = auth.user?.role === Role.ADMIN
 .user-name {
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.logout-btn:active {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .content {

@@ -4,6 +4,7 @@ import { useMenus } from '../composables/useMenus'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
+import { ADMIN_LABELS } from '../constants'
 
 const {
   menus,
@@ -51,9 +52,18 @@ function openEdit(menu: { id: string; name: string; productIds: string[] }) {
 }
 
 async function save() {
+  const trimmedName = form.name.trim()
+  if (!trimmedName) {
+    formError.value = ADMIN_LABELS.menu.nameRequired
+    return
+  }
+  if (form.productIds.length === 0) {
+    formError.value = ADMIN_LABELS.menu.productsRequired
+    return
+  }
   saving.value = true
   formError.value = ''
-  const payload = { name: form.name, productIds: form.productIds }
+  const payload = { name: trimmedName, productIds: form.productIds }
   try {
     if (editingId.value) await updateMenu(editingId.value, payload)
     else await createMenu(payload)

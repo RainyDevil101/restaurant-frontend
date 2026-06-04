@@ -4,6 +4,7 @@ import { useAdminTables } from '../composables/useAdminTables'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
+import { ADMIN_LABELS, TABLE_CAPACITY_MAX } from '../constants'
 
 const { tables, areas, search, loading, error, createTable, updateTable, removeTable } =
   useAdminTables()
@@ -38,10 +39,29 @@ function openEdit(table: { id: string; name: string; capacity: number; areaId: s
   dialogOpen.value = true
 }
 
+function clampCapacity() {
+  form.capacity = Math.round(form.capacity)
+  if (form.capacity > TABLE_CAPACITY_MAX) form.capacity = TABLE_CAPACITY_MAX
+  if (form.capacity < 1) form.capacity = 1
+}
+
 async function save() {
+  const trimmedName = form.name.trim()
+  if (!trimmedName) {
+    formError.value = ADMIN_LABELS.table.nameRequired
+    return
+  }
+  if (!form.areaId) {
+    formError.value = ADMIN_LABELS.table.areaRequired
+    return
+  }
+  if (!Number.isInteger(form.capacity) || form.capacity < 1 || form.capacity > TABLE_CAPACITY_MAX) {
+    formError.value = ADMIN_LABELS.table.capacityInvalid
+    return
+  }
   saving.value = true
   formError.value = ''
-  const payload = { name: form.name, capacity: form.capacity, areaId: form.areaId }
+  const payload = { name: trimmedName, capacity: form.capacity, areaId: form.areaId }
   try {
     if (editingId.value) await updateTable(editingId.value, payload)
     else await createTable(payload)
@@ -178,12 +198,16 @@ async function confirmDelete() {
           class="field-input"
           type="number"
           min="1"
+          :max="TABLE_CAPACITY_MAX"
+          step="1"
           required
+          @input="clampCapacity"
         />
       </div>
       <div class="field">
         <label class="field-label" for="table-area">Área</label>
         <select id="table-area" v-model="form.areaId" class="field-input" required>
+          <option value="" disabled>Seleccione un área</option>
           <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
       </div>

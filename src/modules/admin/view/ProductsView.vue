@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useProducts } from '../composables/useProducts'
-import { areaLabel } from '../helpers/areaLabel'
 import { formatCurrency } from '../helpers/formatCurrency'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
+import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants'
 
 const {
   products,
@@ -17,6 +17,7 @@ const {
   updateProduct,
   removeProduct,
   toggleAvailability,
+  createCategory,
 } = useProducts()
 
 const actionError = ref('')
@@ -36,14 +37,42 @@ const saving = ref(false)
 const formError = ref('')
 const form = reactive({ name: '', description: '', price: 0, categoryId: '' })
 
+const creatingCategory = ref(false)
+const inlineCatName = ref('')
+const inlineCatError = ref('')
+
 function openCreate() {
   editingId.value = null
   form.name = ''
   form.description = ''
   form.price = 0
   form.categoryId = categories.value[0]?.id ?? ''
+  inlineCatName.value = ''
+  inlineCatError.value = ''
   formError.value = ''
   dialogOpen.value = true
+}
+
+function clampPrice() {
+  form.price = Math.round(form.price)
+  if (form.price > PRODUCT_PRICE_MAX) form.price = PRODUCT_PRICE_MAX
+  if (form.price < 0) form.price = 0
+}
+
+async function createCategoryInline() {
+  const name = inlineCatName.value.trim()
+  if (!name) return
+  creatingCategory.value = true
+  inlineCatError.value = ''
+  try {
+    const created = await createCategory({ name })
+    form.categoryId = created.id
+    inlineCatName.value = ''
+  } catch (err) {
+    inlineCatError.value = err instanceof ApiRequestError ? err.message : 'No se pudo crear.'
+  } finally {
+    creatingCategory.value = false
+  }
 }
 
 function openEdit(product: {
@@ -63,6 +92,18 @@ function openEdit(product: {
 }
 
 async function save() {
+  if (!form.name.trim()) {
+    formError.value = ADMIN_LABELS.product.nameRequired
+    return
+  }
+  if (!form.categoryId) {
+    formError.value = ADMIN_LABELS.product.categoryRequired
+    return
+  }
+  if (!Number.isInteger(form.price) || form.price < 0 || form.price > PRODUCT_PRICE_MAX) {
+    formError.value = ADMIN_LABELS.product.priceInvalid
+    return
+  }
   saving.value = true
   formError.value = ''
   const payload = {
@@ -151,7 +192,6 @@ async function confirmDelete() {
         <tr>
           <th>Producto</th>
           <th>Categoría</th>
-          <th>Área</th>
           <th class="col-right">Precio</th>
           <th class="col-right">Estado</th>
           <th class="col-actions">Acciones</th>
@@ -163,17 +203,6 @@ async function confirmDelete() {
             <span class="product-name">{{ product.name }}</span>
           </td>
           <td class="col-muted">{{ product.categoryName }}</td>
-          <td>
-            <span
-              class="area-tag"
-              :style="{
-                background: areaLabel(product.categoryId).bg,
-                color: areaLabel(product.categoryId).color,
-              }"
-            >
-              {{ areaLabel(product.categoryId).text }}
-            </span>
-          </td>
           <td class="col-right">{{ formatCurrency(product.price) }}</td>
           <td class="col-right">
             <button
@@ -194,7 +223,7 @@ async function confirmDelete() {
         </tr>
 
         <tr v-if="products.length === 0">
-          <td colspan="6" class="empty-row">
+          <td colspan="5" class="empty-row">
             <span v-if="loading">Cargando…</span>
             <span v-else-if="error" class="error-text">{{ error }}</span>
             <span v-else>Sin resultados</span>
@@ -227,13 +256,43 @@ async function confirmDelete() {
           class="field-input"
           type="number"
           min="0"
-          step="0.01"
+          :max="PRODUCT_PRICE_MAX"
+          step="1"
           required
+          @input="clampPrice"
         />
       </div>
       <div class="field">
-        <label class="field-label" for="prod-cat">Categoría</label>
-        <select id="prod-cat" v-model="form.categoryId" class="field-input" required>
+        <label
+          class="field-label"
+          :for="categories.length === 0 && !editingId ? 'inline-cat-input' : 'prod-cat'"
+        >Categoría</label>
+        <template v-if="categories.length === 0 && !editingId">
+          <div class="no-cat-notice" role="alert">
+            <span class="no-cat-title">{{ ADMIN_LABELS.product.noCategoriesNotice }}</span>
+            <span class="no-cat-hint">{{ ADMIN_LABELS.product.noCategoriesHint }}</span>
+          </div>
+          <div class="inline-cat-form">
+            <input
+              id="inline-cat-input"
+              v-model="inlineCatName"
+              class="field-input inline-cat-input"
+              :placeholder="ADMIN_LABELS.product.categoryNamePlaceholder"
+              :disabled="creatingCategory"
+            />
+            <button
+              type="button"
+              class="inline-cat-btn"
+              :disabled="creatingCategory || !inlineCatName.trim()"
+              @click="createCategoryInline"
+            >
+              {{ creatingCategory ? ADMIN_LABELS.product.creating : ADMIN_LABELS.product.createCategoryLabel }}
+            </button>
+          </div>
+          <p v-if="inlineCatError" class="inline-cat-error">{{ inlineCatError }}</p>
+        </template>
+        <select v-else id="prod-cat" v-model="form.categoryId" class="field-input" required>
+          <option value="" disabled>{{ ADMIN_LABELS.product.categoryPlaceholder }}</option>
           <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
         </select>
       </div>
@@ -466,5 +525,66 @@ thead th {
 
 .field-input:focus {
   border-color: var(--color-primary);
+}
+
+/* No-categories notice */
+.no-cat-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.no-cat-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.no-cat-hint {
+  font-size: 0.8rem;
+  color: #b45309;
+}
+
+/* Inline category creation */
+.inline-cat-form {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-cat-input {
+  flex: 1;
+}
+
+.inline-cat-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.inline-cat-btn:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.inline-cat-btn:disabled {
+  background: #c8d8d6;
+  cursor: not-allowed;
+}
+
+.inline-cat-error {
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin-top: 4px;
 }
 </style>

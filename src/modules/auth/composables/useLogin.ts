@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store'
 import { requestLogin } from '../api'
 import { ApiRequestError } from '@/shared/api/client'
+import { EMAIL_RE, LOGIN_LABELS } from '../constants'
 
 export function useLogin() {
   const router = useRouter()
@@ -14,16 +15,18 @@ export function useLogin() {
   const error = ref('')
   const loading = ref(false)
 
-  const credentialLabel = computed(() => 'Contraseña o PIN')
   const inputType = computed(() => (showCredential.value ? 'text' : 'password'))
-  const inputMode = computed(() => undefined)
 
   async function submit() {
     error.value = ''
 
     const trimmedEmail = email.value.trim().toLowerCase()
     if (!trimmedEmail || !credential.value) {
-      error.value = 'Ingresa tu correo y credencial.'
+      error.value = LOGIN_LABELS.errorFieldsRequired
+      return
+    }
+    if (!EMAIL_RE.test(trimmedEmail)) {
+      error.value = LOGIN_LABELS.errorEmailInvalid
       return
     }
 
@@ -34,9 +37,9 @@ export function useLogin() {
       router.push(authStore.roleHome)
     } catch (err) {
       if (err instanceof ApiRequestError) {
-        error.value = err.statusCode === 401 ? 'Credenciales incorrectas.' : err.message
+        error.value = err.statusCode === 401 ? LOGIN_LABELS.errorInvalidCredentials : err.message
       } else {
-        error.value = 'No se pudo conectar con el servidor.'
+        error.value = LOGIN_LABELS.errorNetwork
       }
     } finally {
       loading.value = false
@@ -47,9 +50,8 @@ export function useLogin() {
     email,
     credential,
     showCredential,
-    credentialLabel,
+    credentialLabel: LOGIN_LABELS.credentialLabel,
     inputType,
-    inputMode,
     error,
     loading,
     submit,

@@ -3,7 +3,6 @@ import { useRouter } from 'vue-router'
 import { Route } from '@/shared/types'
 import { usePayment } from '../composables/usePayment'
 import { formatCurrency } from '../helpers/formatCurrency'
-import { areaLabel } from '../helpers/areaLabel'
 import { PAYMENT_METHOD } from '@/shared/types'
 
 const router = useRouter()
@@ -65,15 +64,6 @@ async function handleConfirm() {
           <div v-for="line in billLines" :key="line.productName" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <span
-                class="area-tag"
-                :style="{
-                  background: areaLabel(line.categoryId).bg,
-                  color: areaLabel(line.categoryId).color,
-                }"
-              >
-                {{ areaLabel(line.categoryId).text }}
-              </span>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>

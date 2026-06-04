@@ -6,6 +6,11 @@ import { Route } from '@/shared/types'
 const router = useRouter()
 const auth = useAuthStore()
 
+function logout() {
+  auth.logout()
+  router.push(Route.LOGIN)
+}
+
 const navItems = [
   { label: 'Productos',   to: Route.ADMIN_PRODUCTS   },
   { label: 'Categorías',  to: Route.ADMIN_CATEGORIES },
@@ -52,6 +57,7 @@ const navItems = [
           </svg>
           <span>{{ auth.user?.name }}</span>
         </div>
+        <button class="logout-btn" @click="logout">Cerrar sesión</button>
       </div>
     </aside>
 
@@ -149,6 +155,23 @@ const navItems = [
   padding: 6px 4px 0;
   font-size: 0.875rem;
   color: #6b7280;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 10px;
+  background: white;
+  border: 1.5px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #dc2626;
+  transition: background 0.12s;
+  text-align: center;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
 }
 
 /* Content */

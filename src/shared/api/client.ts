@@ -1,4 +1,5 @@
-import { getToken } from '@/shared/session'
+import { getToken, clearSession } from '@/shared/session'
+import { Route } from '@/shared/types'
 
 const BASE_URL = import.meta.env.VITE_API_URL
 
@@ -53,6 +54,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const errorBody = data as ApiErrorBody | null
+    if (response.status === 401 && auth) {
+      clearSession()
+      if (window.location.pathname !== Route.LOGIN) window.location.assign(Route.LOGIN)
+    }
     throw new ApiRequestError(messageFrom(errorBody, response.status), response.status, errorBody)
   }
 

@@ -1,12 +1,55 @@
 <script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
 defineProps<{ title: string; saving?: boolean; error?: string }>()
 const emit = defineEmits<{ close: []; submit: [] }>()
+
+const modalEl = ref<HTMLElement | null>(null)
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+function getFocusable(): HTMLElement[] {
+  return Array.from(modalEl.value?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? [])
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    emit('close')
+    return
+  }
+  if (e.key !== 'Tab') return
+  const focusable = getFocusable()
+  if (!focusable.length) return
+  const first = focusable[0]!
+  const last = focusable[focusable.length - 1]!
+  if (e.shiftKey) {
+    if (document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    }
+  } else {
+    if (document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
+  getFocusable()[0]?.focus()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
   <Teleport to="body">
-    <div class="modal-overlay" @click.self="emit('close')">
-      <div class="modal">
+    <div class="modal-overlay" role="dialog" aria-modal="true" @click.self="emit('close')">
+      <div ref="modalEl" class="modal">
         <div class="modal-header">
           <h2 class="modal-title">{{ title }}</h2>
           <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">×</button>

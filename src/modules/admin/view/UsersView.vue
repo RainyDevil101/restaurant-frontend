@@ -6,6 +6,9 @@ import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
 import { Role, type User } from '@/modules/auth/store'
+import { ADMIN_LABELS } from '../constants'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const { users, search, loading, error, createUser, updateUser, removeUser } = useUsers()
 
@@ -46,13 +49,31 @@ function openEdit(user: User) {
 }
 
 async function save() {
+  const trimmedName = form.name.trim()
+  if (!trimmedName) {
+    formError.value = ADMIN_LABELS.user.nameRequired
+    return
+  }
+  const trimmedEmail = form.email.trim()
+  if (!trimmedEmail) {
+    formError.value = ADMIN_LABELS.user.emailRequired
+    return
+  }
+  if (!EMAIL_RE.test(trimmedEmail)) {
+    formError.value = ADMIN_LABELS.user.emailInvalid
+    return
+  }
+  if (!editingId.value && !form.credential) {
+    formError.value = ADMIN_LABELS.user.credentialRequired
+    return
+  }
   saving.value = true
   formError.value = ''
   try {
     if (editingId.value) {
       const input: Parameters<typeof updateUser>[1] = {
-        name: form.name,
-        email: form.email,
+        name: trimmedName,
+        email: trimmedEmail,
         role: form.role,
         active: form.active,
       }
@@ -60,8 +81,8 @@ async function save() {
       await updateUser(editingId.value, input)
     } else {
       await createUser({
-        name: form.name,
-        email: form.email,
+        name: trimmedName,
+        email: trimmedEmail,
         role: form.role,
         credential: form.credential,
       })

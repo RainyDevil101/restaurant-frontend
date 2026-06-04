@@ -8,7 +8,6 @@ const {
   showCredential,
   credentialLabel,
   inputType,
-  inputMode,
   error,
   loading,
   submit,
@@ -36,7 +35,7 @@ const {
           <label class="field-label" for="credential">{{ credentialLabel }}</label>
           <div class="credential-wrap">
             <input id="credential" v-model="credential" class="field-input credential-input" :type="inputType"
-              :inputmode="inputMode" :placeholder="credentialLabel === 'PIN' ? '••••' : '••••••••'"
+              placeholder="••••••••"
               autocomplete="current-password" required />
             <button type="button" class="eye-btn" :aria-label="showCredential ? 'Ocultar' : 'Mostrar'"
               @click="showCredential = !showCredential">
