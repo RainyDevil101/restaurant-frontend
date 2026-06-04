@@ -9,6 +9,7 @@ export interface ApiOrderItem {
   unitPrice: number
   subtotal: number
   notes?: string
+  kind?: 'product' | 'combo'
 }
 
 export interface ApiOrder {
@@ -22,7 +23,8 @@ export interface ApiOrder {
 }
 
 export interface OrderItemInput {
-  productId: string
+  productId?: string
+  menuId?: string
   quantity: number
   notes?: string
 }

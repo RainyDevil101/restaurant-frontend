@@ -229,7 +229,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar esta categoría? Esta acción no se puede deshacer."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false"
+      @close="confirmOpen = false; deletingId = null"
       @confirm="confirmDelete"
     />
   </div>

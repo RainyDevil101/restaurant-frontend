@@ -68,9 +68,9 @@ const { tables, loading, error } = useTables()
   flex-shrink: 0;
 }
 
-.legend-dot.libre      { background: #a8d5b5; }
-.legend-dot.ocupada    { background: #9baee0; }
-.legend-dot.por_cobrar { background: #f5d878; }
+.legend-dot.libre      { background: #DCFCE7; }
+.legend-dot.ocupada    { background: #DBEAFE; }
+.legend-dot.por_cobrar { background: #FEF3C7; }
 
 .table-grid {
   display: grid;

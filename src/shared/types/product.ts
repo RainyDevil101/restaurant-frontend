@@ -17,4 +17,5 @@ export interface Menu {
   name: string
   productIds: string[]
   active: boolean
+  price: number
 }

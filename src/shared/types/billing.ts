@@ -11,6 +11,7 @@ export interface BillItem {
   quantity: number
   unitPrice: number
   subtotal: number
+  kind?: 'product' | 'combo'
 }
 
 export interface Bill {

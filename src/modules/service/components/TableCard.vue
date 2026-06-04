@@ -55,14 +55,14 @@ defineProps<{ table: Table }>()
 }
 
 .libre {
-  background: #dff0e5;
+  background: #DCFCE7;
 }
 
 .ocupada {
-  background: #dce4f2;
+  background: #DBEAFE;
 }
 
 .por_cobrar {
-  background: #fef3ce;
+  background: #FEF3C7;
 }
 </style>

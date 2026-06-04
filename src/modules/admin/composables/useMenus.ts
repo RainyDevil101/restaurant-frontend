@@ -34,6 +34,7 @@ export function useMenus() {
     pageSize: PRODUCTS_PER_PAGE,
     sortAccessors: {
       name: (row) => row.name,
+      price: (row) => row.price,
       productCount: (row) => row.productCount,
       active: (row) => (row.active ? 1 : 0),
     },

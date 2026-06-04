@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import type { Category } from '@/shared/types'
+import type { OrderEntry } from '../composables/useOrder'
 import { categoryColor, categoryName } from '../helpers/categoryColor'
-
-interface OrderEntry {
-  product: { id: string; name: string; categoryId: string }
-  quantity: number
-}
 
 defineProps<{ entry: OrderEntry; categories: Category[] }>()
 const emit = defineEmits<{ add: []; remove: [] }>()
@@ -14,8 +10,9 @@ const emit = defineEmits<{ add: []; remove: [] }>()
 <template>
   <div class="order-item-row">
     <div class="item-name-wrap">
-      <span class="item-name">{{ entry.product.name }}</span>
-      <span class="category-tag">
+      <span class="item-name">{{ entry.kind === 'combo' ? entry.menu.name : entry.product.name }}</span>
+      <span v-if="entry.kind === 'combo'" class="combo-tag">Combo</span>
+      <span v-else class="category-tag">
         <span
           class="category-dot"
           :style="{ background: categoryColor(entry.product.categoryId) }"
@@ -90,6 +87,16 @@ const emit = defineEmits<{ add: []; remove: [] }>()
   height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.combo-tag {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .qty-control {

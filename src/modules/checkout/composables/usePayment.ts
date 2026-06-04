@@ -1,18 +1,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { listTables, updateTableStatus } from '@/shared/api/venue'
-import { listProducts } from '@/shared/api/catalog'
 import { listOrdersByTable } from '@/shared/api/orders'
 import { consolidateBill, payBill } from '@/shared/api/billing'
 import { ApiRequestError } from '@/shared/api/client'
 import { ORDER_STATUS, PAYMENT_METHOD, TABLE_STATUS } from '@/shared/types'
-import type { PaymentMethod, Table, Product } from '@/shared/types'
+import type { PaymentMethod, Table } from '@/shared/types'
 
 interface PaymentBillLine {
+  productId: string
   productName: string
-  categoryId: string
   quantity: number
   subtotal: number
+  kind?: 'product' | 'combo'
 }
 
 export function usePayment() {
@@ -33,13 +33,12 @@ export function usePayment() {
     loading.value = true
     error.value = ''
     try {
-      const [tables, orders, products] = await Promise.all([
+      const [tables, orders] = await Promise.all([
         listTables(),
         listOrdersByTable(tableId.value),
-        listProducts(),
       ])
       table.value = tables.find((t) => t.id === tableId.value) ?? null
-      lines.value = buildLines(orders, products)
+      lines.value = buildLines(orders)
     } catch (err) {
       error.value =
         err instanceof ApiRequestError ? err.message : 'No se pudo cargar la cuenta.'
@@ -49,11 +48,17 @@ export function usePayment() {
   }
 
   function buildLines(
-    orders: { status: string; items: { productId: string; productName: string; quantity: number; subtotal: number }[] }[],
-    products: Product[],
+    orders: {
+      status: string
+      items: {
+        productId: string
+        productName: string
+        quantity: number
+        subtotal: number
+        kind?: 'product' | 'combo'
+      }[]
+    }[],
   ): PaymentBillLine[] {
-    const categoryOf = (productId: string) =>
-      products.find((p) => p.id === productId)?.categoryId ?? ''
     const map = new Map<string, PaymentBillLine>()
 
     for (const order of orders) {
@@ -65,10 +70,11 @@ export function usePayment() {
           existing.subtotal += item.subtotal
         } else {
           map.set(item.productId, {
+            productId: item.productId,
             productName: item.productName,
-            categoryId: categoryOf(item.productId),
             quantity: item.quantity,
             subtotal: item.subtotal,
+            kind: item.kind,
           })
         }
       }

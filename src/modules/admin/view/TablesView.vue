@@ -5,6 +5,7 @@ import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
 import { ADMIN_LABELS, TABLE_CAPACITY_MAX, PAGE_SIZE_OPTIONS } from '../constants'
+import type { TableRow } from '../composables/useAdminTables'
 
 const {
   tables,
@@ -25,11 +26,7 @@ const {
   removeTable,
 } = useAdminTables()
 
-const STATUS_MAP: Record<string, { color: string; label: string }> = {
-  libre: { color: '#059669', label: 'Libre' },
-  ocupada: { color: '#1D4ED8', label: 'Ocupada' },
-  por_cobrar: { color: '#D97706', label: 'Por cobrar' },
-}
+const STATUS_MAP = ADMIN_LABELS.table.statusLabels
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -46,7 +43,7 @@ function openCreate() {
   dialogOpen.value = true
 }
 
-function openEdit(table: { id: string; name: string; capacity: number; areaId: string }) {
+function openEdit(table: TableRow) {
   editingId.value = table.id
   form.name = table.name
   form.capacity = table.capacity
@@ -290,7 +287,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar esta mesa? Esta acción no se puede deshacer."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false"
+      @close="confirmOpen = false; deletingId = null"
       @confirm="confirmDelete"
     />
   </div>

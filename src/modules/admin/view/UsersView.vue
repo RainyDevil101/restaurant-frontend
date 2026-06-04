@@ -319,7 +319,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar este usuario? Quedará desactivado y no podrá iniciar sesión."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false"
+      @close="confirmOpen = false; deletingId = null"
       @confirm="confirmDelete"
     />
   </div>

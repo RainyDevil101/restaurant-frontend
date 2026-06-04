@@ -1,12 +1,11 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { Socket } from 'socket.io-client'
 import { listTables } from '@/shared/api/venue'
-import { listProducts } from '@/shared/api/catalog'
 import { listOrders, type ApiOrder } from '@/shared/api/orders'
 import { connectOrdersSocket } from '@/shared/api/socket'
 import { ApiRequestError } from '@/shared/api/client'
 import { ORDER_STATUS, TABLE_STATUS } from '@/shared/types'
-import type { Table, Product } from '@/shared/types'
+import type { Table } from '@/shared/types'
 
 export interface TableSummary {
   table: Table
@@ -17,10 +16,10 @@ export interface TableSummary {
 export interface BillLine {
   productId: string
   productName: string
-  categoryId: string
   quantity: number
   unitPrice: number
   subtotal: number
+  kind?: 'product' | 'combo'
 }
 
 const SOCKET_EVENT = {
@@ -33,7 +32,6 @@ export function useCheckoutDashboard() {
   const selectedTableId = ref<string | null>(null)
   const tables = ref<Table[]>([])
   const orders = ref<ApiOrder[]>([])
-  const products = ref<Product[]>([])
   const loading = ref(false)
   const error = ref('')
 
@@ -43,22 +41,13 @@ export function useCheckoutDashboard() {
     orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED),
   )
 
-  function categoryIdFor(productId: string): string {
-    return products.value.find((p) => p.id === productId)?.categoryId ?? ''
-  }
-
   async function load() {
     loading.value = true
     error.value = ''
     try {
-      const [tableList, orderList, productList] = await Promise.all([
-        listTables(),
-        listOrders(),
-        listProducts(),
-      ])
+      const [tableList, orderList] = await Promise.all([listTables(), listOrders()])
       tables.value = tableList
       orders.value = orderList
-      products.value = productList
     } catch (err) {
       error.value =
         err instanceof ApiRequestError ? err.message : 'No se pudo cargar el tablero.'
@@ -127,10 +116,10 @@ export function useCheckoutDashboard() {
           map.set(item.productId, {
             productId: item.productId,
             productName: item.productName,
-            categoryId: categoryIdFor(item.productId),
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             subtotal: item.subtotal,
+            kind: item.kind,
           })
         }
       }

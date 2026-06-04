@@ -27,6 +27,11 @@ export const ADMIN_LABELS = {
     nameRequired: 'El nombre de la mesa es obligatorio.',
     areaRequired: 'Selecciona un área para la mesa.',
     capacityInvalid: 'La capacidad debe ser un número entero entre 1 y 20.',
+    statusLabels: {
+      libre:     { label: 'Libre',     color: '#059669' },
+      ocupada:   { label: 'Ocupada',   color: '#1D4ED8' },
+      por_cobrar: { label: 'Por cobrar', color: '#D97706' },
+    } as Record<string, { label: string; color: string }>,
   },
   area: {
     nameRequired: 'El nombre del área es obligatorio.',
@@ -35,6 +40,7 @@ export const ADMIN_LABELS = {
   menu: {
     nameRequired: 'El nombre del menú es obligatorio.',
     productsRequired: 'Selecciona al menos un producto para el menú.',
+    priceInvalid: 'El precio debe ser un número entero entre $0 y $99.999.999.',
   },
   category: {
     nameRequired: 'El nombre de la categoría es obligatorio.',

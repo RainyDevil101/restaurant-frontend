@@ -32,5 +32,5 @@ export function useCurrentTable() {
 
   onMounted(load)
 
-  return { table, tableId, loading, error, reload: load }
+  return { table, tableId }
 }

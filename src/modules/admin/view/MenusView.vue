@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useMenus } from '../composables/useMenus'
+import { formatCurrency } from '../helpers/formatCurrency'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
-import { ADMIN_LABELS, PAGE_SIZE_OPTIONS } from '../constants'
+import { ADMIN_LABELS, PAGE_SIZE_OPTIONS, PRODUCT_PRICE_MAX } from '../constants'
 
 const {
   menus,
@@ -41,20 +42,32 @@ const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
 const saving = ref(false)
 const formError = ref('')
-const form = reactive<{ name: string; productIds: string[] }>({ name: '', productIds: [] })
+const form = reactive<{ name: string; productIds: string[]; price: number }>({
+  name: '',
+  productIds: [],
+  price: 0,
+})
+
+function clampPrice() {
+  form.price = Math.round(form.price)
+  if (form.price > PRODUCT_PRICE_MAX) form.price = PRODUCT_PRICE_MAX
+  if (form.price < 0) form.price = 0
+}
 
 function openCreate() {
   editingId.value = null
   form.name = ''
   form.productIds = []
+  form.price = 0
   formError.value = ''
   dialogOpen.value = true
 }
 
-function openEdit(menu: { id: string; name: string; productIds: string[] }) {
+function openEdit(menu: { id: string; name: string; productIds: string[]; price: number }) {
   editingId.value = menu.id
   form.name = menu.name
   form.productIds = [...menu.productIds]
+  form.price = menu.price
   formError.value = ''
   dialogOpen.value = true
 }
@@ -69,9 +82,13 @@ async function save() {
     formError.value = ADMIN_LABELS.menu.productsRequired
     return
   }
+  if (!Number.isInteger(form.price) || form.price < 0 || form.price > PRODUCT_PRICE_MAX) {
+    formError.value = ADMIN_LABELS.menu.priceInvalid
+    return
+  }
   saving.value = true
   formError.value = ''
-  const payload = { name: trimmedName, productIds: form.productIds }
+  const payload = { name: trimmedName, productIds: form.productIds, price: form.price }
   try {
     if (editingId.value) await updateMenu(editingId.value, payload)
     else await createMenu(payload)
@@ -163,6 +180,12 @@ async function confirmDelete() {
             </button>
           </th>
           <th class="col-right">
+            <button type="button" class="sort-header sort-header-right" @click="toggleSort('price')">
+              Precio
+              <span class="sort-indicator">{{ sortBy === 'price' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+            </button>
+          </th>
+          <th class="col-right">
             <button type="button" class="sort-header sort-header-right" @click="toggleSort('active')">
               Estado
               <span class="sort-indicator">{{ sortBy === 'active' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
@@ -177,6 +200,7 @@ async function confirmDelete() {
             <span class="menu-name">{{ menu.name }}</span>
           </td>
           <td class="col-right">{{ menu.productCount }} productos</td>
+          <td class="col-right">{{ formatCurrency(menu.price) }}</td>
           <td class="col-right">
             <button
               type="button"
@@ -201,11 +225,11 @@ async function confirmDelete() {
           class="filler-row"
           aria-hidden="true"
         >
-          <td colspan="4"></td>
+          <td colspan="5"></td>
         </tr>
 
         <tr v-if="menus.length === 0">
-          <td colspan="4" class="empty-row">
+          <td colspan="5" class="empty-row">
             <span v-if="loading">Cargando…</span>
             <span v-else-if="error" class="error-text">{{ error }}</span>
             <span v-else>Sin resultados</span>
@@ -253,6 +277,20 @@ async function confirmDelete() {
         <input id="menu-name" v-model="form.name" class="field-input" required />
       </div>
       <div class="field">
+        <label class="field-label" for="menu-price">Precio</label>
+        <input
+          id="menu-price"
+          v-model.number="form.price"
+          class="field-input"
+          type="number"
+          min="0"
+          :max="PRODUCT_PRICE_MAX"
+          step="1"
+          required
+          @input="clampPrice"
+        />
+      </div>
+      <div class="field">
         <span class="field-label">Productos ({{ form.productIds.length }})</span>
         <div class="product-picker">
           <label v-for="p in products" :key="p.id" class="picker-row">
@@ -270,7 +308,7 @@ async function confirmDelete() {
       message="¿Seguro que deseas eliminar este menú? Esta acción no se puede deshacer."
       :saving="deleting"
       :error="deleteError"
-      @close="confirmOpen = false"
+      @close="confirmOpen = false; deletingId = null"
       @confirm="confirmDelete"
     />
   </div>

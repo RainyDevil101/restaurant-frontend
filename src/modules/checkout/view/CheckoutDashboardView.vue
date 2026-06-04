@@ -71,6 +71,7 @@ function registerPayment() {
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
+              <span v-if="line.kind === 'combo'" class="combo-badge">Combo</span>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>
@@ -323,6 +324,15 @@ function registerPayment() {
 .line-desc {
   font-size: 0.975rem;
   color: #1a1a1a;
+}
+
+.combo-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .area-tag {

@@ -1,19 +1,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { listTables } from '@/shared/api/venue'
-import { listProducts } from '@/shared/api/catalog'
 import { listOrdersByTable, type ApiOrder } from '@/shared/api/orders'
 import { ApiRequestError } from '@/shared/api/client'
 import { ORDER_STATUS } from '@/shared/types'
-import type { Table, Product } from '@/shared/types'
+import type { Table } from '@/shared/types'
 
 export interface BillingLine {
   productId: string
   productName: string
-  categoryId: string
   quantity: number
   unitPrice: number
   subtotal: number
+  kind?: 'product' | 'combo'
 }
 
 export function useBilling() {
@@ -26,7 +25,6 @@ export function useBilling() {
 
   const table = ref<Table | null>(null)
   const orders = ref<ApiOrder[]>([])
-  const products = ref<Product[]>([])
   const loading = ref(false)
   const error = ref('')
 
@@ -34,14 +32,12 @@ export function useBilling() {
     loading.value = true
     error.value = ''
     try {
-      const [tableList, orderList, productList] = await Promise.all([
+      const [tableList, orderList] = await Promise.all([
         listTables(),
         listOrdersByTable(tableId.value),
-        listProducts(),
       ])
       table.value = tableList.find((t) => t.id === tableId.value) ?? null
       orders.value = orderList
-      products.value = productList
     } catch (err) {
       error.value = err instanceof ApiRequestError ? err.message : 'No se pudo cargar la cuenta.'
     } finally {
@@ -50,10 +46,6 @@ export function useBilling() {
   }
 
   onMounted(load)
-
-  function categoryOf(productId: string): string {
-    return products.value.find((p) => p.id === productId)?.categoryId ?? ''
-  }
 
   const activeOrders = computed(() =>
     orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED),
@@ -71,10 +63,10 @@ export function useBilling() {
           map.set(item.productId, {
             productId: item.productId,
             productName: item.productName,
-            categoryId: categoryOf(item.productId),
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             subtotal: item.subtotal,
+            kind: item.kind,
           })
         }
       }
