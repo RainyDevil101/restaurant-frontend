@@ -1,6 +1,9 @@
 export const PRODUCT_PRICE_MAX = 99_999_999
 export const TABLE_CAPACITY_MAX = 20
 
+export const PRODUCTS_PER_PAGE = 10
+export const PAGE_SIZE_OPTIONS = [10, 20, 50] as const
+
 export const ADMIN_LABELS = {
   product: {
     nameRequired: 'El nombre del producto es obligatorio.',

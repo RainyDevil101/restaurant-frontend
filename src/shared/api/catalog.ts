@@ -5,6 +5,21 @@ export type ProductInput = Omit<Product, 'id' | 'available'>
 export type MenuInput = Omit<Menu, 'id' | 'active'>
 export type CategoryInput = Omit<Category, 'id'>
 
+export interface ResourceStamp {
+  count: number
+  lastModified: string | null
+}
+
+export interface CatalogStampDto {
+  products: ResourceStamp
+  categories: ResourceStamp
+  menus: ResourceStamp
+}
+
+export function getCatalogStamp(): Promise<CatalogStampDto> {
+  return api.get<CatalogStampDto>('/catalog/stamp')
+}
+
 export function listProducts(): Promise<Product[]> {
   return api.get<Product[]>('/products')
 }
