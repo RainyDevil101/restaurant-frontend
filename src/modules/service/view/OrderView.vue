@@ -5,8 +5,10 @@ import { useAuthStore } from '@/modules/auth/store'
 import { Route } from '@/shared/types'
 import { useCurrentTable } from '../composables/useCurrentTable'
 import { useOrder } from '../composables/useOrder'
+import { useTableOrders } from '../composables/useTableOrders'
 import OrderNavBar from '../components/OrderNavBar.vue'
 import OrderHeaderRow from '../components/OrderHeaderRow.vue'
+import InProgressOrders from '../components/InProgressOrders.vue'
 import CatalogPanel from '../components/CatalogPanel.vue'
 import OrderSummarySection from '../components/OrderSummarySection.vue'
 import SubmitOrderBar from '../components/SubmitOrderBar.vue'
@@ -30,6 +32,13 @@ const {
   remove,
   submit,
 } = useOrder()
+const {
+  inProgress,
+  error: ordersError,
+  deliveringId,
+  load: reloadOrders,
+  markDelivered,
+} = useTableOrders(() => tableId.value)
 
 const searchQuery = ref('')
 const selectedCategoryId = ref<string | null>(null)
@@ -76,6 +85,7 @@ function goBack() {
 async function handleSubmit() {
   try {
     await submit(tableId.value)
+    await reloadOrders()
     router.push(Route.SERVICE)
   } catch {
     // error surfaced via the composable's error ref
@@ -89,6 +99,14 @@ async function handleSubmit() {
 
     <div class="scroll-area">
       <OrderHeaderRow :table-name="table?.name ?? 'Mesa'" />
+
+      <InProgressOrders
+        v-if="inProgress.length > 0"
+        :orders="inProgress"
+        :error="ordersError"
+        :delivering-id="deliveringId"
+        @deliver="markDelivered"
+      />
 
       <CatalogPanel
         v-model:search-query="searchQuery"
