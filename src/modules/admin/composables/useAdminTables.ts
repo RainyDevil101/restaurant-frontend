@@ -1,70 +1,77 @@
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import {
-  listTables,
-  listAreas,
   createTable as apiCreateTable,
   updateTable as apiUpdateTable,
   deleteTable as apiDeleteTable,
   type TableInput,
 } from '@/shared/api/venue'
-import { ApiRequestError } from '@/shared/api/client'
+import { useTablesStore, useAreasStore } from '@/shared/stores/venueStores'
+import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
+import { useDataTable } from '@/shared/stores/useDataTable'
+import { PRODUCTS_PER_PAGE } from '../constants'
 import type { Area, Table } from '@/shared/types'
 
+export interface TableRow extends Table {
+  areaName: string
+}
+
 export function useAdminTables() {
-  const search = ref('')
-  const items = ref<Table[]>([])
-  const areas = ref<Area[]>([])
-  const loading = ref(false)
-  const error = ref('')
+  const tablesStore = useTablesStore()
+  const areasStore = useAreasStore()
+  const { invalidateAndRefresh } = useTtlFreshness([tablesStore, areasStore])
 
-  async function load() {
-    loading.value = true
-    error.value = ''
-    try {
-      const [tbls, ars] = await Promise.all([listTables(), listAreas()])
-      items.value = tbls
-      areas.value = ars
-    } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudieron cargar las mesas.'
-    } finally {
-      loading.value = false
-    }
-  }
+  const loading = computed(() => tablesStore.loading || areasStore.loading)
+  const error = computed(() => tablesStore.error ?? areasStore.error ?? '')
+  const areas = computed<Area[]>(() => areasStore.items)
 
-  onMounted(load)
+  const tableRows = computed<TableRow[]>(() =>
+    tablesStore.items.map((table) => ({
+      ...table,
+      areaName: areasStore.byId(table.areaId)?.name ?? '—',
+    })),
+  )
 
-  const tables = computed(() => {
-    const q = search.value.trim().toLowerCase()
-    return items.value
-      .map((t) => ({
-        ...t,
-        areaName: areas.value.find((a) => a.id === t.areaId)?.name ?? '—',
-      }))
-      .filter((t) => !q || t.name.toLowerCase().includes(q))
+  const table = useDataTable<TableRow>(tableRows, {
+    sortBy: 'name',
+    pageSize: PRODUCTS_PER_PAGE,
+    sortAccessors: {
+      name: (row) => row.name,
+      areaName: (row) => row.areaName,
+      capacity: (row) => row.capacity,
+      status: (row) => row.status,
+    },
+    searchAccessor: (row) => row.name,
   })
 
   async function createTable(input: TableInput) {
     await apiCreateTable(input)
-    await load()
+    await invalidateAndRefresh(tablesStore)
   }
 
   async function updateTable(id: string, input: Partial<TableInput>) {
     await apiUpdateTable(id, input)
-    await load()
+    await invalidateAndRefresh(tablesStore)
   }
 
   async function removeTable(id: string) {
     await apiDeleteTable(id)
-    await load()
+    await invalidateAndRefresh(tablesStore)
   }
 
   return {
-    tables,
+    tables: table.rows,
     areas,
-    search,
+    search: table.search,
     loading,
     error,
-    reload: load,
+    page: table.page,
+    pageSize: table.pageSize,
+    totalPages: table.totalPages,
+    sortBy: table.sortBy,
+    sortDir: table.sortDir,
+    toggleSort: table.toggleSort,
+    setPage: table.setPage,
+    reload: () => invalidateAndRefresh(tablesStore, areasStore),
     createTable,
     updateTable,
     removeTable,

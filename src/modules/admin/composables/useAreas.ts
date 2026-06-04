@@ -1,58 +1,74 @@
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import {
-  listAreas,
-  listTables,
   createArea as apiCreateArea,
   updateArea as apiUpdateArea,
   deleteArea as apiDeleteArea,
   type AreaInput,
 } from '@/shared/api/venue'
-import { ApiRequestError } from '@/shared/api/client'
-import type { Area, Table } from '@/shared/types'
+import { useAreasStore, useTablesStore } from '@/shared/stores/venueStores'
+import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
+import { useDataTable } from '@/shared/stores/useDataTable'
+import { PRODUCTS_PER_PAGE } from '../constants'
+import type { Area } from '@/shared/types'
+
+export interface AreaRow extends Area {
+  tableCount: number
+}
 
 export function useAreas() {
-  const items = ref<Area[]>([])
-  const tables = ref<Table[]>([])
-  const loading = ref(false)
-  const error = ref('')
+  const areasStore = useAreasStore()
+  const tablesStore = useTablesStore()
+  const { invalidateAndRefresh } = useTtlFreshness([areasStore, tablesStore])
 
-  async function load() {
-    loading.value = true
-    error.value = ''
-    try {
-      const [areas, tbls] = await Promise.all([listAreas(), listTables()])
-      items.value = areas
-      tables.value = tbls
-    } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudieron cargar las áreas.'
-    } finally {
-      loading.value = false
-    }
-  }
+  const loading = computed(() => areasStore.loading || tablesStore.loading)
+  const error = computed(() => areasStore.error ?? tablesStore.error ?? '')
 
-  onMounted(load)
-
-  const areas = computed(() =>
-    items.value.map((a) => ({
-      ...a,
-      tableCount: tables.value.filter((t) => t.areaId === a.id).length,
+  const areaRows = computed<AreaRow[]>(() =>
+    areasStore.items.map((area) => ({
+      ...area,
+      tableCount: tablesStore.items.filter((table) => table.areaId === area.id).length,
     })),
   )
 
+  const table = useDataTable<AreaRow>(areaRows, {
+    sortBy: 'name',
+    pageSize: PRODUCTS_PER_PAGE,
+    sortAccessors: {
+      name: (row) => row.name,
+      tableCount: (row) => row.tableCount,
+    },
+    searchAccessor: (row) => row.name,
+  })
+
   async function createArea(input: AreaInput) {
     await apiCreateArea(input)
-    await load()
+    await invalidateAndRefresh(areasStore)
   }
 
   async function updateArea(id: string, input: Partial<AreaInput>) {
     await apiUpdateArea(id, input)
-    await load()
+    await invalidateAndRefresh(areasStore)
   }
 
   async function removeArea(id: string) {
     await apiDeleteArea(id)
-    await load()
+    await invalidateAndRefresh(areasStore)
   }
 
-  return { areas, loading, error, reload: load, createArea, updateArea, removeArea }
+  return {
+    areas: table.rows,
+    loading,
+    error,
+    page: table.page,
+    pageSize: table.pageSize,
+    totalPages: table.totalPages,
+    sortBy: table.sortBy,
+    sortDir: table.sortDir,
+    toggleSort: table.toggleSort,
+    setPage: table.setPage,
+    reload: () => invalidateAndRefresh(areasStore, tablesStore),
+    createArea,
+    updateArea,
+    removeArea,
+  }
 }

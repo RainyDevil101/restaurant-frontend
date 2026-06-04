@@ -1,73 +1,79 @@
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import {
-  listMenus,
-  listProducts,
   createMenu as apiCreateMenu,
   updateMenu as apiUpdateMenu,
   deleteMenu as apiDeleteMenu,
   toggleMenuActive as apiToggleActive,
   type MenuInput,
 } from '@/shared/api/catalog'
-import { ApiRequestError } from '@/shared/api/client'
+import { useMenusStore, useProductsStore } from '@/shared/stores/catalogStores'
+import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
+import { useDataTable } from '@/shared/stores/useDataTable'
+import { PRODUCTS_PER_PAGE } from '../constants'
 import type { Menu, Product } from '@/shared/types'
 
+export interface MenuRow extends Menu {
+  productCount: number
+}
+
 export function useMenus() {
-  const search = ref('')
-  const items = ref<Menu[]>([])
-  const products = ref<Product[]>([])
-  const loading = ref(false)
-  const error = ref('')
+  const menusStore = useMenusStore()
+  const productsStore = useProductsStore()
+  const { invalidateAndRefresh } = useCatalogFreshness(['menus', 'products'])
 
-  async function load() {
-    loading.value = true
-    error.value = ''
-    try {
-      const [mns, prods] = await Promise.all([listMenus(), listProducts()])
-      items.value = mns
-      products.value = prods
-    } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudieron cargar los menús.'
-    } finally {
-      loading.value = false
-    }
-  }
+  const loading = computed(() => menusStore.loading || productsStore.loading)
+  const error = computed(() => menusStore.error ?? productsStore.error ?? '')
+  const products = computed<Product[]>(() => productsStore.items)
 
-  onMounted(load)
+  const menuRows = computed<MenuRow[]>(() =>
+    menusStore.items.map((menu) => ({ ...menu, productCount: menu.productIds.length })),
+  )
 
-  const menus = computed(() => {
-    const q = search.value.trim().toLowerCase()
-    return items.value
-      .map((m) => ({ ...m, productCount: m.productIds.length }))
-      .filter((m) => !q || m.name.toLowerCase().includes(q))
+  const table = useDataTable<MenuRow>(menuRows, {
+    sortBy: 'name',
+    pageSize: PRODUCTS_PER_PAGE,
+    sortAccessors: {
+      name: (row) => row.name,
+      productCount: (row) => row.productCount,
+      active: (row) => (row.active ? 1 : 0),
+    },
+    searchAccessor: (row) => row.name,
   })
 
   async function createMenu(input: MenuInput) {
     await apiCreateMenu(input)
-    await load()
+    await invalidateAndRefresh('menus')
   }
 
   async function updateMenu(id: string, input: Partial<MenuInput>) {
     await apiUpdateMenu(id, input)
-    await load()
+    await invalidateAndRefresh('menus')
   }
 
   async function removeMenu(id: string) {
     await apiDeleteMenu(id)
-    await load()
+    await invalidateAndRefresh('menus')
   }
 
   async function toggleActive(id: string) {
     await apiToggleActive(id)
-    await load()
+    await invalidateAndRefresh('menus')
   }
 
   return {
-    menus,
+    menus: table.rows,
     products,
-    search,
+    search: table.search,
     loading,
     error,
-    reload: load,
+    page: table.page,
+    pageSize: table.pageSize,
+    totalPages: table.totalPages,
+    sortBy: table.sortBy,
+    sortDir: table.sortDir,
+    toggleSort: table.toggleSort,
+    setPage: table.setPage,
+    reload: () => invalidateAndRefresh('menus', 'products'),
     createMenu,
     updateMenu,
     removeMenu,

@@ -4,10 +4,24 @@ import { useCategories } from '../composables/useCategories'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { ApiRequestError } from '@/shared/api/client'
-import { ADMIN_LABELS } from '../constants'
+import { ADMIN_LABELS, PAGE_SIZE_OPTIONS } from '../constants'
 
-const { categories, search, loading, error, createCategory, updateCategory, removeCategory } =
-  useCategories()
+const {
+  categories,
+  search,
+  loading,
+  error,
+  page,
+  pageSize,
+  totalPages,
+  sortBy,
+  sortDir,
+  toggleSort,
+  setPage,
+  createCategory,
+  updateCategory,
+  removeCategory,
+} = useCategories()
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -113,8 +127,18 @@ async function confirmDelete() {
     <table class="data-table">
       <thead>
         <tr>
-          <th>Nombre</th>
-          <th class="col-right">Productos</th>
+          <th>
+            <button type="button" class="sort-header" @click="toggleSort('name')">
+              Nombre
+              <span class="sort-indicator">{{ sortBy === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+            </button>
+          </th>
+          <th class="col-right">
+            <button type="button" class="sort-header sort-header-right" @click="toggleSort('productCount')">
+              Productos
+              <span class="sort-indicator">{{ sortBy === 'productCount' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
+            </button>
+          </th>
           <th class="col-actions">Acciones</th>
         </tr>
       </thead>
@@ -148,6 +172,32 @@ async function confirmDelete() {
         </tr>
       </tbody>
     </table>
+
+    <div class="pagination">
+      <div class="page-size">
+        <label for="page-size">Filas por página</label>
+        <select id="page-size" v-model.number="pageSize" class="page-size-select">
+          <option v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="size">{{ size }}</option>
+        </select>
+      </div>
+      <div class="page-nav">
+        <button
+          type="button"
+          class="page-btn"
+          :disabled="page <= 1"
+          aria-label="Página anterior"
+          @click="setPage(page - 1)"
+        >◀</button>
+        <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
+        <button
+          type="button"
+          class="page-btn"
+          :disabled="page >= totalPages"
+          aria-label="Página siguiente"
+          @click="setPage(page + 1)"
+        >▶</button>
+      </div>
+    </div>
 
     <ModalDialog
       v-if="dialogOpen"
@@ -260,6 +310,36 @@ thead th {
   border-bottom: 1.5px solid #e5e7eb;
 }
 
+.sort-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.sort-header:hover {
+  color: var(--color-primary);
+}
+
+.sort-header-right {
+  flex-direction: row-reverse;
+}
+
+.sort-indicator {
+  font-size: 0.7rem;
+  color: var(--color-primary);
+  min-width: 0.7rem;
+}
+
 .col-right {
   text-align: right;
 }
@@ -331,6 +411,72 @@ thead th {
 
 .error-text {
   color: #dc2626;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.page-size-select {
+  padding: 6px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #111827;
+  font-family: inherit;
+  background: white;
+  outline: none;
+}
+
+.page-size-select:focus {
+  border-color: var(--color-primary);
+}
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-status {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.page-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.page-btn:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
 }
 
 /* Form fields */

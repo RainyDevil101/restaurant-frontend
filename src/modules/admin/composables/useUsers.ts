@@ -1,58 +1,67 @@
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import {
-  listUsers,
   createUser as apiCreateUser,
   updateUser as apiUpdateUser,
   deactivateUser as apiDeactivateUser,
   type CreateUserInput,
   type UpdateUserInput,
 } from '@/shared/api/users'
-import { ApiRequestError } from '@/shared/api/client'
+import { useUsersStore } from '@/shared/stores/usersStore'
+import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
+import { useDataTable } from '@/shared/stores/useDataTable'
+import { PRODUCTS_PER_PAGE } from '../constants'
 import type { User } from '@/modules/auth/store'
 
 export function useUsers() {
-  const search = ref('')
-  const items = ref<User[]>([])
-  const loading = ref(false)
-  const error = ref('')
+  const usersStore = useUsersStore()
+  const { invalidateAndRefresh } = useTtlFreshness([usersStore])
 
-  async function load() {
-    loading.value = true
-    error.value = ''
-    try {
-      items.value = await listUsers()
-    } catch (err) {
-      error.value =
-        err instanceof ApiRequestError ? err.message : 'No se pudieron cargar los usuarios.'
-    } finally {
-      loading.value = false
-    }
-  }
+  const loading = computed(() => usersStore.loading)
+  const error = computed(() => usersStore.error ?? '')
 
-  onMounted(load)
+  const userRows = computed<User[]>(() => usersStore.items)
 
-  const users = computed(() => {
-    const q = search.value.trim().toLowerCase()
-    if (!q) return items.value
-    return items.value.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
-    )
+  const table = useDataTable<User>(userRows, {
+    sortBy: 'name',
+    pageSize: PRODUCTS_PER_PAGE,
+    sortAccessors: {
+      name: (row) => row.name,
+      role: (row) => row.role,
+      active: (row) => (row.active ? 1 : 0),
+    },
+    searchAccessor: (row) => `${row.name} ${row.email}`,
   })
 
   async function createUser(input: CreateUserInput) {
     await apiCreateUser(input)
-    await load()
+    await invalidateAndRefresh(usersStore)
   }
 
   async function updateUser(id: string, input: UpdateUserInput) {
     await apiUpdateUser(id, input)
-    await load()
+    await invalidateAndRefresh(usersStore)
   }
 
   async function removeUser(id: string) {
     await apiDeactivateUser(id)
-    await load()
+    await invalidateAndRefresh(usersStore)
   }
 
-  return { users, search, loading, error, reload: load, createUser, updateUser, removeUser }
+  return {
+    users: table.rows,
+    search: table.search,
+    loading,
+    error,
+    page: table.page,
+    pageSize: table.pageSize,
+    totalPages: table.totalPages,
+    sortBy: table.sortBy,
+    sortDir: table.sortDir,
+    toggleSort: table.toggleSort,
+    setPage: table.setPage,
+    reload: () => invalidateAndRefresh(usersStore),
+    createUser,
+    updateUser,
+    removeUser,
+  }
 }

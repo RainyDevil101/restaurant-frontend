@@ -1,70 +1,74 @@
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import {
-  listCategories,
-  listProducts,
   createCategory as apiCreateCategory,
   updateCategory as apiUpdateCategory,
   deleteCategory as apiDeleteCategory,
   type CategoryInput,
 } from '@/shared/api/catalog'
-import { ApiRequestError } from '@/shared/api/client'
-import type { Category, Product } from '@/shared/types'
+import { useCategoriesStore, useProductsStore } from '@/shared/stores/catalogStores'
+import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
+import { useDataTable } from '@/shared/stores/useDataTable'
+import { PRODUCTS_PER_PAGE } from '../constants'
+import type { Category } from '@/shared/types'
+
+export interface CategoryRow extends Category {
+  productCount: number
+}
 
 export function useCategories() {
-  const search = ref('')
-  const items = ref<Category[]>([])
-  const products = ref<Product[]>([])
-  const loading = ref(false)
-  const error = ref('')
+  const categoriesStore = useCategoriesStore()
+  const productsStore = useProductsStore()
+  const { invalidateAndRefresh } = useCatalogFreshness(['categories', 'products'])
 
-  async function load() {
-    loading.value = true
-    error.value = ''
-    try {
-      const [cats, prods] = await Promise.all([listCategories(), listProducts()])
-      items.value = cats
-      products.value = prods
-    } catch (err) {
-      error.value =
-        err instanceof ApiRequestError ? err.message : 'No se pudieron cargar las categorías.'
-    } finally {
-      loading.value = false
-    }
-  }
+  const loading = computed(() => categoriesStore.loading || productsStore.loading)
+  const error = computed(() => categoriesStore.error ?? productsStore.error ?? '')
 
-  onMounted(load)
+  const categoryRows = computed<CategoryRow[]>(() =>
+    categoriesStore.items.map((category) => ({
+      ...category,
+      productCount: productsStore.items.filter((product) => product.categoryId === category.id)
+        .length,
+    })),
+  )
 
-  const categories = computed(() => {
-    const q = search.value.trim().toLowerCase()
-    return items.value
-      .map((c) => ({
-        ...c,
-        productCount: products.value.filter((p) => p.categoryId === c.id).length,
-      }))
-      .filter((c) => !q || c.name.toLowerCase().includes(q))
+  const table = useDataTable<CategoryRow>(categoryRows, {
+    sortBy: 'name',
+    pageSize: PRODUCTS_PER_PAGE,
+    sortAccessors: {
+      name: (row) => row.name,
+      productCount: (row) => row.productCount,
+    },
+    searchAccessor: (row) => row.name,
   })
 
   async function createCategory(input: CategoryInput) {
     await apiCreateCategory(input)
-    await load()
+    await invalidateAndRefresh('categories')
   }
 
   async function updateCategory(id: string, input: Partial<CategoryInput>) {
     await apiUpdateCategory(id, input)
-    await load()
+    await invalidateAndRefresh('categories')
   }
 
   async function removeCategory(id: string) {
     await apiDeleteCategory(id)
-    await load()
+    await invalidateAndRefresh('categories')
   }
 
   return {
-    categories,
-    search,
+    categories: table.rows,
+    search: table.search,
     loading,
     error,
-    reload: load,
+    page: table.page,
+    pageSize: table.pageSize,
+    totalPages: table.totalPages,
+    sortBy: table.sortBy,
+    sortDir: table.sortDir,
+    toggleSort: table.toggleSort,
+    setPage: table.setPage,
+    reload: () => invalidateAndRefresh('categories', 'products'),
     createCategory,
     updateCategory,
     removeCategory,
