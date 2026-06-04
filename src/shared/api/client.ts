@@ -25,6 +25,7 @@ interface RequestOptions {
   method?: string
   body?: unknown
   auth?: boolean
+  keepSessionOnUnauthorized?: boolean
 }
 
 function messageFrom(body: ApiErrorBody | null, status: number): string {
@@ -33,7 +34,7 @@ function messageFrom(body: ApiErrorBody | null, status: number): string {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = true } = options
+  const { method = 'GET', body, auth = true, keepSessionOnUnauthorized = false } = options
   const headers: Record<string, string> = {}
 
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -54,7 +55,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const errorBody = data as ApiErrorBody | null
-    if (response.status === 401 && auth) {
+    if (response.status === 401 && auth && !keepSessionOnUnauthorized) {
       clearSession()
       if (window.location.pathname !== Route.LOGIN) window.location.assign(Route.LOGIN)
     }
@@ -68,6 +69,8 @@ export const api = {
   get: <T>(path: string, auth = true) => request<T>(path, { method: 'GET', auth }),
   post: <T>(path: string, body?: unknown, auth = true) =>
     request<T>(path, { method: 'POST', body, auth }),
+  postKeepingSession: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'POST', body, auth: true, keepSessionOnUnauthorized: true }),
   patch: <T>(path: string, body?: unknown, auth = true) =>
     request<T>(path, { method: 'PATCH', body, auth }),
   delete: <T>(path: string, auth = true) => request<T>(path, { method: 'DELETE', auth }),

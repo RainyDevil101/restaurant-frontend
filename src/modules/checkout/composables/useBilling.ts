@@ -89,12 +89,14 @@ export function useBilling() {
 
   return {
     table,
-    orders: activeOrders,
+    orders: orders,
+    activeOrders,
     billLines,
     billTotal,
     ordersByStatus,
     hasPendingOrders,
     loading,
     error,
+    reload: load,
   }
 }

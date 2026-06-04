@@ -21,6 +21,15 @@ export interface ApiOrder {
   items: ApiOrderItem[]
   total: number
   paid: boolean
+  cancellationReason?: string
+  cancelledBy?: string
+  cancelledAt?: string
+}
+
+export interface CancelOrderInput {
+  reason: string
+  adminEmail: string
+  adminCredential: string
 }
 
 export interface OrderItemInput {
@@ -50,4 +59,8 @@ export function createOrder(input: CreateOrderInput): Promise<ApiOrder> {
 
 export function updateOrderStatus(id: string, status: OrderStatus): Promise<ApiOrder> {
   return api.patch<ApiOrder>(`/orders/${id}/status`, { status })
+}
+
+export function cancelOrder(id: string, body: CancelOrderInput): Promise<ApiOrder> {
+  return api.postKeepingSession<ApiOrder>(`/orders/${id}/cancel`, body)
 }

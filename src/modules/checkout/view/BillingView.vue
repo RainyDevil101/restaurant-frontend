@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBilling } from '../composables/useBilling'
 import { formatCurrency } from '../helpers/formatCurrency'
+import CancelOrderDialog from '../components/CancelOrderDialog.vue'
 import Badge from '@/shared/components/Badge.vue'
-import { Route } from '@/shared/types'
+import { cancelOrder } from '@/shared/api/orders'
+import { ApiRequestError } from '@/shared/api/client'
+import { Route, ORDER_STATUS } from '@/shared/types'
 import type { OrderStatus } from '@/shared/types'
 
 const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' | 'red'> = {
@@ -32,7 +36,48 @@ const {
   hasPendingOrders,
   loading,
   error,
+  reload,
 } = useBilling()
+
+const cancelTargetId = ref<string | null>(null)
+const cancelSaving = ref(false)
+const cancelError = ref('')
+
+function canCancel(status: OrderStatus, paid: boolean): boolean {
+  return !paid && status !== ORDER_STATUS.CANCELLED
+}
+
+function openCancelDialog(orderId: string) {
+  cancelTargetId.value = orderId
+  cancelError.value = ''
+  cancelSaving.value = false
+}
+
+function closeCancelDialog() {
+  cancelTargetId.value = null
+  cancelError.value = ''
+  cancelSaving.value = false
+}
+
+async function confirmCancel(payload: {
+  reason: string
+  adminEmail: string
+  adminCredential: string
+}) {
+  if (!cancelTargetId.value) return
+  cancelSaving.value = true
+  cancelError.value = ''
+  try {
+    await cancelOrder(cancelTargetId.value, payload)
+    await reload()
+    closeCancelDialog()
+  } catch (err) {
+    cancelError.value =
+      err instanceof ApiRequestError ? err.message : 'No se pudo cancelar el pedido.'
+  } finally {
+    cancelSaving.value = false
+  }
+}
 
 function goBack() {
   router.push(Route.CHECKOUT)
@@ -111,6 +156,11 @@ function goToPayment() {
               <span class="order-time">{{ new Date(order.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) }}</span>
               <span class="order-subtotal">{{ formatCurrency(order.total) }}</span>
             </div>
+            <div v-if="canCancel(order.status, order.paid)" class="order-actions">
+              <button type="button" class="cancel-order-btn" @click="openCancelDialog(order.id)">
+                Cancelar pedido
+              </button>
+            </div>
           </li>
         </ul>
       </div>
@@ -157,6 +207,15 @@ function goToPayment() {
         </div>
       </div>
     </div>
+
+    <CancelOrderDialog
+      v-if="cancelTargetId"
+      :order-id="cancelTargetId"
+      :saving="cancelSaving"
+      :error="cancelError"
+      @confirm="confirmCancel"
+      @close="closeCancelDialog"
+    />
   </div>
 </template>
 
@@ -362,6 +421,28 @@ function goToPayment() {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.cancel-order-btn {
+  background: none;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
+  transition: background 0.12s;
+}
+
+.cancel-order-btn:hover {
+  background: #fef2f2;
 }
 
 /* Bill summary */
