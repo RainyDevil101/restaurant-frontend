@@ -1,6 +1,6 @@
 import type { BadgeTone } from '@/shared/components/Badge.vue'
 
-export const PRODUCT_PRICE_MAX = 99_999_999
+export const PRODUCT_PRICE_MAX = 999_999
 export const TABLE_CAPACITY_MAX = 20
 
 export const PRODUCTS_PER_PAGE = 10
@@ -17,7 +17,7 @@ export const ADMIN_LABELS = {
     createCategorySection: 'Crear nueva categoría',
     categoryNamePlaceholder: 'Nombre de la categoría',
     creating: 'Creando…',
-    priceInvalid: 'El precio debe ser un número entero entre $0 y $99.999.999.',
+    priceInvalid: 'El precio debe ser un número entero entre $0 y $999.999.',
   },
   user: {
     nameRequired: 'El nombre del usuario es obligatorio.',
@@ -42,7 +42,7 @@ export const ADMIN_LABELS = {
   menu: {
     nameRequired: 'El nombre del menú es obligatorio.',
     productsRequired: 'Selecciona al menos un producto para el menú.',
-    priceInvalid: 'El precio debe ser un número entero entre $0 y $99.999.999.',
+    priceInvalid: 'El precio debe ser un número entero entre $0 y $999.999.',
   },
   category: {
     nameRequired: 'El nombre de la categoría es obligatorio.',
