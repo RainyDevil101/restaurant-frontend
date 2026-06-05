@@ -2,6 +2,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { listOrdersByTable, updateOrderStatus, type ApiOrder } from '@/shared/api/orders'
 import { ApiRequestError } from '@/shared/api/client'
 import { ORDER_STATUS } from '@/shared/types'
+import { toast } from '@/shared/toast'
 
 export function useTableOrders(tableId: () => string) {
   const orders = ref<ApiOrder[]>([])
@@ -40,6 +41,7 @@ export function useTableOrders(tableId: () => string) {
     )
     try {
       await updateOrderStatus(orderId, ORDER_STATUS.DELIVERED)
+      toast.success('Pedido marcado como entregado')
     } catch (err) {
       orders.value = previous
       error.value =

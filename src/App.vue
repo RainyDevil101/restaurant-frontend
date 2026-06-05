@@ -1,8 +1,34 @@
 <script setup lang="ts">
+import 'vue-sonner/style.css'
+import { Toaster } from 'vue-sonner'
+import { colors } from '@/shared/styles/colors'
+
+const toastStyle = {
+  '--border-radius':  '12px',
+  '--success-bg':     colors.brand.soft,
+  '--success-border': colors.brand.primary,
+  '--success-text':   colors.brand.primaryDark,
+  '--error-bg':       colors.feedback.errorBg,
+  '--error-border':   colors.feedback.errorBorder,
+  '--error-text':     colors.feedback.errorDark,
+  '--info-bg':        colors.feedback.infoBg,
+  '--info-border':    colors.feedback.infoBorder,
+  '--info-text':      colors.feedback.infoDark,
+  '--warning-bg':     colors.feedback.warningBg,
+  '--warning-border': colors.feedback.warningBorder,
+  '--warning-text':   colors.feedback.warningText,
+} as const
 </script>
 
 <template>
   <RouterView />
+  <Toaster
+    position="top-right"
+    rich-colors
+    :expand="false"
+    :duration="4000"
+    :style="toastStyle"
+  />
 </template>
 
 <style>

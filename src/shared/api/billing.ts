@@ -6,6 +6,15 @@ export interface ProcessPaymentInput {
   amount: number
 }
 
+export interface ApiPaymentItem {
+  productId: string
+  productName: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+  kind?: 'product' | 'combo'
+}
+
 export interface ApiPayment {
   id: string
   billId: string
@@ -14,6 +23,7 @@ export interface ApiPayment {
   method: PaymentMethod
   change: number
   paidAt: string
+  items: ApiPaymentItem[]
 }
 
 export function getBill(tableId: string): Promise<Bill> {

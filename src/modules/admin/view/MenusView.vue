@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from 'vue'
+import { colors } from '@/shared/styles/colors'
 import { useMenus, type MenuRow } from '../composables/useMenus'
 import { useAdminDialog } from '../composables/useAdminDialog'
 import { useAdminConfirm } from '../composables/useAdminConfirm'
@@ -28,6 +29,7 @@ const columns = computed<Column<MenuRow>[]>(() => [
     key: 'active',
     label: 'Estado',
     align: 'right',
+    sortable: true,
     accessor: (menu) => String(menu.active),
     filter: {
       type: 'select',
@@ -213,12 +215,12 @@ async function confirmDelete() {
 
 .action-error {
   font-size: 0.85rem;
-  color: #dc2626;
+  color: v-bind('colors.feedback.error');
 }
 
 .menu-name {
   font-weight: 600;
-  color: #111827;
+  color: v-bind('colors.neutral.textStrong');
 }
 
 .status-toggle {
@@ -227,15 +229,23 @@ async function confirmDelete() {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  padding: 0.25rem 0;
+  min-height: 2rem;
+  line-height: 1.5;
+}
+
+.status-toggle:focus-visible {
+  outline: 2px solid v-bind('colors.brand.primary');
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .status-active {
-  color: #059669;
+  color: v-bind('colors.feedback.success');
 }
 
 .status-inactive {
-  color: #9ca3af;
+  color: v-bind('colors.neutral.muted');
 }
 
 .row-actions {
@@ -246,28 +256,34 @@ async function confirmDelete() {
 
 .action-btn {
   padding: 5px 12px;
-  background: #f3f4f6;
-  color: #374151;
+  background: v-bind('colors.neutral.borderSubtle');
+  color: v-bind('colors.neutral.textMedium');
   border: none;
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .action-btn:hover {
-  background: #e5e7eb;
+  background: v-bind('colors.neutral.border');
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid v-bind('colors.brand.primary');
+  outline-offset: 2px;
 }
 
 .action-btn.danger {
-  color: #dc2626;
+  color: v-bind('colors.feedback.error');
 }
 
 .action-btn.danger:hover {
-  background: #fee2e2;
+  background: v-bind('colors.feedback.errorBg');
 }
 
 .product-picker {
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid v-bind('colors.neutral.border');
   border-radius: 10px;
   max-height: 220px;
   overflow-y: auto;
@@ -281,8 +297,8 @@ async function confirmDelete() {
   gap: 10px;
   padding: 9px 12px;
   font-size: 0.9rem;
-  color: #374151;
-  border-bottom: 1px solid #f3f4f6;
+  color: v-bind('colors.neutral.textMedium');
+  border-bottom: 1px solid v-bind('colors.neutral.borderSubtle');
   cursor: pointer;
 }
 
@@ -291,12 +307,12 @@ async function confirmDelete() {
 }
 
 .picker-row:hover {
-  background: #fafafa;
+  background: v-bind('colors.neutral.surface');
 }
 
 .picker-empty {
   padding: 1rem 12px;
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.muted');
 }
 </style>

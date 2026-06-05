@@ -6,6 +6,7 @@ import { consolidateBill, payBill } from '@/shared/api/billing'
 import { ApiRequestError } from '@/shared/api/client'
 import { ORDER_STATUS, PAYMENT_METHOD, TABLE_STATUS } from '@/shared/types'
 import type { PaymentMethod, Table } from '@/shared/types'
+import { toast } from '@/shared/toast'
 
 interface PaymentBillLine {
   productId: string
@@ -115,6 +116,7 @@ export function usePayment() {
           ? cashReceived.value
           : billTotal.value
       await payBill(tableId.value, { method: method.value, amount })
+      toast.success('Pago registrado correctamente')
     } catch (err) {
       error.value =
         err instanceof ApiRequestError ? err.message : 'No se pudo registrar el pago.'

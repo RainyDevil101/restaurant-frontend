@@ -5,6 +5,7 @@ import { updateTableStatus, listTables } from '@/shared/api/venue'
 import { ApiRequestError } from '@/shared/api/client'
 import { TABLE_STATUS } from '@/shared/types'
 import type { Product, Category, Menu } from '@/shared/types'
+import { toast } from '@/shared/toast'
 
 export interface ProductEntry {
   kind: 'product'
@@ -122,6 +123,7 @@ export function useOrder() {
         await updateTableStatus(tableId, TABLE_STATUS.OCCUPIED)
       }
       clear()
+      toast.success('Pedido enviado a caja')
     } catch (err) {
       error.value =
         err instanceof ApiRequestError ? err.message : 'No se pudo enviar el pedido.'

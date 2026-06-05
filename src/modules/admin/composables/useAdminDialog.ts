@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { ApiRequestError } from '@/shared/api/client'
+import { toast } from '@/shared/toast'
 
 export function useAdminDialog() {
   const dialogOpen = ref(false)
@@ -29,6 +30,7 @@ export function useAdminDialog() {
     try {
       await fn()
       dialogOpen.value = false
+      toast.success('Guardado correctamente')
     } catch (err) {
       formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
     } finally {

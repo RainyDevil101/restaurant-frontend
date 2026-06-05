@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue'
 import { listPayments } from '@/shared/api/billing'
 import { listTables } from '@/shared/api/venue'
 import { ApiRequestError } from '@/shared/api/client'
+import type { ApiPaymentItem } from '@/shared/api/billing'
 import type { PaymentMethod } from '@/shared/types'
 
 export interface PaymentRow {
@@ -12,6 +13,7 @@ export interface PaymentRow {
   amount: number
   change: number
   paidAt: string
+  items: ApiPaymentItem[]
 }
 
 export function usePayments() {
@@ -33,6 +35,7 @@ export function usePayments() {
         amount: p.amount,
         change: p.change,
         paidAt: p.paidAt,
+        items: p.items,
       }))
     } catch (err) {
       error.value =

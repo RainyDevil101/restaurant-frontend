@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { usePayments } from '../composables/usePayments'
 import { formatCurrency } from '../helpers/formatCurrency'
 import Badge from '@/shared/components/Badge.vue'
 import DataTable, { type Column } from '@/shared/components/DataTable.vue'
+import PaymentDetailDialog from '../components/PaymentDetailDialog.vue'
 import { PAYMENT_METHOD } from '@/shared/types'
+import { colors } from '@/shared/styles/colors'
 import type { PaymentRow } from '../composables/usePayments'
 
 const { payments, loading, error, reload } = usePayments()
+
+const selectedPayment = ref<PaymentRow | null>(null)
 
 const columns = computed<Column<PaymentRow>[]>(() => [
   { key: 'tableName', label: 'Mesa', sortable: true },
   {
     key: 'method',
     label: 'Método',
+    sortable: true,
     filter: {
       type: 'select',
       options: [
@@ -33,6 +38,7 @@ const columns = computed<Column<PaymentRow>[]>(() => [
     key: 'change',
     label: 'Cambio',
     align: 'right',
+    sortable: true,
     accessor: (row) => (row.method === PAYMENT_METHOD.CASH ? row.change : -1),
   },
   {
@@ -41,6 +47,7 @@ const columns = computed<Column<PaymentRow>[]>(() => [
     sortable: true,
     accessor: (row) => row.paidAt,
   },
+  { key: 'actions', label: '', align: 'right' },
 ])
 </script>
 
@@ -93,7 +100,19 @@ const columns = computed<Column<PaymentRow>[]>(() => [
           })
         }}
       </template>
+
+      <template #cell-actions="{ row }">
+        <button class="detail-btn" type="button" @click="selectedPayment = row">
+          Ver desglose
+        </button>
+      </template>
     </DataTable>
+
+    <PaymentDetailDialog
+      v-if="selectedPayment"
+      :payment="selectedPayment"
+      @close="selectedPayment = null"
+    />
   </div>
 </template>
 
@@ -116,25 +135,25 @@ const columns = computed<Column<PaymentRow>[]>(() => [
 .page-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #111827;
+  color: v-bind('colors.neutral.textStrong');
 }
 
 .reload-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: white;
-  border: 1.5px solid #e5e7eb;
+  background: v-bind('colors.neutral.background');
+  border: 1.5px solid v-bind('colors.neutral.border');
   border-radius: 8px;
   padding: 7px 14px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: v-bind('colors.neutral.textMedium');
   transition: background 0.12s;
 }
 
 .reload-btn:hover:not(:disabled) {
-  background: #f9fafb;
+  background: v-bind('colors.neutral.surface');
 }
 
 .reload-btn:disabled {
@@ -147,6 +166,24 @@ const columns = computed<Column<PaymentRow>[]>(() => [
 }
 
 .change-na {
-  color: #9ca3af;
+  color: v-bind('colors.neutral.muted');
+}
+
+.detail-btn {
+  background: none;
+  border: 1.5px solid v-bind('colors.neutral.border');
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: v-bind('colors.neutral.textMedium');
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.detail-btn:hover {
+  background: v-bind('colors.neutral.surface');
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 </style>

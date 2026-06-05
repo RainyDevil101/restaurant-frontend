@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
+import { colors } from '@/shared/styles/colors'
 import { useUsers } from '../composables/useUsers'
 import { useAdminDialog } from '../composables/useAdminDialog'
 import { useAdminConfirm } from '../composables/useAdminConfirm'
@@ -21,10 +22,11 @@ const roleOptions = [Role.MESERO, Role.CAJERO, Role.ADMIN]
 
 const columns = computed<Column<User>[]>(() => [
   { key: 'name', label: 'Usuario', sortable: true },
-  { key: 'email', label: 'Correo' },
+  { key: 'email', label: 'Correo', sortable: true },
   {
     key: 'role',
     label: 'Rol',
+    sortable: true,
     filter: {
       type: 'select',
       options: roleOptions.map((role) => ({ value: role, label: roleLabel(role).label })),
@@ -34,6 +36,7 @@ const columns = computed<Column<User>[]>(() => [
     key: 'active',
     label: 'Estado',
     align: 'right',
+    sortable: true,
     accessor: (user) => String(user.active),
     filter: {
       type: 'select',
@@ -236,11 +239,11 @@ async function confirmDelete() {
 
 .col-name {
   font-weight: 600;
-  color: #111827;
+  color: v-bind('colors.neutral.textStrong');
 }
 
 .col-muted {
-  color: #6b7280;
+  color: v-bind('colors.neutral.secondary');
 }
 
 .row-actions {
@@ -251,24 +254,30 @@ async function confirmDelete() {
 
 .action-btn {
   padding: 5px 12px;
-  background: #f3f4f6;
-  color: #374151;
+  background: v-bind('colors.neutral.borderSubtle');
+  color: v-bind('colors.neutral.textMedium');
   border: none;
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .action-btn:hover {
-  background: #e5e7eb;
+  background: v-bind('colors.neutral.border');
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid v-bind('colors.brand.primary');
+  outline-offset: 2px;
 }
 
 .action-btn.danger {
-  color: #dc2626;
+  color: v-bind('colors.feedback.error');
 }
 
 .action-btn.danger:hover {
-  background: #fee2e2;
+  background: v-bind('colors.feedback.errorBg');
 }
 
 .check-field {
@@ -276,6 +285,6 @@ async function confirmDelete() {
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
-  color: #374151;
+  color: v-bind('colors.neutral.textMedium');
 }
 </style>

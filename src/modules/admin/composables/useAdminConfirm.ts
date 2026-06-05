@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { ApiRequestError } from '@/shared/api/client'
+import { toast } from '@/shared/toast'
 
 export function useAdminConfirm() {
   const confirmOpen = ref(false)
@@ -25,6 +26,7 @@ export function useAdminConfirm() {
     try {
       await fn(deletingId.value)
       confirmOpen.value = false
+      toast.success('Eliminado correctamente')
     } catch (err) {
       deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
     } finally {

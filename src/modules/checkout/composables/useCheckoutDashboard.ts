@@ -6,6 +6,7 @@ import { connectOrdersSocket } from '@/shared/api/socket'
 import { ApiRequestError } from '@/shared/api/client'
 import { ORDER_STATUS } from '@/shared/types'
 import type { Table } from '@/shared/types'
+import { toast } from '@/shared/toast'
 
 export interface TableSummary {
   table: Table
@@ -76,6 +77,8 @@ export function useCheckoutDashboard() {
     socket.on(SOCKET_EVENT.ORDER_CREATED, (order: ApiOrder) => {
       upsertOrder(order)
       refreshTables()
+      const tableName = tables.value.find((t) => t.id === order.tableId)?.name ?? 'Mesa'
+      toast.info(`Nuevo pedido · ${tableName}`)
     })
     socket.on(SOCKET_EVENT.ORDER_STATUS_CHANGED, (order: ApiOrder) => {
       upsertOrder(order)
