@@ -8,8 +8,6 @@ import {
 } from '@/shared/api/catalog'
 import { useMenusStore, useProductsStore } from '@/shared/stores/catalogStores'
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
-import { useDataTable } from '@/shared/stores/useDataTable'
-import { PRODUCTS_PER_PAGE } from '../constants'
 import type { Menu, Product } from '@/shared/types'
 
 export interface MenuRow extends Menu {
@@ -28,18 +26,6 @@ export function useMenus() {
   const menuRows = computed<MenuRow[]>(() =>
     menusStore.items.map((menu) => ({ ...menu, productCount: menu.productIds.length })),
   )
-
-  const table = useDataTable<MenuRow>(menuRows, {
-    sortBy: 'name',
-    pageSize: PRODUCTS_PER_PAGE,
-    sortAccessors: {
-      name: (row) => row.name,
-      price: (row) => row.price,
-      productCount: (row) => row.productCount,
-      active: (row) => (row.active ? 1 : 0),
-    },
-    searchAccessor: (row) => row.name,
-  })
 
   async function createMenu(input: MenuInput) {
     await apiCreateMenu(input)
@@ -62,19 +48,10 @@ export function useMenus() {
   }
 
   return {
-    menus: table.rows,
+    menus: menuRows,
     products,
-    search: table.search,
     loading,
     error,
-    page: table.page,
-    pageSize: table.pageSize,
-    totalPages: table.totalPages,
-    fillerCount: table.fillerCount,
-    sortBy: table.sortBy,
-    sortDir: table.sortDir,
-    toggleSort: table.toggleSort,
-    setPage: table.setPage,
     reload: () => invalidateAndRefresh('menus', 'products'),
     createMenu,
     updateMenu,

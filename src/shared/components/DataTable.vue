@@ -70,17 +70,15 @@ const sortAccessors = computed<Record<string, SortAccessor<T>>>(() => {
   return map
 })
 
-const columnFilters = computed<Array<ColumnFilter<T>>>(() =>
-  props.columns
-    .filter((column) => column.filter)
-    .map((column) => ({
-      key: column.key,
-      accessor: (row) => resolveText(column, row),
-      match: column.filter?.type === 'select' ? 'equals' : 'includes',
-    })),
-)
+const filterableColumns = computed(() => props.columns.filter((column) => column.filter))
 
-const hasFilters = computed(() => columnFilters.value.length > 0)
+const columnFilters = computed<Array<ColumnFilter<T>>>(() =>
+  filterableColumns.value.map((column) => ({
+    key: column.key,
+    accessor: (row) => resolveText(column, row),
+    match: column.filter?.type === 'select' ? 'equals' : 'includes',
+  })),
+)
 
 function searchAccessor(row: T): string {
   return props.columns.map((column) => resolveText(column, row)).join(' ')
@@ -103,12 +101,60 @@ const table = useDataTable<T>(itemsRef, {
   columnFilters: columnFilters.value,
 })
 
+const hasFilters = computed(() => filterableColumns.value.length > 0)
+
+const hasActiveFilters = computed(() =>
+  Object.values(table.filters.value).some((value) => value.trim().length > 0),
+)
+
+function clearFilters(): void {
+  for (const column of filterableColumns.value) table.setFilter(column.key, '')
+}
+
 const isEmpty = computed(() => table.totalItems.value === 0)
 </script>
 
 <template>
   <div class="data-table-wrap">
-    <AdminSearchBar v-model="table.search.value" :placeholder="searchPlaceholder" />
+    <div class="toolbar">
+      <AdminSearchBar v-model="table.search.value" :placeholder="searchPlaceholder" />
+
+      <div v-if="hasFilters" class="filter-bar">
+        <label v-for="column in filterableColumns" :key="column.key" class="filter-field">
+          <span class="filter-label">{{ column.label }}</span>
+          <select
+            v-if="column.filter && column.filter.type === 'select'"
+            class="filter-control"
+            :value="table.filters.value[column.key] ?? ''"
+            @change="table.setFilter(column.key, ($event.target as HTMLSelectElement).value)"
+          >
+            <option value="">Todos</option>
+            <option
+              v-for="option in column.filter.options"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+          <input
+            v-else
+            class="filter-control"
+            type="text"
+            :value="table.filters.value[column.key] ?? ''"
+            @input="table.setFilter(column.key, ($event.target as HTMLInputElement).value)"
+          />
+        </label>
+        <button
+          v-if="hasActiveFilters"
+          type="button"
+          class="filter-clear"
+          @click="clearFilters"
+        >
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
 
     <div class="data-table-scroll">
       <table class="data-table">
@@ -136,38 +182,6 @@ const isEmpty = computed(() => table.totalItems.value === 0)
                 }}</span>
               </button>
               <span v-else>{{ column.label }}</span>
-            </th>
-          </tr>
-          <tr v-if="hasFilters" class="filter-row">
-            <th
-              v-for="column in columns"
-              :key="column.key"
-              :class="{ 'col-right': column.align === 'right' }"
-            >
-              <select
-                v-if="column.filter && column.filter.type === 'select'"
-                class="filter-control"
-                :value="table.filters.value[column.key] ?? ''"
-                @change="
-                  table.setFilter(column.key, ($event.target as HTMLSelectElement).value)
-                "
-              >
-                <option value="">Todos</option>
-                <option
-                  v-for="option in column.filter.options"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-              <input
-                v-else-if="column.filter && column.filter.type === 'text'"
-                class="filter-control"
-                type="text"
-                :value="table.filters.value[column.key] ?? ''"
-                @input="table.setFilter(column.key, ($event.target as HTMLInputElement).value)"
-              />
             </th>
           </tr>
         </thead>
@@ -220,6 +234,58 @@ const isEmpty = computed(() => table.totalItems.value === 0)
   gap: 1.25rem;
 }
 
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.filter-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-control {
+  padding: 6px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #111827;
+  font-family: inherit;
+  background: white;
+  outline: none;
+}
+
+.filter-control:focus {
+  border-color: var(--color-primary);
+}
+
+.filter-clear {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
 .data-table-scroll {
   overflow-x: auto;
 }
@@ -268,29 +334,6 @@ thead th {
   font-size: 0.7rem;
   color: var(--color-primary);
   min-width: 0.7rem;
-}
-
-.filter-row th {
-  padding: 0 12px 10px;
-  border-bottom: 1.5px solid #e5e7eb;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-.filter-control {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  color: #111827;
-  font-family: inherit;
-  background: white;
-  outline: none;
-}
-
-.filter-control:focus {
-  border-color: var(--color-primary);
 }
 
 .col-right {

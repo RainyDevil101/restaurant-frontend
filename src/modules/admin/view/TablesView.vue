@@ -1,37 +1,56 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { useAdminTables } from '../composables/useAdminTables'
+import { computed, reactive } from 'vue'
+import { useAdminTables, type TableRow } from '../composables/useAdminTables'
 import { useAdminDialog } from '../composables/useAdminDialog'
 import { useAdminConfirm } from '../composables/useAdminConfirm'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
-import AdminSearchBar from '../components/AdminSearchBar.vue'
-import AdminPagination from '../components/AdminPagination.vue'
 import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import Badge from '@/shared/components/Badge.vue'
-import { ADMIN_LABELS, TABLE_CAPACITY_MAX, PAGE_SIZE_OPTIONS } from '../constants'
-import type { TableRow } from '../composables/useAdminTables'
+import DataTable, { type Column } from '@/shared/components/DataTable.vue'
+import {
+  ADMIN_LABELS,
+  TABLE_CAPACITY_MAX,
+  PRODUCTS_PER_PAGE,
+  PAGE_SIZE_OPTIONS,
+} from '../constants'
 
 const {
   tables,
   areas,
-  search,
   loading,
   error,
-  page,
-  pageSize,
-  totalPages,
-  fillerCount,
-  sortBy,
-  sortDir,
-  toggleSort,
   createTable,
   updateTable,
   removeTable,
 } = useAdminTables()
 
 const STATUS_MAP = ADMIN_LABELS.table.statusLabels
+
+const columns = computed<Column<TableRow>[]>(() => [
+  { key: 'name', label: 'Mesa', sortable: true },
+  {
+    key: 'areaName',
+    label: 'Área',
+    sortable: true,
+    filter: {
+      type: 'select',
+      options: areas.value.map((area) => ({ value: area.name, label: area.name })),
+    },
+  },
+  { key: 'capacity', label: 'Capacidad', sortable: true, align: 'right' },
+  {
+    key: 'status',
+    label: 'Estado',
+    align: 'right',
+    filter: {
+      type: 'select',
+      options: Object.entries(STATUS_MAP).map(([value, meta]) => ({ value, label: meta.label })),
+    },
+  },
+  { key: 'actions', label: 'Acciones', align: 'right' },
+])
 
 const form = reactive({ name: '', capacity: 2, areaId: '' })
 const {
@@ -95,83 +114,39 @@ async function confirmDelete() {
   <div class="tables-view">
     <AdminPageHeader title="Mesas" new-label="Nueva mesa" @create="openCreate" />
 
-    <AdminSearchBar v-model="search" placeholder="Buscar mesa..." />
-
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>
-            <button type="button" class="sort-header" @click="toggleSort('name')">
-              Mesa
-              <span class="sort-indicator">{{ sortBy === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
-            </button>
-          </th>
-          <th>
-            <button type="button" class="sort-header" @click="toggleSort('areaName')">
-              Área
-              <span class="sort-indicator">{{ sortBy === 'areaName' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
-            </button>
-          </th>
-          <th class="col-right">
-            <button type="button" class="sort-header sort-header-right" @click="toggleSort('capacity')">
-              Capacidad
-              <span class="sort-indicator">{{ sortBy === 'capacity' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
-            </button>
-          </th>
-          <th class="col-right">
-            <button type="button" class="sort-header sort-header-right" @click="toggleSort('status')">
-              Estado
-              <span class="sort-indicator">{{ sortBy === 'status' ? (sortDir === 'asc' ? '▲' : '▼') : '' }}</span>
-            </button>
-          </th>
-          <th class="col-actions">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="table in tables" :key="table.id" class="data-row">
-          <td>
-            <span class="table-name">{{ table.name }}</span>
-          </td>
-          <td class="col-muted">{{ table.areaName }}</td>
-          <td class="col-right">{{ table.capacity }} pers.</td>
-          <td class="col-right">
-            <Badge :tone="STATUS_MAP[table.status]?.tone ?? 'gray'">{{
-              STATUS_MAP[table.status]?.label ?? table.status
-            }}</Badge>
-          </td>
-          <td class="col-actions">
-            <div class="row-actions">
-              <button class="action-btn" @click="openEdit(table)">Editar</button>
-              <button class="action-btn danger" @click="openDelete(table.id)">Eliminar</button>
-            </div>
-          </td>
-        </tr>
-
-        <tr
-          v-for="i in tables.length === 0 ? 0 : fillerCount"
-          :key="'filler-' + i"
-          class="filler-row"
-          aria-hidden="true"
-        >
-          <td colspan="5"></td>
-        </tr>
-
-        <tr v-if="tables.length === 0">
-          <td colspan="5" class="empty-row">
-            <span v-if="loading">Cargando…</span>
-            <span v-else-if="error" class="error-text">{{ error }}</span>
-            <span v-else>Sin resultados</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <AdminPagination
-      v-model:page="page"
-      v-model:pageSize="pageSize"
-      :total-pages="totalPages"
+    <DataTable
+      :items="tables"
+      :columns="columns"
+      :loading="loading"
+      :error="error"
+      :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
-    />
+      default-sort="name"
+      search-placeholder="Buscar mesa..."
+    >
+      <template #cell-name="{ row }">
+        <span class="table-name">{{ row.name }}</span>
+      </template>
+
+      <template #cell-areaName="{ row }">
+        <span class="col-muted">{{ row.areaName }}</span>
+      </template>
+
+      <template #cell-capacity="{ row }">{{ row.capacity }} pers.</template>
+
+      <template #cell-status="{ row }">
+        <Badge :tone="STATUS_MAP[row.status]?.tone ?? 'gray'">{{
+          STATUS_MAP[row.status]?.label ?? row.status
+        }}</Badge>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <div class="row-actions">
+          <button class="action-btn" @click="openEdit(row)">Editar</button>
+          <button class="action-btn danger" @click="openDelete(row.id)">Eliminar</button>
+        </div>
+      </template>
+    </DataTable>
 
     <ModalDialog
       v-if="dialogOpen"
@@ -225,86 +200,6 @@ async function confirmDelete() {
   gap: 1.25rem;
 }
 
-/* Table */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-thead th {
-  padding: 10px 12px;
-  text-align: left;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1.5px solid #e5e7eb;
-}
-
-.sort-header {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-}
-
-.sort-header:hover {
-  color: var(--color-primary);
-}
-
-.sort-header-right {
-  flex-direction: row-reverse;
-}
-
-.sort-indicator {
-  font-size: 0.7rem;
-  color: var(--color-primary);
-  min-width: 0.7rem;
-}
-
-.col-right {
-  text-align: right;
-}
-
-.col-actions {
-  text-align: right;
-  width: 1%;
-  white-space: nowrap;
-}
-
-.data-table tbody tr {
-  height: 56px;
-}
-
-.data-row td {
-  padding: 14px 12px;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 0.9rem;
-  vertical-align: middle;
-}
-
-.filler-row td {
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.data-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.data-row:hover td {
-  background: #fafafa;
-}
-
 .table-name {
   font-weight: 600;
   color: #111827;
@@ -340,15 +235,5 @@ thead th {
 
 .action-btn.danger:hover {
   background: #fee2e2;
-}
-
-.empty-row {
-  text-align: center;
-  color: #9ca3af;
-  padding: 2.5rem 0;
-}
-
-.error-text {
-  color: #dc2626;
 }
 </style>

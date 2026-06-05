@@ -7,8 +7,6 @@ import {
 } from '@/shared/api/venue'
 import { useAreasStore, useTablesStore } from '@/shared/stores/venueStores'
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
-import { useDataTable } from '@/shared/stores/useDataTable'
-import { PRODUCTS_PER_PAGE } from '../constants'
 import type { Area } from '@/shared/types'
 
 export interface AreaRow extends Area {
@@ -30,16 +28,6 @@ export function useAreas() {
     })),
   )
 
-  const table = useDataTable<AreaRow>(areaRows, {
-    sortBy: 'name',
-    pageSize: PRODUCTS_PER_PAGE,
-    sortAccessors: {
-      name: (row) => row.name,
-      tableCount: (row) => row.tableCount,
-    },
-    searchAccessor: (row) => row.name,
-  })
-
   async function createArea(input: AreaInput) {
     await apiCreateArea(input)
     await invalidateAndRefresh(areasStore)
@@ -56,17 +44,9 @@ export function useAreas() {
   }
 
   return {
-    areas: table.rows,
+    areas: areaRows,
     loading,
     error,
-    page: table.page,
-    pageSize: table.pageSize,
-    totalPages: table.totalPages,
-    fillerCount: table.fillerCount,
-    sortBy: table.sortBy,
-    sortDir: table.sortDir,
-    toggleSort: table.toggleSort,
-    setPage: table.setPage,
     reload: () => invalidateAndRefresh(areasStore, tablesStore),
     createArea,
     updateArea,

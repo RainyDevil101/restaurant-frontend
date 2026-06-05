@@ -7,8 +7,6 @@ import {
 } from '@/shared/api/venue'
 import { useTablesStore, useAreasStore } from '@/shared/stores/venueStores'
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
-import { useDataTable } from '@/shared/stores/useDataTable'
-import { PRODUCTS_PER_PAGE } from '../constants'
 import type { Area, Table } from '@/shared/types'
 
 export interface TableRow extends Table {
@@ -31,18 +29,6 @@ export function useAdminTables() {
     })),
   )
 
-  const table = useDataTable<TableRow>(tableRows, {
-    sortBy: 'name',
-    pageSize: PRODUCTS_PER_PAGE,
-    sortAccessors: {
-      name: (row) => row.name,
-      areaName: (row) => row.areaName,
-      capacity: (row) => row.capacity,
-      status: (row) => row.status,
-    },
-    searchAccessor: (row) => row.name,
-  })
-
   async function createTable(input: TableInput) {
     await apiCreateTable(input)
     await invalidateAndRefresh(tablesStore)
@@ -59,19 +45,10 @@ export function useAdminTables() {
   }
 
   return {
-    tables: table.rows,
+    tables: tableRows,
     areas,
-    search: table.search,
     loading,
     error,
-    page: table.page,
-    pageSize: table.pageSize,
-    totalPages: table.totalPages,
-    fillerCount: table.fillerCount,
-    sortBy: table.sortBy,
-    sortDir: table.sortDir,
-    toggleSort: table.toggleSort,
-    setPage: table.setPage,
     reload: () => invalidateAndRefresh(tablesStore, areasStore),
     createTable,
     updateTable,

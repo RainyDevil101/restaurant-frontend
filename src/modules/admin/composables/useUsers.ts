@@ -8,8 +8,6 @@ import {
 } from '@/shared/api/users'
 import { useUsersStore } from '@/shared/stores/usersStore'
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
-import { useDataTable } from '@/shared/stores/useDataTable'
-import { PRODUCTS_PER_PAGE } from '../constants'
 import type { User } from '@/modules/auth/store'
 
 export function useUsers() {
@@ -20,17 +18,6 @@ export function useUsers() {
   const error = computed(() => usersStore.error ?? '')
 
   const userRows = computed<User[]>(() => usersStore.items)
-
-  const table = useDataTable<User>(userRows, {
-    sortBy: 'name',
-    pageSize: PRODUCTS_PER_PAGE,
-    sortAccessors: {
-      name: (row) => row.name,
-      role: (row) => row.role,
-      active: (row) => (row.active ? 1 : 0),
-    },
-    searchAccessor: (row) => `${row.name} ${row.email}`,
-  })
 
   async function createUser(input: CreateUserInput) {
     await apiCreateUser(input)
@@ -48,18 +35,9 @@ export function useUsers() {
   }
 
   return {
-    users: table.rows,
-    search: table.search,
+    users: userRows,
     loading,
     error,
-    page: table.page,
-    pageSize: table.pageSize,
-    totalPages: table.totalPages,
-    fillerCount: table.fillerCount,
-    sortBy: table.sortBy,
-    sortDir: table.sortDir,
-    toggleSort: table.toggleSort,
-    setPage: table.setPage,
     reload: () => invalidateAndRefresh(usersStore),
     createUser,
     updateUser,
