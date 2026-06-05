@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { Table } from '@/shared/types'
+import { colors } from '@/shared/styles/colors'
+import type { TableWithArea } from '../composables/useTables'
 
-defineProps<{ table: Table }>()
+defineProps<{ table: TableWithArea }>()
 </script>
 
 <template>
@@ -12,8 +13,8 @@ defineProps<{ table: Table }>()
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
         fill="currentColor"
-        width="20"
-        height="20"
+        width="18"
+        height="18"
         aria-hidden="true"
       >
         <path
@@ -31,38 +32,30 @@ defineProps<{ table: Table }>()
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: 12px;
+  min-height: 80px;
   transition: filter 0.15s ease;
 }
 
 .table-card:active {
-  filter: brightness(0.95);
+  filter: brightness(0.93);
 }
 
 .table-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: v-bind('colors.neutral.textStrong');
 }
 
 .table-capacity {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #555;
-  font-size: 0.9rem;
+  gap: 5px;
+  color: v-bind('colors.neutral.secondary');
+  font-size: 0.875rem;
 }
 
-.libre {
-  background: #DCFCE7;
-}
-
-.ocupada {
-  background: #DBEAFE;
-}
-
-.por_cobrar {
-  background: #FEF3C7;
-}
+.libre      { background: v-bind('colors.table.free.bg'); }
+.ocupada    { background: v-bind('colors.table.occupied.bg'); }
+.por_cobrar { background: v-bind('colors.table.pendingPayment.bg'); }
 </style>

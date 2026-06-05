@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { Role, Route } from '@/shared/types'
+import { colors } from '@/shared/styles/colors'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -89,7 +90,7 @@ function logout() {
   height: 38px;
   border-radius: 50%;
   background: white;
-  color: #7c5cbf;
+  color: v-bind('colors.brand.primary');
   display: flex;
   align-items: center;
   justify-content: center;

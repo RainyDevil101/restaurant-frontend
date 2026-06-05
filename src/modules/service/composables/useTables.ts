@@ -1,10 +1,14 @@
 import { ref, onMounted } from 'vue'
-import { listTables } from '@/shared/api/venue'
+import { listTables, listAreas } from '@/shared/api/venue'
 import { ApiRequestError } from '@/shared/api/client'
 import type { Table } from '@/shared/types'
 
+export interface TableWithArea extends Table {
+  areaName: string
+}
+
 export function useTables() {
-  const tables = ref<Table[]>([])
+  const tables = ref<TableWithArea[]>([])
   const loading = ref(false)
   const error = ref('')
 
@@ -12,7 +16,12 @@ export function useTables() {
     loading.value = true
     error.value = ''
     try {
-      tables.value = await listTables()
+      const [rawTables, areas] = await Promise.all([listTables(), listAreas()])
+      const areaNameById = new Map(areas.map((a) => [a.id, a.name]))
+      tables.value = rawTables.map((t) => ({
+        ...t,
+        areaName: areaNameById.get(t.areaId) ?? '',
+      }))
     } catch (err) {
       error.value =
         err instanceof ApiRequestError ? err.message : 'No se pudieron cargar las mesas.'
