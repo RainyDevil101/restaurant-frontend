@@ -10,8 +10,6 @@ import {
 } from '@/shared/api/catalog'
 import { useProductsStore, useCategoriesStore } from '@/shared/stores/catalogStores'
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
-import { useDataTable } from '@/shared/stores/useDataTable'
-import { PRODUCTS_PER_PAGE } from '../constants'
 import type { Category, Product } from '@/shared/types'
 
 export interface ProductRow extends Product {
@@ -33,17 +31,6 @@ export function useProducts() {
       categoryName: categoriesStore.byId(product.categoryId)?.name ?? '—',
     })),
   )
-
-  const table = useDataTable<ProductRow>(productRows, {
-    sortBy: 'name',
-    pageSize: PRODUCTS_PER_PAGE,
-    sortAccessors: {
-      name: (row) => row.name,
-      categoryName: (row) => row.categoryName,
-      price: (row) => row.price,
-    },
-    searchAccessor: (row) => row.name,
-  })
 
   async function createProduct(input: ProductInput) {
     await apiCreateProduct(input)
@@ -72,20 +59,10 @@ export function useProducts() {
   }
 
   return {
-    products: table.rows,
+    products: productRows,
     categories,
-    search: table.search,
     loading,
     error,
-    page: table.page,
-    pageSize: table.pageSize,
-    totalItems: table.totalItems,
-    totalPages: table.totalPages,
-    fillerCount: table.fillerCount,
-    sortBy: table.sortBy,
-    sortDir: table.sortDir,
-    toggleSort: table.toggleSort,
-    setPage: table.setPage,
     reload: () => invalidateAndRefresh('products', 'categories'),
     createProduct,
     updateProduct,

@@ -31,6 +31,23 @@ function makeTable(rows = makeRows()) {
   })
 }
 
+function makeFilterTable(rows = makeRows()) {
+  return useDataTable<Row>(ref(rows), {
+    sortBy: 'name',
+    pageSize: 10,
+    sortAccessors: {
+      name: (r) => r.name,
+      categoryName: (r) => r.categoryName,
+      price: (r) => r.price,
+    },
+    searchAccessor: (r) => r.name,
+    columnFilters: [
+      { key: 'categoryName', accessor: (r) => r.categoryName, match: 'equals' },
+      { key: 'name', accessor: (r) => r.name, match: 'includes' },
+    ],
+  })
+}
+
 describe('useDataTable sorting', () => {
   it('sorts by name ascending by default', () => {
     const table = makeTable()
@@ -114,5 +131,44 @@ describe('useDataTable page reset', () => {
     table.search.value = 'CER'
     expect(table.totalItems.value).toBe(1)
     expect(table.rows.value.map((r) => r.name)).toEqual(['Cerveza'])
+  })
+})
+
+describe('useDataTable column filters', () => {
+  it('filters by an equals column filter', () => {
+    const table = makeFilterTable()
+    table.setFilter('categoryName', 'Bebida')
+    expect(table.totalItems.value).toBe(2)
+    expect(table.rows.value.map((r) => r.name)).toEqual(['Agua', 'Cerveza'])
+  })
+
+  it('filters by an includes column filter case-insensitively', () => {
+    const table = makeFilterTable()
+    table.setFilter('name', 'fL')
+    expect(table.totalItems.value).toBe(1)
+    expect(table.rows.value.map((r) => r.name)).toEqual(['Flan'])
+  })
+
+  it('combines a column filter with the global search', () => {
+    const table = makeFilterTable()
+    table.setFilter('categoryName', 'Bebida')
+    table.search.value = 'agua'
+    expect(table.totalItems.value).toBe(1)
+    expect(table.rows.value.map((r) => r.name)).toEqual(['Agua'])
+  })
+
+  it('treats an empty filter value as inactive', () => {
+    const table = makeFilterTable()
+    table.setFilter('categoryName', 'Bebida')
+    table.setFilter('categoryName', '')
+    expect(table.totalItems.value).toBe(4)
+  })
+
+  it('resets page to 1 when a filter changes', () => {
+    const table = makeFilterTable()
+    table.pageSize.value = 2
+    table.setPage(2)
+    table.setFilter('categoryName', 'Bebida')
+    expect(table.page.value).toBe(1)
   })
 })

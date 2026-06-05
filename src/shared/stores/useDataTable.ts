@@ -4,6 +4,14 @@ export type SortDir = 'asc' | 'desc'
 
 export type SortAccessor<T> = (item: T) => string | number
 
+export type ColumnFilterMatch = 'includes' | 'equals'
+
+export interface ColumnFilter<T> {
+  key: string
+  accessor: (item: T) => string
+  match: ColumnFilterMatch
+}
+
 export interface DataTableOptions<T> {
   sortBy: string
   sortDir?: SortDir
@@ -11,6 +19,7 @@ export interface DataTableOptions<T> {
   search?: string
   sortAccessors: Record<string, SortAccessor<T>>
   searchAccessor?: (item: T) => string
+  columnFilters?: Array<ColumnFilter<T>>
 }
 
 export interface DataTable<T> {
@@ -18,6 +27,8 @@ export interface DataTable<T> {
   page: Ref<number>
   pageSize: Ref<number>
   search: Ref<string>
+  filters: Ref<Record<string, string>>
+  setFilter: (key: string, value: string) => void
   totalItems: ComputedRef<number>
   totalPages: ComputedRef<number>
   fillerCount: ComputedRef<number>
@@ -38,13 +49,34 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
   const page = ref(1)
   const pageSize = ref(opts.pageSize)
   const search = ref(opts.search ?? '')
+  const filters = ref<Record<string, string>>({})
 
   const searchAccessor = opts.searchAccessor
+  const columnFilters = opts.columnFilters ?? []
+
+  function setFilter(key: string, value: string): void {
+    filters.value = { ...filters.value, [key]: value }
+  }
 
   const filtered = computed(() => {
     const q = search.value.trim().toLowerCase()
-    if (!q || !searchAccessor) return source.value
-    return source.value.filter((item) => searchAccessor(item).toLowerCase().includes(q))
+    let result = source.value
+    if (q && searchAccessor) {
+      result = result.filter((item) => searchAccessor(item).toLowerCase().includes(q))
+    }
+    for (const columnFilter of columnFilters) {
+      const value = filters.value[columnFilter.key]
+      if (!value) continue
+      if (columnFilter.match === 'equals') {
+        result = result.filter((item) => columnFilter.accessor(item) === value)
+      } else {
+        const needle = value.toLowerCase()
+        result = result.filter((item) =>
+          columnFilter.accessor(item).toLowerCase().includes(needle),
+        )
+      }
+    }
+    return result
   })
 
   const sorted = computed(() => {
@@ -79,11 +111,11 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
   }
 
   watch(
-    [sortBy, sortDir, search, pageSize],
+    [sortBy, sortDir, search, pageSize, filters],
     () => {
       page.value = 1
     },
-    { flush: 'sync' },
+    { flush: 'sync', deep: true },
   )
 
   watch(
@@ -99,6 +131,8 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
     page,
     pageSize,
     search,
+    filters,
+    setFilter,
     totalItems,
     totalPages,
     fillerCount,
