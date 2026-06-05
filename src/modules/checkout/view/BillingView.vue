@@ -29,7 +29,7 @@ const orderStatusLabel: Record<OrderStatus, string> = {
 const router = useRouter()
 const {
   table,
-  orders,
+  activeOrders,
   billLines,
   billTotal,
   ordersByStatus,
@@ -103,7 +103,7 @@ function goToPayment() {
         <span v-if="table" class="meta">{{ table.capacity }} pers.</span>
       </div>
 
-      <div v-if="!loading && orders.length > 0" class="status-chips">
+      <div v-if="!loading && activeOrders.length > 0" class="status-chips">
         <Badge v-if="ordersByStatus.pending > 0" tone="amber">
           {{ ordersByStatus.pending }} pendiente{{ ordersByStatus.pending > 1 ? 's' : '' }}
         </Badge>
@@ -133,12 +133,12 @@ function goToPayment() {
         <div class="card">
           <h2 class="card-title">Pedidos</h2>
 
-          <div v-if="orders.length === 0" class="empty-orders">
+          <div v-if="activeOrders.length === 0" class="empty-orders">
             <p>Sin pedidos registrados para esta mesa.</p>
           </div>
 
           <ul v-else class="order-list">
-            <li v-for="order in orders" :key="order.id" class="order-card">
+            <li v-for="order in activeOrders" :key="order.id" class="order-card">
               <div class="order-header">
                 <span class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</span>
                 <Badge :tone="orderStatusTone[order.status]">
