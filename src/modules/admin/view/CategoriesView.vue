@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
+import { colors } from '@/shared/styles/colors'
 import { useCategories, type CategoryRow } from '../composables/useCategories'
 import { useAdminDialog } from '../composables/useAdminDialog'
 import { useAdminConfirm } from '../composables/useAdminConfirm'
@@ -10,16 +11,25 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import DataTable, { type Column } from '@/shared/components/DataTable.vue'
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
 
-const { categories, loading, error, createCategory, updateCategory, removeCategory } =
+const { categories, areas, loading, error, createCategory, updateCategory, removeCategory } =
   useCategories()
 
 const columns = computed<Column<CategoryRow>[]>(() => [
   { key: 'name', label: 'Categoría', sortable: true },
+  {
+    key: 'areaName',
+    label: 'Área',
+    sortable: true,
+    filter: {
+      type: 'select',
+      options: areas.value.map((area) => ({ value: area.name, label: area.name })),
+    },
+  },
   { key: 'productCount', label: 'Productos', sortable: true, align: 'right' },
   { key: 'actions', label: 'Acciones', align: 'right' },
 ])
 
-const form = reactive({ name: '' })
+const form = reactive({ name: '', areaId: '' })
 const {
   dialogOpen,
   editingId,
@@ -33,11 +43,13 @@ const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete 
 
 function openCreate() {
   form.name = ''
+  form.areaId = ''
   _openCreate()
 }
 
 function openEdit(category: CategoryRow) {
   form.name = category.name
+  form.areaId = category.areaId ?? ''
   _openEdit(category.id)
 }
 
@@ -47,9 +59,10 @@ async function save() {
     formError.value = ADMIN_LABELS.category.nameRequired
     return
   }
+  const payload = { name: trimmedName, areaId: form.areaId || undefined }
   await runSave(async () => {
-    if (editingId.value) await updateCategory(editingId.value, { name: trimmedName })
-    else await createCategory({ name: trimmedName })
+    if (editingId.value) await updateCategory(editingId.value, payload)
+    else await createCategory(payload)
   })
 }
 
@@ -74,6 +87,10 @@ async function confirmDelete() {
     >
       <template #cell-name="{ row }">
         <span class="category-name">{{ row.name }}</span>
+      </template>
+
+      <template #cell-areaName="{ row }">
+        <span class="col-muted">{{ row.areaName }}</span>
       </template>
 
       <template #cell-productCount="{ row }">{{ row.productCount }} productos</template>
@@ -104,6 +121,12 @@ async function confirmDelete() {
       <AdminFormField label="Nombre" for="cat-name">
         <input id="cat-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
+      <AdminFormField label="Área" for="cat-area">
+        <select id="cat-area" v-model="form.areaId" class="field-input">
+          <option value="">Sin área</option>
+          <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
+        </select>
+      </AdminFormField>
     </ModalDialog>
 
     <ConfirmDialog
@@ -129,6 +152,10 @@ async function confirmDelete() {
 .category-name {
   font-weight: 600;
   color: #111827;
+}
+
+.col-muted {
+  color: v-bind('colors.neutral.secondary');
 }
 
 .row-actions {
