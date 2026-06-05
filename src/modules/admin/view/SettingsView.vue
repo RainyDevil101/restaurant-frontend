@@ -5,6 +5,7 @@ import { usePrinters } from '../composables/usePrinters'
 import { useReceiptSettings } from '../composables/useReceiptSettings'
 import { usePrinterSupport } from '../composables/usePrinterSupport'
 import { usePrinterConnection } from '@/shared/printing/usePrinterConnection'
+import { printerErrorMessage } from '@/shared/printing'
 import { toast } from '@/shared/toast'
 import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
@@ -46,7 +47,7 @@ async function testPrint() {
     await printTest(defaultColumns.value)
     toast.success('Prueba enviada a la impresora')
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'No se pudo imprimir la prueba')
+    toast.error(printerErrorMessage(err))
   }
 }
 

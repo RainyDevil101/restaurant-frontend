@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import {
   base64ToBytes,
   printerAdapters,
+  printerErrorMessage,
   testTicket,
   type ConnectedPrinter,
   type PrinterTransportId,
@@ -24,7 +25,7 @@ export function usePrinterConnection() {
       activeKind.value = kind
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'No se pudo conectar la impresora.'
+      error.value = printerErrorMessage(err)
       return false
     } finally {
       connecting.value = false
