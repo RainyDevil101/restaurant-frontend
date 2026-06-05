@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { colors } from '@/shared/styles/colors'
 import { usePrinters } from '../composables/usePrinters'
 import { useReceiptSettings } from '../composables/useReceiptSettings'
 import { usePrinterSupport } from '../composables/usePrinterSupport'
+import { usePrinterConnection } from '@/shared/printing/usePrinterConnection'
+import { toast } from '@/shared/toast'
 import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -11,10 +13,42 @@ import Badge from '@/shared/components/Badge.vue'
 import { ApiRequestError } from '@/shared/api/client'
 import type { Printer, PrinterConnection, PaperWidth } from '@/shared/api/settings'
 
-const { printingSupported } = usePrinterSupport()
+const { printingSupported, usbSupported, bluetoothSupported } = usePrinterSupport()
 const { printers, loading, error, createPrinter, updatePrinter, removePrinter, setDefault } =
   usePrinters()
 const { settings, save: saveReceipt } = useReceiptSettings()
+
+const {
+  isConnected,
+  deviceName,
+  connecting,
+  error: connectionError,
+  connect,
+  printTest,
+  disconnect,
+} = usePrinterConnection()
+
+const defaultColumns = computed(() => {
+  const fallback = printers.value.find((p) => p.isDefault) ?? printers.value[0]
+  return fallback?.paperWidth === 58 ? 32 : 48
+})
+
+async function connectUsb() {
+  if (await connect('usb')) toast.success(`Impresora conectada · ${deviceName.value}`)
+}
+
+async function connectBluetooth() {
+  if (await connect('bluetooth')) toast.success(`Impresora conectada · ${deviceName.value}`)
+}
+
+async function testPrint() {
+  try {
+    await printTest(defaultColumns.value)
+    toast.success('Prueba enviada a la impresora')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'No se pudo imprimir la prueba')
+  }
+}
 
 const dialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -161,6 +195,47 @@ function connectionLabel(connection: PrinterConnection): string {
       La impresión requiere Chrome o Edge en este equipo (con HTTPS). Podés configurar impresoras
       igual, pero no se podrá imprimir desde este navegador.
     </div>
+
+    <section v-if="printingSupported" class="section">
+      <div class="section-head">
+        <h2 class="section-title">Conexión de impresora</h2>
+        <Badge :tone="isConnected ? 'green' : 'gray'">
+          {{ isConnected ? 'Conectada' : 'Sin conectar' }}
+        </Badge>
+      </div>
+
+      <p v-if="isConnected" class="connected-name">{{ deviceName }}</p>
+      <p v-else class="section-muted">
+        Conectá la impresora de este equipo para imprimir precuentas y comandas.
+      </p>
+
+      <div class="connect-actions">
+        <template v-if="!isConnected">
+          <button
+            v-if="usbSupported"
+            class="connect-btn"
+            :disabled="connecting"
+            @click="connectUsb"
+          >
+            {{ connecting ? 'Conectando…' : 'Conectar por USB' }}
+          </button>
+          <button
+            v-if="bluetoothSupported"
+            class="connect-btn"
+            :disabled="connecting"
+            @click="connectBluetooth"
+          >
+            {{ connecting ? 'Conectando…' : 'Conectar por Bluetooth' }}
+          </button>
+        </template>
+        <template v-else>
+          <button class="connect-btn" @click="testPrint">Imprimir prueba</button>
+          <button class="disconnect-btn" @click="disconnect">Desconectar</button>
+        </template>
+      </div>
+
+      <p v-if="connectionError" class="section-error" role="alert">{{ connectionError }}</p>
+    </section>
 
     <section class="section">
       <div class="section-head">
@@ -338,6 +413,46 @@ function connectionLabel(connection: PrinterConnection): string {
 .section-muted {
   font-size: 0.9rem;
   color: v-bind('colors.neutral.secondary');
+}
+
+.connected-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: v-bind('colors.neutral.textStrong');
+}
+
+.connect-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.connect-btn {
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.connect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disconnect-btn {
+  padding: 8px 16px;
+  background: v-bind('colors.neutral.surface');
+  color: v-bind('colors.neutral.textMedium');
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .printer-list {
