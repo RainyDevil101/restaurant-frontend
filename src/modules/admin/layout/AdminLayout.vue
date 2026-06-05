@@ -19,6 +19,7 @@ const navItems = [
   { label: 'Mesas',       to: Route.ADMIN_TABLES     },
   { label: 'Usuarios',    to: Route.ADMIN_USERS      },
   { label: 'Pagos',       to: Route.ADMIN_PAYMENTS   },
+  { label: 'Configuraciones', to: Route.ADMIN_SETTINGS },
 ]
 </script>
 
