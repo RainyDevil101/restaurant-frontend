@@ -66,7 +66,7 @@ function onSubmit() {
               v-model="adminCredential"
               type="password"
               class="input"
-              autocomplete="off"
+              autocomplete="new-password"
             />
           </label>
 

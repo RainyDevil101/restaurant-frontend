@@ -178,7 +178,14 @@ async function confirmDelete() {
       </AdminFormField>
 
       <AdminFormField label="Correo" for="user-email">
-        <input id="user-email" v-model="form.email" type="email" class="field-input" required />
+        <input
+          id="user-email"
+          v-model="form.email"
+          type="email"
+          class="field-input"
+          autocomplete="off"
+          required
+        />
       </AdminFormField>
 
       <AdminFormField label="Rol" for="user-role">
@@ -195,6 +202,7 @@ async function confirmDelete() {
           v-model="form.credential"
           type="password"
           class="field-input"
+          autocomplete="new-password"
           :required="!editingId"
           :placeholder="editingId ? 'Dejar en blanco para no cambiar' : ''"
         />
