@@ -69,6 +69,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
                 {{ payment.method === PAYMENT_METHOD.CASH ? 'Efectivo' : 'Tarjeta' }}
               </Badge>
             </div>
+            <div v-if="payment.waiterNames.length" class="summary-row">
+              <span class="label-muted">Atendido por</span>
+              <span class="waiter-names">{{ payment.waiterNames.join(', ') }}</span>
+            </div>
           </div>
         </div>
 
@@ -227,6 +231,13 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 .label-muted {
   color: v-bind('colors.neutral.secondary');
   font-size: 0.875rem;
+}
+
+.waiter-names {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: v-bind('colors.neutral.textMedium');
+  text-align: right;
 }
 
 /* Footer */

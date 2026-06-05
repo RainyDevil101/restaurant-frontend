@@ -24,6 +24,7 @@ export interface ApiPayment {
   change: number
   paidAt: string
   items: ApiPaymentItem[]
+  waiterIds: string[]
 }
 
 export function getBill(tableId: string): Promise<Bill> {

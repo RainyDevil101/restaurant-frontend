@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { listPayments } from '@/shared/api/billing'
 import { listTables } from '@/shared/api/venue'
+import { listUsers } from '@/shared/api/users'
 import { ApiRequestError } from '@/shared/api/client'
 import type { ApiPaymentItem } from '@/shared/api/billing'
 import type { PaymentMethod } from '@/shared/types'
@@ -14,6 +15,7 @@ export interface PaymentRow {
   change: number
   paidAt: string
   items: ApiPaymentItem[]
+  waiterNames: string[]
 }
 
 export function usePayments() {
@@ -25,17 +27,19 @@ export function usePayments() {
     loading.value = true
     error.value = ''
     try {
-      const [raw, tables] = await Promise.all([listPayments(), listTables()])
-      const nameById = new Map(tables.map((t) => [t.id, t.name]))
+      const [raw, tables, users] = await Promise.all([listPayments(), listTables(), listUsers()])
+      const tableNameById = new Map(tables.map((t) => [t.id, t.name]))
+      const userNameById = new Map(users.map((u) => [u.id, u.name]))
       payments.value = raw.map((p) => ({
         id: p.id,
-        tableName: nameById.get(p.tableId) ?? p.tableId,
+        tableName: tableNameById.get(p.tableId) ?? p.tableId,
         tableId: p.tableId,
         method: p.method,
         amount: p.amount,
         change: p.change,
         paidAt: p.paidAt,
         items: p.items,
+        waiterNames: p.waiterIds.map((id) => userNameById.get(id) ?? id),
       }))
     } catch (err) {
       error.value =
