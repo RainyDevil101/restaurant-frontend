@@ -11,14 +11,25 @@ import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import Badge from '@/shared/components/Badge.vue'
 import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import { Role, type User } from '@/modules/auth/store'
+import { Role, useAuthStore, type User } from '@/modules/auth/store'
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const auth = useAuthStore()
+const currentUserId = computed(() => auth.user?.id ?? '')
+
 const { users, loading, error, createUser, updateUser, removeUser } = useUsers()
 
 const roleOptions = [Role.MESERO, Role.CAJERO, Role.ADMIN]
+
+function canEditUser(row: User): boolean {
+  return !row.isOwner || row.id === currentUserId.value
+}
+
+function canDeleteUser(row: User): boolean {
+  return !row.isOwner && row.id !== currentUserId.value
+}
 
 const columns = computed<Column<User>[]>(() => [
   { key: 'name', label: 'Usuario', sortable: true },
@@ -146,6 +157,7 @@ async function confirmDelete() {
     >
       <template #cell-name="{ row }">
         <span class="col-name">{{ row.name }}</span>
+        <Badge v-if="row.isOwner" tone="amber">Dueño</Badge>
       </template>
 
       <template #cell-email="{ row }">
@@ -162,8 +174,15 @@ async function confirmDelete() {
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button class="action-btn" @click="openEdit(row)">Editar</button>
-          <button class="action-btn danger" @click="openDelete(row.id)">Eliminar</button>
+          <button v-if="canEditUser(row)" class="action-btn" @click="openEdit(row)">Editar</button>
+          <button
+            v-if="canDeleteUser(row)"
+            class="action-btn danger"
+            @click="openDelete(row.id)"
+          >
+            Eliminar
+          </button>
+          <span v-if="!canEditUser(row) && !canDeleteUser(row)" class="col-muted">—</span>
         </div>
       </template>
     </DataTable>
@@ -211,7 +230,7 @@ async function confirmDelete() {
         />
       </AdminFormField>
 
-      <label v-if="editingId" class="check-field">
+      <label v-if="editingId && editingId !== currentUserId" class="check-field">
         <input v-model="form.active" type="checkbox" />
         <span>Activo</span>
       </label>

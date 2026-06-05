@@ -11,6 +11,7 @@ export interface User {
   email: string
   role: Role
   active: boolean
+  isOwner: boolean
 }
 
 export const useAuthStore = defineStore('auth', () => {

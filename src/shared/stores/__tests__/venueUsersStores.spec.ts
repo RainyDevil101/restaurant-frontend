@@ -16,8 +16,8 @@ const tables: Table[] = [
 ]
 
 const users: User[] = [
-  { id: 'u1', name: 'Ana', email: 'ana@subito.mx', role: Role.MESERO, active: true },
-  { id: 'u2', name: 'Carlos', email: 'carlos@subito.mx', role: Role.CAJERO, active: false },
+  { id: 'u1', name: 'Ana', email: 'ana@subito.mx', role: Role.MESERO, active: true, isOwner: false },
+  { id: 'u2', name: 'Carlos', email: 'carlos@subito.mx', role: Role.CAJERO, active: false, isOwner: false },
 ]
 
 describe('venue stores TTL freshness', () => {
