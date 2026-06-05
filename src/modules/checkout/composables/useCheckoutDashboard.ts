@@ -4,7 +4,7 @@ import { listTables } from '@/shared/api/venue'
 import { listOrders, type ApiOrder } from '@/shared/api/orders'
 import { connectOrdersSocket } from '@/shared/api/socket'
 import { ApiRequestError } from '@/shared/api/client'
-import { ORDER_STATUS, TABLE_STATUS } from '@/shared/types'
+import { ORDER_STATUS } from '@/shared/types'
 import type { Table } from '@/shared/types'
 
 export interface TableSummary {
@@ -65,15 +65,21 @@ export function useCheckoutDashboard() {
     }
   }
 
+  async function refreshTables() {
+    tables.value = await listTables().catch(() => tables.value)
+  }
+
   onMounted(async () => {
     await load()
     socket = connectOrdersSocket()
     socket.emit(SOCKET_EVENT.JOIN_CHECKOUT)
     socket.on(SOCKET_EVENT.ORDER_CREATED, (order: ApiOrder) => {
       upsertOrder(order)
+      refreshTables()
     })
     socket.on(SOCKET_EVENT.ORDER_STATUS_CHANGED, (order: ApiOrder) => {
       upsertOrder(order)
+      refreshTables()
     })
   })
 
@@ -88,9 +94,7 @@ export function useCheckoutDashboard() {
 
   const activeTables = computed((): TableSummary[] =>
     tables.value
-      .filter(
-        (t) => t.status !== TABLE_STATUS.FREE && billableOrders.value.some((o) => o.tableId === t.id),
-      )
+      .filter((t) => billableOrders.value.some((o) => o.tableId === t.id))
       .map((table) => {
         const tableOrders = billableOrders.value.filter((o) => o.tableId === table.id)
         const total = tableOrders.reduce((sum, o) => sum + o.total, 0)
