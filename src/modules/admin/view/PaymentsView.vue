@@ -1,0 +1,152 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { usePayments } from '../composables/usePayments'
+import { formatCurrency } from '../helpers/formatCurrency'
+import Badge from '@/shared/components/Badge.vue'
+import DataTable, { type Column } from '@/shared/components/DataTable.vue'
+import { PAYMENT_METHOD } from '@/shared/types'
+import type { PaymentRow } from '../composables/usePayments'
+
+const { payments, loading, error, reload } = usePayments()
+
+const columns = computed<Column<PaymentRow>[]>(() => [
+  { key: 'tableName', label: 'Mesa', sortable: true },
+  {
+    key: 'method',
+    label: 'Método',
+    filter: {
+      type: 'select',
+      options: [
+        { value: PAYMENT_METHOD.CASH, label: 'Efectivo' },
+        { value: PAYMENT_METHOD.CARD, label: 'Tarjeta' },
+      ],
+    },
+  },
+  {
+    key: 'amount',
+    label: 'Total cobrado',
+    align: 'right',
+    sortable: true,
+    accessor: (row) => row.amount,
+  },
+  {
+    key: 'change',
+    label: 'Cambio',
+    align: 'right',
+    accessor: (row) => (row.method === PAYMENT_METHOD.CASH ? row.change : -1),
+  },
+  {
+    key: 'paidAt',
+    label: 'Fecha y hora',
+    sortable: true,
+    accessor: (row) => row.paidAt,
+  },
+])
+</script>
+
+<template>
+  <div class="payments-view">
+    <div class="page-header">
+      <h1 class="page-title">Historial de pagos</h1>
+      <button class="reload-btn" :disabled="loading" @click="reload">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+          <path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <DataTable
+      :items="payments"
+      :columns="columns"
+      :loading="loading"
+      :error="error"
+      default-sort="paidAt"
+      default-sort-dir="desc"
+      search-placeholder="Buscar por mesa…"
+      empty-text="Sin pagos registrados"
+    >
+      <template #cell-method="{ row }">
+        <Badge :tone="row.method === PAYMENT_METHOD.CASH ? 'green' : 'blue'">
+          {{ row.method === PAYMENT_METHOD.CASH ? 'Efectivo' : 'Tarjeta' }}
+        </Badge>
+      </template>
+
+      <template #cell-amount="{ row }">
+        {{ formatCurrency(row.amount) }}
+      </template>
+
+      <template #cell-change="{ row }">
+        <span :class="row.method === PAYMENT_METHOD.CASH ? 'change-value' : 'change-na'">
+          {{ row.method === PAYMENT_METHOD.CASH ? formatCurrency(row.change) : '—' }}
+        </span>
+      </template>
+
+      <template #cell-paidAt="{ row }">
+        {{
+          new Date(row.paidAt).toLocaleString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        }}
+      </template>
+    </DataTable>
+  </div>
+</template>
+
+<style scoped>
+.payments-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.reload-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  transition: background 0.12s;
+}
+
+.reload-btn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.reload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.change-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.change-na {
+  color: #9ca3af;
+}
+</style>

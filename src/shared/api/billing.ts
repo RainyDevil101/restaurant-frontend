@@ -27,3 +27,7 @@ export function consolidateBill(tableId: string): Promise<Bill> {
 export function payBill(tableId: string, input: ProcessPaymentInput): Promise<ApiPayment> {
   return api.post<ApiPayment>(`/billing/table/${tableId}/payment`, input)
 }
+
+export function listPayments(): Promise<ApiPayment[]> {
+  return api.get<ApiPayment[]>('/billing/payments')
+}

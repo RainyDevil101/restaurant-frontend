@@ -25,7 +25,9 @@ export interface Bill {
 export interface Payment {
   id: string
   billId: string
+  tableId: string
   amount: number
   method: PaymentMethod
+  change: number
   paidAt: string
 }
