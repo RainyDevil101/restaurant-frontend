@@ -119,93 +119,95 @@ function goToPayment() {
       </div>
     </div>
 
-    <!-- Loading / error -->
-    <div v-if="loading" class="state-block">
-      <p class="state-msg">Cargando…</p>
-    </div>
-    <div v-else-if="error" class="state-block">
-      <p class="state-msg error">{{ error }}</p>
-    </div>
-
-    <!-- Content -->
-    <div v-else class="content-grid">
-      <!-- Left: orders -->
-      <div class="card">
-        <h2 class="card-title">Pedidos</h2>
-
-        <div v-if="orders.length === 0" class="empty-orders">
-          <p>Sin pedidos registrados para esta mesa.</p>
-        </div>
-
-        <ul v-else class="order-list">
-          <li v-for="order in orders" :key="order.id" class="order-card">
-            <div class="order-header">
-              <span class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</span>
-              <Badge :tone="orderStatusTone[order.status]">
-                {{ orderStatusLabel[order.status] }}
-              </Badge>
-            </div>
-            <ul class="order-items">
-              <li v-for="item in order.items" :key="item.itemId" class="order-item">
-                <span class="item-qty">{{ item.quantity }}×</span>
-                <span class="item-name">{{ item.productName }}</span>
-                <span class="item-price">{{ formatCurrency(item.subtotal) }}</span>
-              </li>
-            </ul>
-            <div class="order-footer">
-              <span class="order-time">{{ new Date(order.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) }}</span>
-              <span class="order-subtotal">{{ formatCurrency(order.total) }}</span>
-            </div>
-            <div v-if="canCancel(order.status, order.paid)" class="order-actions">
-              <button type="button" class="cancel-order-btn" @click="openCancelDialog(order.id)">
-                Cancelar pedido
-              </button>
-            </div>
-          </li>
-        </ul>
+    <!-- Scrollable body -->
+    <div class="scroll-body">
+      <div v-if="loading" class="state-block">
+        <p class="state-msg">Cargando…</p>
+      </div>
+      <div v-else-if="error" class="state-block">
+        <p class="state-msg error">{{ error }}</p>
       </div>
 
-      <!-- Right: bill + action -->
-      <div class="card bill-card">
-        <h2 class="card-title">Cuenta consolidada</h2>
+      <div v-else class="content-grid">
+        <!-- Left: orders -->
+        <div class="card">
+          <h2 class="card-title">Pedidos</h2>
 
-        <div v-if="billLines.length === 0" class="empty-orders">
-          <p>Sin ítems en cuenta.</p>
-        </div>
+          <div v-if="orders.length === 0" class="empty-orders">
+            <p>Sin pedidos registrados para esta mesa.</p>
+          </div>
 
-        <template v-else>
-          <div class="bill-lines">
-            <div v-for="line in billLines" :key="line.productId" class="bill-line">
-              <div class="line-left">
-                <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-                <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
+          <ul v-else class="order-list">
+            <li v-for="order in orders" :key="order.id" class="order-card">
+              <div class="order-header">
+                <span class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</span>
+                <Badge :tone="orderStatusTone[order.status]">
+                  {{ orderStatusLabel[order.status] }}
+                </Badge>
               </div>
-              <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
+              <ul class="order-items">
+                <li v-for="item in order.items" :key="item.itemId" class="order-item">
+                  <span class="item-qty">{{ item.quantity }}×</span>
+                  <span class="item-name">{{ item.productName }}</span>
+                  <span class="item-price">{{ formatCurrency(item.subtotal) }}</span>
+                </li>
+              </ul>
+              <div class="order-footer">
+                <span class="order-time">{{ new Date(order.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                <span class="order-subtotal">{{ formatCurrency(order.total) }}</span>
+              </div>
+              <div v-if="canCancel(order.status, order.paid)" class="order-actions">
+                <button type="button" class="cancel-order-btn" @click="openCancelDialog(order.id)">
+                  Cancelar pedido
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: bill summary -->
+        <div class="card bill-card">
+          <h2 class="card-title">Cuenta consolidada</h2>
+
+          <div v-if="billLines.length === 0" class="empty-orders">
+            <p>Sin ítems en cuenta.</p>
+          </div>
+
+          <template v-else>
+            <div class="bill-lines">
+              <div v-for="line in billLines" :key="line.productId" class="bill-line">
+                <div class="line-left">
+                  <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
+                  <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
+                </div>
+                <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="bill-total-row">
-            <span class="total-label">Total</span>
-            <span class="total-amount">{{ formatCurrency(billTotal) }}</span>
-          </div>
-        </template>
-
-        <div class="bill-actions">
-          <p v-if="hasPendingOrders" class="pending-warning">
-            Hay pedidos sin entregar. Confirma antes de cobrar.
-          </p>
-          <button
-            class="pay-btn"
-            :disabled="billLines.length === 0"
-            @click="goToPayment"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
-            </svg>
-            Proceder al cobro · {{ formatCurrency(billTotal) }}
-          </button>
+            <div class="bill-total-row">
+              <span class="total-label">Total</span>
+              <span class="total-amount">{{ formatCurrency(billTotal) }}</span>
+            </div>
+          </template>
         </div>
       </div>
+    </div>
+
+    <!-- Pay bar — always visible at the bottom -->
+    <div v-if="!loading && !error" class="pay-bar">
+      <p v-if="hasPendingOrders" class="pending-warning">
+        Hay pedidos sin entregar. Confirma antes de cobrar.
+      </p>
+      <button
+        class="pay-btn"
+        :disabled="billLines.length === 0"
+        @click="goToPayment"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+          <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
+        </svg>
+        Proceder al cobro · {{ formatCurrency(billTotal) }}
+      </button>
     </div>
 
     <CancelOrderDialog
@@ -224,17 +226,18 @@ function goToPayment() {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 1.75rem 2rem;
-  gap: 1.5rem;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /* Header */
 .page-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  padding: 1.75rem 2rem 1rem;
+  background: #f0f2f5;
 }
 
 .back-btn {
@@ -252,7 +255,7 @@ function goToPayment() {
 }
 
 .back-btn:hover {
-  background: #f3f4f6;
+  background: #e5e7eb;
   color: #374151;
 }
 
@@ -280,12 +283,20 @@ function goToPayment() {
   margin-left: auto;
 }
 
+/* Scrollable body */
+.scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 2rem 1.5rem;
+}
+
 /* States */
 .state-block {
-  flex: 1;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 3rem 0;
 }
 
 .state-msg {
@@ -325,6 +336,12 @@ function goToPayment() {
 .bill-card {
   position: sticky;
   top: 0;
+}
+
+@media (max-width: 768px) {
+  .bill-card {
+    position: static;
+  }
 }
 
 .card-title {
@@ -500,12 +517,16 @@ function goToPayment() {
   color: #111827;
 }
 
-/* Actions */
-.bill-actions {
+/* Pay bar */
+.pay-bar {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 0.5rem;
+  padding: 1rem 2rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  background: white;
+  border-top: 1px solid #e5e7eb;
 }
 
 .pending-warning {
@@ -541,5 +562,20 @@ function goToPayment() {
 .pay-btn:disabled {
   background: #c8d8d6;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 1rem 1.25rem 0.75rem;
+  }
+
+  .scroll-body {
+    padding: 0.75rem 1.25rem 1.5rem;
+  }
+
+  .pay-bar {
+    padding: 0.875rem 1.25rem;
+    padding-bottom: max(0.875rem, env(safe-area-inset-bottom));
+  }
 }
 </style>

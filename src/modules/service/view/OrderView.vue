@@ -100,55 +100,27 @@ async function handleSubmit() {
     <div class="scroll-area">
       <OrderHeaderRow :table-name="table?.name ?? 'Mesa'" />
 
-      <InProgressOrders
-        v-if="openAccountOrders.length > 0"
-        :orders="openAccountOrders"
-        :error="ordersError"
-        :delivering-id="deliveringId"
-        @deliver="markDelivered"
-      />
+      <InProgressOrders v-if="openAccountOrders.length > 0" :orders="openAccountOrders" :error="ordersError"
+        :delivering-id="deliveringId" @deliver="markDelivered" />
 
-      <CatalogPanel
-        v-model:search-query="searchQuery"
-        v-model:selected-category-id="selectedCategoryId"
-        :products="products"
-        :categories="categories"
-        :combos="combos"
-        :loading="loading"
-        :error="error"
-        @add-product="addProduct"
-        @add-combo="addCombo"
-      />
+      <CatalogPanel v-model:search-query="searchQuery" v-model:selected-category-id="selectedCategoryId"
+        :products="products" :categories="categories" :combos="combos" :loading="loading" :error="error"
+        @add-product="addProduct" @add-combo="addCombo" />
 
-      <OrderSummarySection
-        v-if="entries.length > 0"
-        :entries="entries"
-        :categories="categories"
-        :total-items="totalItems"
-        @add="readd"
-        @remove="requestRemove"
-      />
+      <OrderSummarySection v-if="entries.length > 0" :entries="entries" :categories="categories"
+        :total-items="totalItems" @add="readd" @remove="requestRemove" />
     </div>
 
-    <ConfirmRemoveDialog
-      v-if="pendingRemoveId"
-      :product-name="pendingRemoveName"
-      :table-name="table?.name ?? 'la mesa'"
-      @confirm="confirmRemove"
-      @cancel="cancelRemove"
-    />
+    <ConfirmRemoveDialog v-if="pendingRemoveId" :product-name="pendingRemoveName" :table-name="table?.name ?? 'la mesa'"
+      @confirm="confirmRemove" @cancel="cancelRemove" />
 
-    <SubmitOrderBar
-      :disabled="entries.length === 0 || submitting"
-      :submitting="submitting"
-      @submit="handleSubmit"
-    />
+    <SubmitOrderBar :disabled="entries.length === 0 || submitting" :submitting="submitting" @submit="handleSubmit" />
   </div>
 </template>
 
 <style scoped>
 .order-view {
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -160,6 +132,7 @@ async function handleSubmit() {
   overflow-y: auto;
   background: white;
   padding: 1.25rem;
+  padding-bottom: calc(1.25rem + 72px);
   display: flex;
   flex-direction: column;
   gap: 1rem;

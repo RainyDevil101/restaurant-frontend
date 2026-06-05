@@ -23,9 +23,13 @@ defineEmits<{ submit: [] }>()
 
 <style scoped>
 .bottom-bar {
-  flex-shrink: 0;
-  padding: 1rem 1.25rem;
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 0.875rem 1.25rem;
+  padding-bottom: max(0.875rem, env(safe-area-inset-bottom));
   background: white;
   border-top: 1px solid #f0f0f0;
 }
