@@ -24,7 +24,7 @@ export function useMenus() {
   const products = computed<Product[]>(() => productsStore.items)
 
   const menuRows = computed<MenuRow[]>(() =>
-    menusStore.items.map((menu) => ({ ...menu, productCount: menu.productIds.length })),
+    menusStore.items.map((menu) => ({ ...menu, productCount: menu.items.length })),
   )
 
   async function createMenu(input: MenuInput) {

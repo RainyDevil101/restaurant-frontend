@@ -6,9 +6,12 @@ import { formatCurrency } from '../helpers/formatCurrency'
 const props = defineProps<{ menu: Menu; products: Product[] }>()
 defineEmits<{ add: [] }>()
 
-const memberNames = props.menu.productIds
-  .map((id) => props.products.find((p) => p.id === id)?.name)
-  .filter((name): name is string => Boolean(name))
+const memberNames = props.menu.items
+  .map((item) => {
+    const product = props.products.find((p) => p.id === item.productId)
+    return product ? `${item.quantity}× ${product.name}` : null
+  })
+  .filter((label): label is string => Boolean(label))
   .join(', ')
 </script>
 

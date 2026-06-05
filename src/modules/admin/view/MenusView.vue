@@ -11,6 +11,7 @@ import ModalDialog from '../components/ModalDialog.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import DataTable, { type Column } from '@/shared/components/DataTable.vue'
 import { ApiRequestError } from '@/shared/api/client'
+import type { MenuItem } from '@/shared/types'
 import {
   ADMIN_LABELS,
   PRODUCTS_PER_PAGE,
@@ -53,9 +54,9 @@ async function toggle(id: string) {
   }
 }
 
-const form = reactive<{ name: string; productIds: string[]; price: number }>({
+const form = reactive<{ name: string; items: MenuItem[]; price: number }>({
   name: '',
-  productIds: [],
+  items: [],
   price: 0,
 })
 const {
@@ -77,16 +78,33 @@ function clampPrice() {
 
 function openCreate() {
   form.name = ''
-  form.productIds = []
+  form.items = []
   form.price = 0
   _openCreate()
 }
 
 function openEdit(menu: MenuRow) {
   form.name = menu.name
-  form.productIds = [...menu.productIds]
+  form.items = menu.items.map((i) => ({ ...i }))
   form.price = menu.price
   _openEdit(menu.id)
+}
+
+function isSelected(productId: string) {
+  return form.items.some((i) => i.productId === productId)
+}
+
+function toggleProduct(productId: string) {
+  const index = form.items.findIndex((i) => i.productId === productId)
+  if (index === -1) form.items.push({ productId, quantity: 1 })
+  else form.items.splice(index, 1)
+}
+
+function setQuantity(productId: string, quantity: number) {
+  const item = form.items.find((i) => i.productId === productId)
+  if (!item) return
+  const next = Math.max(1, Math.floor(quantity))
+  item.quantity = Number.isNaN(next) ? 1 : next
 }
 
 async function save() {
@@ -95,7 +113,7 @@ async function save() {
     formError.value = ADMIN_LABELS.menu.nameRequired
     return
   }
-  if (form.productIds.length === 0) {
+  if (form.items.length === 0) {
     formError.value = ADMIN_LABELS.menu.productsRequired
     return
   }
@@ -103,7 +121,7 @@ async function save() {
     formError.value = ADMIN_LABELS.menu.priceInvalid
     return
   }
-  const payload = { name: trimmedName, productIds: form.productIds, price: form.price }
+  const payload = { name: trimmedName, items: form.items, price: form.price }
   await runSave(async () => {
     if (editingId.value) await updateMenu(editingId.value, payload)
     else await createMenu(payload)
@@ -182,12 +200,28 @@ async function confirmDelete() {
           @input="clampPrice"
         />
       </AdminFormField>
-      <AdminFormField :label="`Productos (${form.productIds.length})`" for="menu-products">
+      <AdminFormField :label="`Productos (${form.items.length})`" for="menu-products">
         <div id="menu-products" class="product-picker">
-          <label v-for="p in products" :key="p.id" class="picker-row">
-            <input v-model="form.productIds" type="checkbox" :value="p.id" />
-            <span>{{ p.name }}</span>
-          </label>
+          <div v-for="p in products" :key="p.id" class="picker-row">
+            <label class="picker-label">
+              <input
+                type="checkbox"
+                :checked="isSelected(p.id)"
+                @change="toggleProduct(p.id)"
+              />
+              <span>{{ p.name }}</span>
+            </label>
+            <input
+              v-if="isSelected(p.id)"
+              class="picker-qty"
+              type="number"
+              min="1"
+              step="1"
+              :value="form.items.find((i) => i.productId === p.id)?.quantity"
+              :aria-label="`Cantidad de ${p.name}`"
+              @input="setQuantity(p.id, Number(($event.target as HTMLInputElement).value))"
+            />
+          </div>
           <p v-if="products.length === 0" class="picker-empty">No hay productos.</p>
         </div>
       </AdminFormField>
@@ -294,12 +328,12 @@ async function confirmDelete() {
 .picker-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 9px 12px;
   font-size: 0.9rem;
   color: v-bind('colors.neutral.textMedium');
   border-bottom: 1px solid v-bind('colors.neutral.borderSubtle');
-  cursor: pointer;
 }
 
 .picker-row:last-child {
@@ -308,6 +342,33 @@ async function confirmDelete() {
 
 .picker-row:hover {
   background: v-bind('colors.neutral.surface');
+}
+
+.picker-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.picker-qty {
+  flex-shrink: 0;
+  width: 64px;
+  padding: 5px 8px;
+  font-size: 0.88rem;
+  color: v-bind('colors.neutral.textStrong');
+  border: 1.5px solid v-bind('colors.neutral.border');
+  border-radius: 8px;
+  background: v-bind('colors.neutral.background');
+  text-align: right;
+}
+
+.picker-qty:focus-visible {
+  outline: 2px solid v-bind('colors.brand.primary');
+  outline-offset: 1px;
+  border-color: v-bind('colors.brand.primary');
 }
 
 .picker-empty {

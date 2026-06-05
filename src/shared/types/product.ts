@@ -12,10 +12,15 @@ export interface Product {
   available: boolean
 }
 
+export interface MenuItem {
+  productId: string
+  quantity: number
+}
+
 export interface Menu {
   id: string
   name: string
-  productIds: string[]
+  items: MenuItem[]
   active: boolean
   price: number
 }
