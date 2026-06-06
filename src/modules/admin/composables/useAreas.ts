@@ -5,26 +5,29 @@ import {
   deleteArea as apiDeleteArea,
   type AreaInput,
 } from '@/shared/api/venue'
-import { useAreasStore, useTablesStore } from '@/shared/stores/venueStores'
+import { useAreasStore } from '@/shared/stores/venueStores'
+import { useCategoriesStore } from '@/shared/stores/catalogStores'
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
+import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
 import type { Area } from '@/shared/types'
 
 export interface AreaRow extends Area {
-  tableCount: number
+  categoryCount: number
 }
 
 export function useAreas() {
   const areasStore = useAreasStore()
-  const tablesStore = useTablesStore()
-  const { invalidateAndRefresh } = useTtlFreshness([areasStore, tablesStore])
+  const categoriesStore = useCategoriesStore()
+  const { invalidateAndRefresh } = useTtlFreshness([areasStore])
+  useCatalogFreshness(['categories'])
 
-  const loading = computed(() => areasStore.loading || tablesStore.loading)
-  const error = computed(() => areasStore.error ?? tablesStore.error ?? '')
+  const loading = computed(() => areasStore.loading || categoriesStore.loading)
+  const error = computed(() => areasStore.error ?? categoriesStore.error ?? '')
 
   const areaRows = computed<AreaRow[]>(() =>
     areasStore.items.map((area) => ({
       ...area,
-      tableCount: tablesStore.items.filter((table) => table.areaId === area.id).length,
+      categoryCount: categoriesStore.items.filter((category) => category.areaId === area.id).length,
     })),
   )
 
@@ -47,7 +50,7 @@ export function useAreas() {
     areas: areaRows,
     loading,
     error,
-    reload: () => invalidateAndRefresh(areasStore, tablesStore),
+    reload: () => invalidateAndRefresh(areasStore),
     createArea,
     updateArea,
     removeArea,

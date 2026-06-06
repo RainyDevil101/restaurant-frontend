@@ -59,7 +59,11 @@ async function save() {
     formError.value = ADMIN_LABELS.category.nameRequired
     return
   }
-  const payload = { name: trimmedName, areaId: form.areaId || undefined }
+  if (!form.areaId) {
+    formError.value = ADMIN_LABELS.category.areaRequired
+    return
+  }
+  const payload = { name: trimmedName, areaId: form.areaId }
   await runSave(async () => {
     if (editingId.value) await updateCategory(editingId.value, payload)
     else await createCategory(payload)
@@ -122,8 +126,8 @@ async function confirmDelete() {
         <input id="cat-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
       <AdminFormField label="Área" for="cat-area">
-        <select id="cat-area" v-model="form.areaId" class="field-input">
-          <option value="">Sin área</option>
+        <select id="cat-area" v-model="form.areaId" class="field-input" required>
+          <option value="" disabled>Seleccione un área</option>
           <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
       </AdminFormField>

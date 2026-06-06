@@ -16,5 +16,4 @@ export interface Table {
   name: string
   capacity: number
   status: TableStatus
-  areaId: string
 }

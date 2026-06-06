@@ -14,7 +14,7 @@ const { areas, loading, error, createArea, updateArea, removeArea } = useAreas()
 
 const columns = computed<Column<AreaRow>[]>(() => [
   { key: 'name', label: 'Área', sortable: true },
-  { key: 'tableCount', label: 'Mesas', sortable: true, align: 'right' },
+  { key: 'categoryCount', label: 'Categorías', sortable: true, align: 'right' },
   { key: 'actions', label: 'Acciones', align: 'right' },
 ])
 
@@ -76,15 +76,15 @@ async function confirmDelete() {
         <span class="area-name">{{ row.name }}</span>
       </template>
 
-      <template #cell-tableCount="{ row }">{{ row.tableCount }} mesas</template>
+      <template #cell-categoryCount="{ row }">{{ row.categoryCount }} categorías</template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
           <button class="action-btn" @click="openEdit(row)">Editar</button>
           <button
             class="action-btn danger"
-            :disabled="row.tableCount > 0"
-            :title="row.tableCount > 0 ? ADMIN_LABELS.area.deleteBlockedTitle : undefined"
+            :disabled="row.categoryCount > 0"
+            :title="row.categoryCount > 0 ? ADMIN_LABELS.area.deleteBlockedTitle : undefined"
             @click="openDelete(row.id)"
           >Eliminar</button>
         </div>

@@ -5,29 +5,20 @@ import {
   deleteTable as apiDeleteTable,
   type TableInput,
 } from '@/shared/api/venue'
-import { useTablesStore, useAreasStore } from '@/shared/stores/venueStores'
+import { useTablesStore } from '@/shared/stores/venueStores'
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
-import type { Area, Table } from '@/shared/types'
+import type { Table } from '@/shared/types'
 
-export interface TableRow extends Table {
-  areaName: string
-}
+export type TableRow = Table
 
 export function useAdminTables() {
   const tablesStore = useTablesStore()
-  const areasStore = useAreasStore()
-  const { invalidateAndRefresh } = useTtlFreshness([tablesStore, areasStore])
+  const { invalidateAndRefresh } = useTtlFreshness([tablesStore])
 
-  const loading = computed(() => tablesStore.loading || areasStore.loading)
-  const error = computed(() => tablesStore.error ?? areasStore.error ?? '')
-  const areas = computed<Area[]>(() => areasStore.items)
+  const loading = computed(() => tablesStore.loading)
+  const error = computed(() => tablesStore.error ?? '')
 
-  const tableRows = computed<TableRow[]>(() =>
-    tablesStore.items.map((table) => ({
-      ...table,
-      areaName: areasStore.byId(table.areaId)?.name ?? '—',
-    })),
-  )
+  const tableRows = computed<TableRow[]>(() => tablesStore.items)
 
   async function createTable(input: TableInput) {
     await apiCreateTable(input)
@@ -46,10 +37,9 @@ export function useAdminTables() {
 
   return {
     tables: tableRows,
-    areas,
     loading,
     error,
-    reload: () => invalidateAndRefresh(tablesStore, areasStore),
+    reload: () => invalidateAndRefresh(tablesStore),
     createTable,
     updateTable,
     removeTable,

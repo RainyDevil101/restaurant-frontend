@@ -27,7 +27,6 @@ export const ADMIN_LABELS = {
   },
   table: {
     nameRequired: 'El nombre de la mesa es obligatorio.',
-    areaRequired: 'Selecciona un área para la mesa.',
     capacityInvalid: 'La capacidad debe ser un número entero entre 1 y 20.',
     statusLabels: {
       libre: { label: 'Libre', tone: 'green' },
@@ -37,7 +36,7 @@ export const ADMIN_LABELS = {
   },
   area: {
     nameRequired: 'El nombre del área es obligatorio.',
-    deleteBlockedTitle: 'No se puede eliminar: esta área tiene mesas asociadas. Elimina las mesas primero.',
+    deleteBlockedTitle: 'No se puede eliminar: esta área tiene categorías asociadas. Elimina o reasigna las categorías primero.',
   },
   menu: {
     nameRequired: 'El nombre del menú es obligatorio.',
@@ -46,6 +45,7 @@ export const ADMIN_LABELS = {
   },
   category: {
     nameRequired: 'El nombre de la categoría es obligatorio.',
+    areaRequired: 'Selecciona un área para la categoría.',
     deleteBlockedTitle: 'No se puede eliminar: esta categoría tiene productos asociados. Elimina o reasigna los productos primero.',
   },
 } as const

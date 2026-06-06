@@ -10,9 +10,9 @@ const areas: Area[] = [
 ]
 
 const tables: Table[] = [
-  { id: 't1', name: 'Mesa 1', capacity: 4, status: 'libre', areaId: 'a1' },
-  { id: 't2', name: 'Mesa 2', capacity: 2, status: 'ocupada', areaId: 'a1' },
-  { id: 't3', name: 'Barra 1', capacity: 1, status: 'por_cobrar', areaId: 'a2' },
+  { id: 't1', name: 'Mesa 1', capacity: 4, status: 'libre' },
+  { id: 't2', name: 'Mesa 2', capacity: 2, status: 'ocupada' },
+  { id: 't3', name: 'Barra 1', capacity: 1, status: 'por_cobrar' },
 ]
 
 const users: User[] = [
@@ -58,22 +58,9 @@ describe('venue stores TTL freshness', () => {
 })
 
 describe('venue cross-store derivations', () => {
-  it('resolves table-count per area from the tables list', async () => {
+  it('resolves area by id via byId', async () => {
     const areasStore = createResourceStore<Area>(() => Promise.resolve(areas))
-    const tablesStore = createResourceStore<Table>(() => Promise.resolve(tables))
-    await Promise.all([areasStore.refresh(), tablesStore.refresh()])
-    const countFor = (areaId: string) =>
-      tablesStore.items.value.filter((table) => table.areaId === areaId).length
-    expect(countFor('a1')).toBe(2)
-    expect(countFor('a2')).toBe(1)
-  })
-
-  it('resolves area name for a table via byId', async () => {
-    const areasStore = createResourceStore<Area>(() => Promise.resolve(areas))
-    const tablesStore = createResourceStore<Table>(() => Promise.resolve(tables))
-    await Promise.all([areasStore.refresh(), tablesStore.refresh()])
-    const firstTable = tablesStore.items.value[0]
-    expect(firstTable).toBeDefined()
-    expect(areasStore.byId(firstTable!.areaId)?.name).toBe('Comedor')
+    await areasStore.refresh()
+    expect(areasStore.byId('a1')?.name).toBe('Comedor')
   })
 })

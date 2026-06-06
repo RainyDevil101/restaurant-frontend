@@ -1,20 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useTables, type TableWithArea } from '../composables/useTables'
+import { useTables } from '../composables/useTables'
 import TableCard from '../components/TableCard.vue'
 import { colors } from '@/shared/styles/colors'
 
 const { tables, loading, error } = useTables()
-
-const tablesByArea = computed(() => {
-  const map = new Map<string, TableWithArea[]>()
-  for (const table of tables.value) {
-    const area = table.areaName || 'Sin área'
-    if (!map.has(area)) map.set(area, [])
-    map.get(area)!.push(table)
-  }
-  return map
-})
 </script>
 
 <template>
@@ -38,18 +27,9 @@ const tablesByArea = computed(() => {
     <p v-else-if="error" class="state-msg">{{ error }}</p>
     <p v-else-if="tables.length === 0" class="state-msg">No hay mesas registradas.</p>
 
-    <template v-else>
-      <section
-        v-for="[areaName, areaTables] in tablesByArea"
-        :key="areaName"
-        class="area-section"
-      >
-        <h2 v-if="tablesByArea.size > 1" class="area-heading">{{ areaName }}</h2>
-        <div class="table-grid">
-          <TableCard v-for="table in areaTables" :key="table.id" :table="table" />
-        </div>
-      </section>
-    </template>
+    <div v-else class="table-grid">
+      <TableCard v-for="table in tables" :key="table.id" :table="table" />
+    </div>
   </div>
 </template>
 
@@ -84,20 +64,6 @@ const tablesByArea = computed(() => {
 .legend-dot.libre      { background: v-bind('colors.table.free.bg'); }
 .legend-dot.ocupada    { background: v-bind('colors.table.occupied.bg'); }
 .legend-dot.por_cobrar { background: v-bind('colors.table.pendingPayment.bg'); }
-
-.area-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.area-heading {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: v-bind('colors.neutral.muted');
-}
 
 .table-grid {
   display: grid;

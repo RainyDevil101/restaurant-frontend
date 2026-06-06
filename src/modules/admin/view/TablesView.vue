@@ -19,7 +19,6 @@ import {
 
 const {
   tables,
-  areas,
   loading,
   error,
   createTable,
@@ -31,15 +30,6 @@ const STATUS_MAP = ADMIN_LABELS.table.statusLabels
 
 const columns = computed<Column<TableRow>[]>(() => [
   { key: 'name', label: 'Mesa', sortable: true },
-  {
-    key: 'areaName',
-    label: 'Área',
-    sortable: true,
-    filter: {
-      type: 'select',
-      options: areas.value.map((area) => ({ value: area.name, label: area.name })),
-    },
-  },
   { key: 'capacity', label: 'Capacidad', sortable: true, align: 'right' },
   {
     key: 'status',
@@ -54,7 +44,7 @@ const columns = computed<Column<TableRow>[]>(() => [
   { key: 'actions', label: 'Acciones', align: 'right' },
 ])
 
-const form = reactive({ name: '', capacity: 2, areaId: '' })
+const form = reactive({ name: '', capacity: 2 })
 const {
   dialogOpen,
   editingId,
@@ -69,14 +59,12 @@ const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete 
 function openCreate() {
   form.name = ''
   form.capacity = 2
-  form.areaId = areas.value[0]?.id ?? ''
   _openCreate()
 }
 
 function openEdit(table: TableRow) {
   form.name = table.name
   form.capacity = table.capacity
-  form.areaId = table.areaId
   _openEdit(table.id)
 }
 
@@ -92,15 +80,11 @@ async function save() {
     formError.value = ADMIN_LABELS.table.nameRequired
     return
   }
-  if (!form.areaId) {
-    formError.value = ADMIN_LABELS.table.areaRequired
-    return
-  }
   if (!Number.isInteger(form.capacity) || form.capacity < 1 || form.capacity > TABLE_CAPACITY_MAX) {
     formError.value = ADMIN_LABELS.table.capacityInvalid
     return
   }
-  const payload = { name: trimmedName, capacity: form.capacity, areaId: form.areaId }
+  const payload = { name: trimmedName, capacity: form.capacity }
   await runSave(async () => {
     if (editingId.value) await updateTable(editingId.value, payload)
     else await createTable(payload)
@@ -128,10 +112,6 @@ async function confirmDelete() {
     >
       <template #cell-name="{ row }">
         <span class="table-name">{{ row.name }}</span>
-      </template>
-
-      <template #cell-areaName="{ row }">
-        <span class="col-muted">{{ row.areaName }}</span>
       </template>
 
       <template #cell-capacity="{ row }">{{ row.capacity }} pers.</template>
@@ -174,12 +154,6 @@ async function confirmDelete() {
           @input="clampCapacity"
         />
       </AdminFormField>
-      <AdminFormField label="Área" for="table-area">
-        <select id="table-area" v-model="form.areaId" class="field-input" required>
-          <option value="" disabled>Seleccione un área</option>
-          <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
-        </select>
-      </AdminFormField>
     </ModalDialog>
 
     <ConfirmDialog
@@ -205,10 +179,6 @@ async function confirmDelete() {
 .table-name {
   font-weight: 600;
   color: v-bind('colors.neutral.textStrong');
-}
-
-.col-muted {
-  color: v-bind('colors.neutral.secondary');
 }
 
 .row-actions {

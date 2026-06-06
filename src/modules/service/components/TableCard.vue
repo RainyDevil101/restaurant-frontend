@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { colors } from '@/shared/styles/colors'
-import type { TableWithArea } from '../composables/useTables'
+import type { Table } from '@/shared/types'
 
-defineProps<{ table: TableWithArea }>()
+defineProps<{ table: Table }>()
 </script>
 
 <template>
