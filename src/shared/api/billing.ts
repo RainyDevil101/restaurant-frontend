@@ -42,3 +42,13 @@ export function payBill(tableId: string, input: ProcessPaymentInput): Promise<Ap
 export function listPayments(): Promise<ApiPayment[]> {
   return api.get<ApiPayment[]>('/billing/payments')
 }
+
+export interface PrecheckDto {
+  preview: string
+  escposBase64: string
+  paperWidth: number
+}
+
+export function getPrecheck(tableId: string, width = 80): Promise<PrecheckDto> {
+  return api.get<PrecheckDto>(`/billing/table/${encodeURIComponent(tableId)}/precheck?width=${width}`)
+}

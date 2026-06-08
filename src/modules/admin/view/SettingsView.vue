@@ -207,7 +207,7 @@ function connectionLabel(connection: PrinterConnection): string {
 
       <p v-if="isConnected" class="connected-name">{{ deviceName }}</p>
       <p v-else class="section-muted">
-        Conectá la impresora de este equipo para imprimir precuentas y comandas.
+        Conecta la impresora de este equipo para imprimir precuentas y comandas.
       </p>
 
       <div class="connect-actions">

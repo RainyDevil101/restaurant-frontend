@@ -64,3 +64,14 @@ export function updateOrderStatus(id: string, status: OrderStatus): Promise<ApiO
 export function cancelOrder(id: string, body: CancelOrderInput): Promise<ApiOrder> {
   return api.postKeepingSession<ApiOrder>(`/orders/${id}/cancel`, body)
 }
+
+export interface ComandaDto {
+  areaId: string | null
+  areaName: string
+  preview: string
+  escposBase64: string
+}
+
+export function getComandasByTable(tableId: string, width = 80): Promise<ComandaDto[]> {
+  return api.get<ComandaDto[]>(`/orders/table/${encodeURIComponent(tableId)}/comandas?width=${width}`)
+}
