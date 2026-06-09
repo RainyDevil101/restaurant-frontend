@@ -2,6 +2,7 @@
 import 'vue-sonner/style.css'
 import { Toaster } from 'vue-sonner'
 import { colors } from '@/shared/styles/colors'
+import HealthBanner from '@/shared/components/HealthBanner.vue'
 
 const toastStyle = {
   '--border-radius':  '12px',
@@ -21,6 +22,7 @@ const toastStyle = {
 </script>
 
 <template>
+  <HealthBanner />
   <RouterView />
   <Toaster
     position="top-right"
