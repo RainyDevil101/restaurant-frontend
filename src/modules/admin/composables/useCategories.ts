@@ -5,6 +5,7 @@ import {
   deleteCategory as apiDeleteCategory,
   type CategoryInput,
 } from '@/shared/api/catalog'
+import { createArea as apiCreateArea } from '@/shared/api/venue'
 import { useCategoriesStore, useProductsStore } from '@/shared/stores/catalogStores'
 import { useAreasStore } from '@/shared/stores/venueStores'
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
@@ -21,7 +22,7 @@ export function useCategories() {
   const productsStore = useProductsStore()
   const areasStore = useAreasStore()
   const { invalidateAndRefresh } = useCatalogFreshness(['categories', 'products'])
-  useTtlFreshness([areasStore])
+  const { invalidateAndRefresh: refreshAreas } = useTtlFreshness([areasStore])
 
   const loading = computed(
     () => categoriesStore.loading || productsStore.loading || areasStore.loading,
@@ -39,6 +40,12 @@ export function useCategories() {
       areaName: category.areaId ? (areasStore.byId(category.areaId)?.name ?? '—') : '—',
     })),
   )
+
+  async function createArea(input: { name: string }) {
+    const created = await apiCreateArea(input)
+    await refreshAreas(areasStore)
+    return created
+  }
 
   async function createCategory(input: CategoryInput) {
     await apiCreateCategory(input)
@@ -61,6 +68,7 @@ export function useCategories() {
     loading,
     error,
     reload: () => invalidateAndRefresh('categories', 'products'),
+    createArea,
     createCategory,
     updateCategory,
     removeCategory,

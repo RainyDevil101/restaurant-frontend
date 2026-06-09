@@ -4,6 +4,7 @@ import { colors } from '@/shared/styles/colors'
 import { useCategories, type CategoryRow } from '../composables/useCategories'
 import { useAdminDialog } from '../composables/useAdminDialog'
 import { useAdminConfirm } from '../composables/useAdminConfirm'
+import { useInlineAreaCreate } from '../composables/useInlineAreaCreate'
 import AdminPageHeader from '../components/AdminPageHeader.vue'
 import AdminFormField from '../components/AdminFormField.vue'
 import ModalDialog from '../components/ModalDialog.vue'
@@ -11,8 +12,15 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import DataTable, { type Column } from '@/shared/components/DataTable.vue'
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
 
-const { categories, areas, loading, error, createCategory, updateCategory, removeCategory } =
+const { categories, areas, loading, error, createArea, createCategory, updateCategory, removeCategory } =
   useCategories()
+
+const inlineArea = useInlineAreaCreate(createArea, {
+  onCreated: (id) => {
+    form.areaId = id
+  },
+})
+const inlineAreaInput = inlineArea.inputName
 
 const columns = computed<Column<CategoryRow>[]>(() => [
   { key: 'name', label: 'Categoría', sortable: true },
@@ -125,8 +133,34 @@ async function confirmDelete() {
       <AdminFormField label="Nombre" for="cat-name">
         <input id="cat-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
-      <AdminFormField label="Área" for="cat-area">
-        <select id="cat-area" v-model="form.areaId" class="field-input" required>
+      <AdminFormField label="Área" :for="areas.length === 0 && !editingId ? 'inline-area-input' : 'cat-area'">
+        <!-- No areas: inline area creation -->
+        <template v-if="areas.length === 0 && !editingId">
+          <div class="no-area-notice" role="alert">
+            <span class="notice-title">No hay áreas disponibles.</span>
+            <span class="notice-hint">Crea un área para poder asignarla a la categoría.</span>
+          </div>
+          <div class="inline-form">
+            <input
+              id="inline-area-input"
+              v-model="inlineAreaInput"
+              class="field-input"
+              placeholder="Nombre del área..."
+              :disabled="inlineArea.creating.value"
+            />
+            <button
+              type="button"
+              class="inline-btn"
+              :disabled="inlineArea.creating.value || !inlineAreaInput.trim()"
+              @click="inlineArea.submit()"
+            >
+              {{ inlineArea.creating.value ? 'Creando...' : '+ Crear área' }}
+            </button>
+          </div>
+          <p v-if="inlineArea.error.value" class="inline-error">{{ inlineArea.error.value }}</p>
+        </template>
+        <!-- Normal: area select -->
+        <select v-else id="cat-area" v-model="form.areaId" class="field-input" required>
           <option value="" disabled>Seleccione un área</option>
           <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
@@ -193,5 +227,61 @@ async function confirmDelete() {
 .action-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.no-area-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.notice-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.notice-hint {
+  font-size: 0.8rem;
+  color: #b45309;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-btn {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.inline-btn:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.inline-btn:disabled {
+  background: #c8d8d6;
+  cursor: not-allowed;
+}
+
+.inline-error {
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin-top: 4px;
 }
 </style>

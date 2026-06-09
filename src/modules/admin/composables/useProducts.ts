@@ -8,9 +8,11 @@ import {
   type ProductInput,
   type CategoryInput,
 } from '@/shared/api/catalog'
+import { createArea as apiCreateArea } from '@/shared/api/venue'
 import { useProductsStore, useCategoriesStore } from '@/shared/stores/catalogStores'
 import { useAreasStore } from '@/shared/stores/venueStores'
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
+import { useTtlFreshness } from '@/shared/stores/useTtlFreshness'
 import type { Area, Category, Product } from '@/shared/types'
 
 export interface ProductRow extends Product {
@@ -22,9 +24,14 @@ export function useProducts() {
   const categoriesStore = useCategoriesStore()
   const areasStore = useAreasStore()
   const { invalidateAndRefresh } = useCatalogFreshness(['products', 'categories'])
+  const { invalidateAndRefresh: refreshAreas } = useTtlFreshness([areasStore])
 
-  const loading = computed(() => productsStore.loading || categoriesStore.loading || areasStore.loading)
-  const error = computed(() => productsStore.error ?? categoriesStore.error ?? areasStore.error ?? '')
+  const loading = computed(
+    () => productsStore.loading || categoriesStore.loading || areasStore.loading,
+  )
+  const error = computed(
+    () => productsStore.error ?? categoriesStore.error ?? areasStore.error ?? '',
+  )
   const categories = computed<Category[]>(() => categoriesStore.items)
   const areas = computed<Area[]>(() => areasStore.items)
 
@@ -55,6 +62,12 @@ export function useProducts() {
     await invalidateAndRefresh('products')
   }
 
+  async function createArea(input: { name: string }) {
+    const created = await apiCreateArea(input)
+    await refreshAreas(areasStore)
+    return created
+  }
+
   async function createCategory(input: CategoryInput) {
     const created = await apiCreateCategory(input)
     await invalidateAndRefresh('categories')
@@ -72,6 +85,7 @@ export function useProducts() {
     updateProduct,
     removeProduct,
     toggleAvailability,
+    createArea,
     createCategory,
   }
 }

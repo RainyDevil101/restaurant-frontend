@@ -6,6 +6,13 @@ import AdminFormField from './AdminFormField.vue'
 import type { Area, Category } from '@/shared/types'
 import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants'
 
+interface InlineAreaState {
+  creating: Ref<boolean>
+  inputName: Ref<string>
+  error: Ref<string>
+  submit: () => Promise<void>
+}
+
 interface InlineCatState {
   creating: Ref<boolean>
   inputName: Ref<string>
@@ -29,6 +36,7 @@ const props = defineProps<{
   form: ProductForm
   categories: Category[]
   areas: Area[]
+  inlineArea: InlineAreaState
   inlineCat: InlineCatState
 }>()
 
@@ -37,11 +45,11 @@ const emit = defineEmits<{
   submit: []
   'clamp-price': []
   'update:form': [patch: Partial<ProductForm>]
+  'update:inlineAreaInput': [value: string]
   'update:inlineCatInput': [value: string]
   'update:inlineCatArea': [value: string]
 }>()
 
-// Writable computed refs so v-model never mutates the prop directly
 const formName = computed({
   get: () => props.form.name,
   set: (v: string) => emit('update:form', { name: v }),
@@ -59,7 +67,11 @@ const formCategoryId = computed({
   set: (v: string) => emit('update:form', { categoryId: v }),
 })
 
-// Writable computed for the inline category input (avoids mutating prop ref directly)
+const inlineAreaInputName = computed({
+  get: () => props.inlineArea.inputName.value,
+  set: (v: string) => emit('update:inlineAreaInput', v),
+})
+
 const inlineCatInputName = computed({
   get: () => props.inlineCat.inputName.value,
   set: (v: string) => emit('update:inlineCatInput', v),
@@ -69,6 +81,10 @@ const inlineCatAreaId = computed({
   get: () => props.inlineCat.inputAreaId.value,
   set: (v: string) => emit('update:inlineCatArea', v),
 })
+
+const showInline = computed(() => props.categories.length === 0 && !props.editingId)
+const needsArea = computed(() => showInline.value && props.areas.length === 0)
+const canCreateCat = computed(() => showInline.value && props.areas.length > 0)
 </script>
 
 <template>
@@ -99,48 +115,92 @@ const inlineCatAreaId = computed({
         @input="emit('clamp-price')"
       />
     </AdminFormField>
+
     <AdminFormField
       :label="'Categoría'"
-      :for="props.categories.length === 0 && !props.editingId ? 'inline-cat-input' : 'prod-cat'"
+      :for="showInline ? 'inline-cat-input' : 'prod-cat'"
     >
-      <template v-if="props.categories.length === 0 && !props.editingId">
+      <!-- No categories: cascaded inline creation -->
+      <template v-if="showInline">
         <div class="no-cat-notice" role="alert">
           <span class="no-cat-title">{{ ADMIN_LABELS.product.noCategoriesNotice }}</span>
-          <span class="no-cat-hint">{{ ADMIN_LABELS.product.noCategoriesHint }}</span>
-        </div>
-        <div class="inline-cat-form">
-          <input
-            id="inline-cat-input"
-            v-model="inlineCatInputName"
-            class="field-input inline-cat-input"
-            :placeholder="ADMIN_LABELS.product.categoryNamePlaceholder"
-            :disabled="props.inlineCat.creating.value"
-          />
-          <select
-            v-model="inlineCatAreaId"
-            class="field-input inline-cat-area"
-            :disabled="props.inlineCat.creating.value"
-          >
-            <option value="" disabled>Área</option>
-            <option v-for="a in props.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
-          </select>
-          <button
-            type="button"
-            class="inline-cat-btn"
-            :disabled="props.inlineCat.creating.value || !props.inlineCat.inputName.value.trim() || !props.inlineCat.inputAreaId.value"
-            @click="props.inlineCat.submit()"
-          >
+          <span class="no-cat-hint">
             {{
-              props.inlineCat.creating.value
-                ? ADMIN_LABELS.product.creating
-                : ADMIN_LABELS.product.createCategoryLabel
+              needsArea
+                ? 'Primero crea un área, luego una categoría.'
+                : 'Crea una categoría para poder agregar productos.'
             }}
-          </button>
+          </span>
         </div>
-        <p v-if="props.inlineCat.error.value" class="inline-cat-error">
-          {{ props.inlineCat.error.value }}
-        </p>
+
+        <!-- Step 1: create area (only when no areas exist) -->
+        <template v-if="needsArea">
+          <p class="inline-step-label">1. Nueva área</p>
+          <div class="inline-form">
+            <input
+              v-model="inlineAreaInputName"
+              class="field-input inline-main-input"
+              placeholder="Nombre del área..."
+              :disabled="props.inlineArea.creating.value"
+            />
+            <button
+              type="button"
+              class="inline-btn"
+              :disabled="props.inlineArea.creating.value || !props.inlineArea.inputName.value.trim()"
+              @click="props.inlineArea.submit()"
+            >
+              {{ props.inlineArea.creating.value ? 'Creando...' : '+ Crear área' }}
+            </button>
+          </div>
+          <p v-if="props.inlineArea.error.value" class="inline-error">
+            {{ props.inlineArea.error.value }}
+          </p>
+        </template>
+
+        <!-- Step 2: create category (once areas exist) -->
+        <template v-if="canCreateCat">
+          <p v-if="!needsArea" class="inline-step-label">Nueva categoría</p>
+          <p v-else class="inline-step-label">2. Nueva categoría</p>
+          <div class="inline-form">
+            <input
+              id="inline-cat-input"
+              v-model="inlineCatInputName"
+              class="field-input inline-main-input"
+              :placeholder="ADMIN_LABELS.product.categoryNamePlaceholder"
+              :disabled="props.inlineCat.creating.value"
+            />
+            <select
+              v-model="inlineCatAreaId"
+              class="field-input inline-area-select"
+              :disabled="props.inlineCat.creating.value"
+            >
+              <option value="" disabled>Área</option>
+              <option v-for="a in props.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
+            </select>
+            <button
+              type="button"
+              class="inline-btn"
+              :disabled="
+                props.inlineCat.creating.value ||
+                !props.inlineCat.inputName.value.trim() ||
+                !props.inlineCat.inputAreaId.value
+              "
+              @click="props.inlineCat.submit()"
+            >
+              {{
+                props.inlineCat.creating.value
+                  ? 'Creando...'
+                  : ADMIN_LABELS.product.createCategoryLabel
+              }}
+            </button>
+          </div>
+          <p v-if="props.inlineCat.error.value" class="inline-error">
+            {{ props.inlineCat.error.value }}
+          </p>
+        </template>
       </template>
+
+      <!-- Normal: category select -->
       <select v-else id="prod-cat" v-model="formCategoryId" class="field-input" required>
         <option value="" disabled>{{ ADMIN_LABELS.product.categoryPlaceholder }}</option>
         <option v-for="c in props.categories" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -150,7 +210,6 @@ const inlineCatAreaId = computed({
 </template>
 
 <style scoped>
-/* No-categories notice */
 .no-cat-notice {
   display: flex;
   flex-direction: column;
@@ -159,7 +218,7 @@ const inlineCatAreaId = computed({
   background: #fffbeb;
   border: 1.5px solid #fcd34d;
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .no-cat-title {
@@ -173,46 +232,58 @@ const inlineCatAreaId = computed({
   color: #b45309;
 }
 
-/* Inline category creation */
-.inline-cat-form {
+.inline-step-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+}
+
+.inline-form {
   display: flex;
   gap: 8px;
+  margin-bottom: 4px;
 }
 
-.inline-cat-input {
+.inline-main-input {
   flex: 1;
+  min-width: 0;
 }
 
-.inline-cat-area {
+.inline-area-select {
   flex-shrink: 0;
   width: 110px;
 }
 
-.inline-cat-btn {
+.inline-btn {
   flex-shrink: 0;
-  padding: 10px 16px;
+  padding: 10px 14px;
   background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   white-space: nowrap;
   transition: background 0.15s;
+  cursor: pointer;
 }
 
-.inline-cat-btn:hover:not(:disabled) {
+.inline-btn:hover:not(:disabled) {
   background: var(--color-primary-dark);
 }
 
-.inline-cat-btn:disabled {
+.inline-btn:disabled {
   background: #c8d8d6;
   cursor: not-allowed;
 }
 
-.inline-cat-error {
+.inline-error {
   font-size: 0.8rem;
   color: #dc2626;
-  margin-top: 4px;
+  margin-top: 2px;
+  margin-bottom: 8px;
 }
 </style>

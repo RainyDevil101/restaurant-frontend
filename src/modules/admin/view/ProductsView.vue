@@ -22,6 +22,7 @@ const {
   updateProduct,
   removeProduct,
   toggleAvailability,
+  createArea,
   createCategory,
 } = useProducts()
 
@@ -33,13 +34,14 @@ const {
   formError,
   closeDialog,
   form,
+  inlineArea,
   inlineCat,
   areas: formAreas,
   clampPrice,
   openCreate,
   openEdit,
   save,
-} = useProductForm({ categories, areas, createProduct, updateProduct, createCategory })
+} = useProductForm({ categories, areas, createProduct, updateProduct, createArea, createCategory })
 const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
 
 const columns = computed<Column<ProductRow>[]>(() => [
@@ -125,11 +127,13 @@ async function confirmDelete() {
       :form="form"
       :categories="categories"
       :areas="formAreas"
+      :inline-area="inlineArea"
       :inline-cat="inlineCat"
       @close="closeDialog"
       @submit="save"
       @clamp-price="clampPrice"
       @update:form="patchForm"
+      @update:inline-area-input="(v) => (inlineArea.inputName.value = v)"
       @update:inline-cat-input="(v) => (inlineCat.inputName.value = v)"
       @update:inline-cat-area="(v) => (inlineCat.inputAreaId.value = v)"
     />
