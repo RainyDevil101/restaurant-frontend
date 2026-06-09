@@ -4,17 +4,19 @@ import { useAdminDialog } from './useAdminDialog'
 import { useInlineCategoryCreate } from './useInlineCategoryCreate'
 import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants'
 import type { ProductInput } from '@/shared/api/catalog'
-import type { Category, Product } from '@/shared/types'
+import type { Area, Category, Product } from '@/shared/types'
 
 interface ProductFormDeps {
   categories: Ref<Category[]>
+  areas: Ref<Area[]>
   createProduct: (input: ProductInput) => Promise<void>
   updateProduct: (id: string, input: Partial<ProductInput>) => Promise<void>
-  createCategory: (input: { name: string }) => Promise<{ id: string }>
+  createCategory: (input: { name: string; areaId: string }) => Promise<{ id: string }>
 }
 
 export function useProductForm({
   categories,
+  areas,
   createProduct,
   updateProduct,
   createCategory,
@@ -87,6 +89,7 @@ export function useProductForm({
     closeDialog: dialog.closeDialog,
     form,
     inlineCat,
+    areas,
     clampPrice,
     openCreate,
     openEdit,

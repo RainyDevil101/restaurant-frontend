@@ -2,21 +2,27 @@ import { ref } from 'vue'
 import { ApiRequestError } from '@/shared/api/client'
 
 export function useInlineCategoryCreate(
-  createFn: (input: { name: string }) => Promise<{ id: string }>,
+  createFn: (input: { name: string; areaId: string }) => Promise<{ id: string }>,
   opts?: { onCreated?: (id: string) => void },
 ) {
   const creating = ref(false)
   const inputName = ref('')
+  const inputAreaId = ref('')
   const error = ref('')
 
   async function submit() {
     const trimmed = inputName.value.trim()
     if (!trimmed) return
+    if (!inputAreaId.value) {
+      error.value = 'Selecciona un área.'
+      return
+    }
     creating.value = true
     error.value = ''
     try {
-      const created = await createFn({ name: trimmed })
+      const created = await createFn({ name: trimmed, areaId: inputAreaId.value })
       inputName.value = ''
+      inputAreaId.value = ''
       opts?.onCreated?.(created.id)
     } catch (err) {
       error.value = err instanceof ApiRequestError ? err.message : 'No se pudo crear.'
@@ -25,5 +31,5 @@ export function useInlineCategoryCreate(
     }
   }
 
-  return { creating, inputName, error, submit }
+  return { creating, inputName, inputAreaId, error, submit }
 }

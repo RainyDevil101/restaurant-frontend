@@ -3,12 +3,13 @@ import { computed } from 'vue'
 import type { Ref } from 'vue'
 import ModalDialog from './ModalDialog.vue'
 import AdminFormField from './AdminFormField.vue'
-import type { Category } from '@/shared/types'
+import type { Area, Category } from '@/shared/types'
 import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants'
 
 interface InlineCatState {
   creating: Ref<boolean>
   inputName: Ref<string>
+  inputAreaId: Ref<string>
   error: Ref<string>
   submit: () => Promise<void>
 }
@@ -27,6 +28,7 @@ const props = defineProps<{
   error: string
   form: ProductForm
   categories: Category[]
+  areas: Area[]
   inlineCat: InlineCatState
 }>()
 
@@ -36,6 +38,7 @@ const emit = defineEmits<{
   'clamp-price': []
   'update:form': [patch: Partial<ProductForm>]
   'update:inlineCatInput': [value: string]
+  'update:inlineCatArea': [value: string]
 }>()
 
 // Writable computed refs so v-model never mutates the prop directly
@@ -60,6 +63,11 @@ const formCategoryId = computed({
 const inlineCatInputName = computed({
   get: () => props.inlineCat.inputName.value,
   set: (v: string) => emit('update:inlineCatInput', v),
+})
+
+const inlineCatAreaId = computed({
+  get: () => props.inlineCat.inputAreaId.value,
+  set: (v: string) => emit('update:inlineCatArea', v),
 })
 </script>
 
@@ -108,10 +116,18 @@ const inlineCatInputName = computed({
             :placeholder="ADMIN_LABELS.product.categoryNamePlaceholder"
             :disabled="props.inlineCat.creating.value"
           />
+          <select
+            v-model="inlineCatAreaId"
+            class="field-input inline-cat-area"
+            :disabled="props.inlineCat.creating.value"
+          >
+            <option value="" disabled>Área</option>
+            <option v-for="a in props.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
+          </select>
           <button
             type="button"
             class="inline-cat-btn"
-            :disabled="props.inlineCat.creating.value || !props.inlineCat.inputName.value.trim()"
+            :disabled="props.inlineCat.creating.value || !props.inlineCat.inputName.value.trim() || !props.inlineCat.inputAreaId.value"
             @click="props.inlineCat.submit()"
           >
             {{
@@ -165,6 +181,11 @@ const inlineCatInputName = computed({
 
 .inline-cat-input {
   flex: 1;
+}
+
+.inline-cat-area {
+  flex-shrink: 0;
+  width: 110px;
 }
 
 .inline-cat-btn {

@@ -15,6 +15,7 @@ import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
 const {
   products,
   categories,
+  areas,
   loading,
   error,
   createProduct,
@@ -33,11 +34,12 @@ const {
   closeDialog,
   form,
   inlineCat,
+  areas: formAreas,
   clampPrice,
   openCreate,
   openEdit,
   save,
-} = useProductForm({ categories, createProduct, updateProduct, createCategory })
+} = useProductForm({ categories, areas, createProduct, updateProduct, createCategory })
 const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
 
 const columns = computed<Column<ProductRow>[]>(() => [
@@ -122,12 +124,14 @@ async function confirmDelete() {
       :error="formError"
       :form="form"
       :categories="categories"
+      :areas="formAreas"
       :inline-cat="inlineCat"
       @close="closeDialog"
       @submit="save"
       @clamp-price="clampPrice"
       @update:form="patchForm"
       @update:inline-cat-input="(v) => (inlineCat.inputName.value = v)"
+      @update:inline-cat-area="(v) => (inlineCat.inputAreaId.value = v)"
     />
 
     <ConfirmDialog

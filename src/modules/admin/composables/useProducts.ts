@@ -9,8 +9,9 @@ import {
   type CategoryInput,
 } from '@/shared/api/catalog'
 import { useProductsStore, useCategoriesStore } from '@/shared/stores/catalogStores'
+import { useAreasStore } from '@/shared/stores/venueStores'
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness'
-import type { Category, Product } from '@/shared/types'
+import type { Area, Category, Product } from '@/shared/types'
 
 export interface ProductRow extends Product {
   categoryName: string
@@ -19,11 +20,13 @@ export interface ProductRow extends Product {
 export function useProducts() {
   const productsStore = useProductsStore()
   const categoriesStore = useCategoriesStore()
+  const areasStore = useAreasStore()
   const { invalidateAndRefresh } = useCatalogFreshness(['products', 'categories'])
 
-  const loading = computed(() => productsStore.loading || categoriesStore.loading)
-  const error = computed(() => productsStore.error ?? categoriesStore.error ?? '')
+  const loading = computed(() => productsStore.loading || categoriesStore.loading || areasStore.loading)
+  const error = computed(() => productsStore.error ?? categoriesStore.error ?? areasStore.error ?? '')
   const categories = computed<Category[]>(() => categoriesStore.items)
+  const areas = computed<Area[]>(() => areasStore.items)
 
   const productRows = computed<ProductRow[]>(() =>
     productsStore.items.map((product) => ({
@@ -61,6 +64,7 @@ export function useProducts() {
   return {
     products: productRows,
     categories,
+    areas,
     loading,
     error,
     reload: () => invalidateAndRefresh('products', 'categories'),
