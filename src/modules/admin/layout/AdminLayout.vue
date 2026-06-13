@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { Route } from '@/shared/types'
+import BrandLogo from '@/shared/components/BrandLogo.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -27,7 +28,9 @@ const navItems = [
   <div class="admin-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="brand">Subito</div>
+      <div class="brand">
+        <BrandLogo size="1.375rem" />
+      </div>
 
       <nav class="nav" aria-label="Administración">
         <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item"
@@ -78,10 +81,6 @@ const navItems = [
 
 .brand {
   padding: 1.25rem 1.25rem 1rem;
-  font-size: 1.375rem;
-  font-weight: 800;
-  color: var(--color-primary);
-  letter-spacing: -0.01em;
 }
 
 .nav {

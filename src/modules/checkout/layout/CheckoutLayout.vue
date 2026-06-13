@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { Role, Route } from '@/shared/types'
+import BrandLogo from '@/shared/components/BrandLogo.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -17,7 +18,7 @@ function logout() {
   <div class="checkout-layout">
     <header class="header">
       <div class="brand">
-        <span class="brand-name">Subito</span>
+        <BrandLogo size="1.25rem" />
         <span class="brand-section">· Caja</span>
       </div>
       <div class="header-right">
@@ -74,12 +75,6 @@ function logout() {
   display: flex;
   align-items: baseline;
   gap: 6px;
-}
-
-.brand-name {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-primary);
 }
 
 .brand-section {

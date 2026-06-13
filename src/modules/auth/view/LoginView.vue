@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { EyeSlashIcon } from '@/modules/shared/components/icons';
 import { useLogin } from '../composables/useLogin'
+import BrandLogo from '@/shared/components/BrandLogo.vue'
 
 const {
   email,
@@ -19,8 +20,7 @@ const {
     <div class="login-card">
       <!-- Brand -->
       <div class="brand">
-        <h1 class="brand-name">Subito</h1>
-        <p class="brand-tagline">Gestión de pedidos</p>
+        <BrandLogo size="2rem" tagline />
       </div>
 
       <!-- Form -->
@@ -81,19 +81,7 @@ const {
   text-align: center;
 }
 
-.brand-name {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--color-primary);
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
 
-.brand-tagline {
-  margin-top: 4px;
-  font-size: 0.9rem;
-  color: #9ca3af;
-}
 
 /* Form */
 .form {

@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/modules/auth/store'
 import { Role, Route } from '@/shared/types'
 import { colors } from '@/shared/styles/colors'
+import BrandLogo from '@/shared/components/BrandLogo.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -17,13 +18,16 @@ function logout() {
 <template>
   <div class="service-layout">
     <header class="header">
-      <button v-if="isAdmin" class="menu-btn" aria-label="Volver a administración" @click="router.push(Route.ADMIN)">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"
-          aria-hidden="true">
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-        </svg>
-        <span class="back-label">Admin</span>
-      </button>
+      <div class="header-left">
+        <button v-if="isAdmin" class="menu-btn" aria-label="Volver a administración" @click="router.push(Route.ADMIN)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"
+            aria-hidden="true">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+          </svg>
+          <span class="back-label">Admin</span>
+        </button>
+        <BrandLogo size="1.25rem" variant="onColor" />
+      </div>
       <div class="user-info">
         <div class="avatar" aria-hidden="true">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
@@ -56,6 +60,12 @@ function logout() {
   align-items: center;
   justify-content: space-between;
   color: white;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .menu-btn {

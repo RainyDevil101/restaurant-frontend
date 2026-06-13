@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BrandLogo from '@/shared/components/BrandLogo.vue'
+
 defineProps<{ userName: string | undefined }>()
 defineEmits<{ back: [] }>()
 </script>
@@ -19,7 +21,7 @@ defineEmits<{ back: [] }>()
       <span>Mesas</span>
     </button>
 
-    <span class="app-title">Subito</span>
+    <BrandLogo size="1.1rem" variant="onColor" />
 
     <div class="user-info">
       <svg
@@ -64,11 +66,6 @@ defineEmits<{ back: [] }>()
 
 .back-btn:active {
   background: rgba(255, 255, 255, 0.15);
-}
-
-.app-title {
-  font-size: 1.1rem;
-  font-weight: 700;
 }
 
 .user-info {
