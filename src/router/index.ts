@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store';
 import { Role, Route } from '@/shared/types';
+import { brandTitle } from '@/shared/constants/brand';
 import { authRoutes } from '@/modules/auth/route';
 import { serviceRoutes } from '@/modules/service/route';
 import { checkoutRoutes } from '@/modules/checkout/route';
@@ -9,6 +10,7 @@ import { adminRoutes } from '@/modules/admin/route';
 declare module 'vue-router' {
   interface RouteMeta {
     roles?: Role[];
+    title?: string;
   }
 }
 
@@ -34,6 +36,10 @@ router.beforeEach((to) => {
   if (roles && !roles.includes(auth.user!.role)) return auth.roleHome;
 
   return true;
+});
+
+router.afterEach((to) => {
+  document.title = brandTitle(to.meta.title);
 });
 
 export default router;

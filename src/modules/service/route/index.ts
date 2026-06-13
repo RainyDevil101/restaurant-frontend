@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { ROLE_GROUPS } from '@/modules/auth/constants'
 import { Route } from '@/shared/types'
+import { ROUTE_TITLES } from '@/shared/constants/brand'
 
 export const serviceRoutes: RouteRecordRaw[] = [
   {
@@ -11,7 +12,7 @@ export const serviceRoutes: RouteRecordRaw[] = [
       {
         path: '',
         component: () => import('../view/TableSelectionView.vue'),
-        meta: { roles: ROLE_GROUPS.SERVICE },
+        meta: { roles: ROLE_GROUPS.SERVICE, title: ROUTE_TITLES.MESAS },
       },
     ],
   },
@@ -19,6 +20,6 @@ export const serviceRoutes: RouteRecordRaw[] = [
     // Standalone — manages its own full-screen dark layout
     path: `${Route.SERVICE}/table/:id`,
     component: () => import('../view/OrderView.vue'),
-    meta: { roles: ROLE_GROUPS.SERVICE },
+    meta: { roles: ROLE_GROUPS.SERVICE, title: ROUTE_TITLES.TOMAR_PEDIDO },
   },
 ]
