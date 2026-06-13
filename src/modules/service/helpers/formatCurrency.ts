@@ -1,1 +1,1 @@
-export { formatCurrency } from '@/shared/helpers/formatCurrency'
+export { formatCurrency } from '@/shared/helpers/formatCurrency';

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import ConfirmModal from '@/shared/components/ConfirmDialog.vue'
+import ConfirmModal from '@/shared/components/ConfirmDialog.vue';
 
-defineProps<{ productName: string; tableName: string }>()
-const emit = defineEmits<{ confirm: []; cancel: [] }>()
+defineProps<{ productName: string; tableName: string }>();
+const emit = defineEmits<{ confirm: []; cancel: [] }>();
 </script>
 
 <template>

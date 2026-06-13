@@ -1,26 +1,37 @@
 <script setup lang="ts">
-import { colors } from '@/shared/styles/colors'
-import { useMenus, type MenuRow } from '../composables/useMenus'
-import { useMenuForm } from '../composables/useMenuForm'
-import { useAdminConfirm } from '../composables/useAdminConfirm'
-import { useAvailabilityToggle } from '../composables/useAvailabilityToggle'
-import { formatCurrency } from '../helpers/formatCurrency'
-import AdminPageHeader from '../components/AdminPageHeader.vue'
-import MenuFormDialog from '../components/MenuFormDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
+import { colors } from '@/shared/styles/colors';
+import { useMenus, type MenuRow } from '../composables/useMenus';
+import { useMenuForm } from '../composables/useMenuForm';
+import { useAdminConfirm } from '../composables/useAdminConfirm';
+import { useAvailabilityToggle } from '../composables/useAvailabilityToggle';
+import { formatCurrency } from '../helpers/formatCurrency';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import MenuFormDialog from '../components/MenuFormDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
+import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 
 const { menus, products, loading, error, createMenu, updateMenu, removeMenu, toggleActive } =
-  useMenus()
+  useMenus();
 
 const {
-  dialogOpen, editingId, saving, formError, closeDialog,
-  form, openCreate, openEdit, clampPrice, toggleProduct, setQuantity, save,
-} = useMenuForm({ createMenu, updateMenu })
+  dialogOpen,
+  editingId,
+  saving,
+  formError,
+  closeDialog,
+  form,
+  openCreate,
+  openEdit,
+  clampPrice,
+  toggleProduct,
+  setQuantity,
+  save,
+} = useMenuForm({ createMenu, updateMenu });
 
-const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
-const { actionError, toggle } = useAvailabilityToggle(toggleActive)
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } =
+  useAdminConfirm();
+const { actionError, toggle } = useAvailabilityToggle(toggleActive);
 
 const columns: Column<MenuRow>[] = [
   { key: 'name', label: 'Menú', sortable: true },
@@ -41,14 +52,14 @@ const columns: Column<MenuRow>[] = [
     },
   },
   { key: 'actions', label: 'Acciones', align: 'right' },
-]
+];
 
 function patchForm(patch: Partial<typeof form>) {
-  Object.assign(form, patch)
+  Object.assign(form, patch);
 }
 
 async function confirmDelete() {
-  await runDelete(removeMenu)
+  await runDelete(removeMenu);
 }
 </script>
 
@@ -58,8 +69,16 @@ async function confirmDelete() {
 
     <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
 
-    <DataTable :items="menus" :columns="columns" :loading="loading" :error="error" :page-size="PRODUCTS_PER_PAGE"
-      :page-size-options="PAGE_SIZE_OPTIONS" default-sort="name" search-placeholder="Buscar menú...">
+    <DataTable
+      :items="menus"
+      :columns="columns"
+      :loading="loading"
+      :error="error"
+      :page-size="PRODUCTS_PER_PAGE"
+      :page-size-options="PAGE_SIZE_OPTIONS"
+      default-sort="name"
+      search-placeholder="Buscar menú..."
+    >
       <template #cell-name="{ row }">
         <span class="menu-name">{{ row.name }}</span>
       </template>
@@ -69,8 +88,12 @@ async function confirmDelete() {
       <template #cell-price="{ row }">{{ formatCurrency(row.price) }}</template>
 
       <template #cell-active="{ row }">
-        <button type="button" class="status-toggle" :class="row.active ? 'status-active' : 'status-inactive'"
-          @click="toggle(row.id)">
+        <button
+          type="button"
+          class="status-toggle"
+          :class="row.active ? 'status-active' : 'status-inactive'"
+          @click="toggle(row.id)"
+        >
           {{ row.active ? 'Activo' : 'Inactivo' }}
         </button>
       </template>
@@ -83,13 +106,30 @@ async function confirmDelete() {
       </template>
     </DataTable>
 
-    <MenuFormDialog :open="dialogOpen" :editing-id="editingId" :saving="saving" :error="formError" :form="form"
-      :products="products" @close="closeDialog" @submit="save" @clamp-price="clampPrice" @update:form="patchForm"
-      @toggle-product="toggleProduct" @set-quantity="setQuantity" />
+    <MenuFormDialog
+      :open="dialogOpen"
+      :editing-id="editingId"
+      :saving="saving"
+      :error="formError"
+      :form="form"
+      :products="products"
+      @close="closeDialog"
+      @submit="save"
+      @clamp-price="clampPrice"
+      @update:form="patchForm"
+      @toggle-product="toggleProduct"
+      @set-quantity="setQuantity"
+    />
 
-    <ConfirmDialog v-if="confirmOpen" title="Eliminar menú"
-      message="¿Seguro que deseas eliminar este menú? Esta acción no se puede deshacer." :saving="deleting"
-      :error="deleteError" @close="closeConfirm" @confirm="confirmDelete" />
+    <ConfirmDialog
+      v-if="confirmOpen"
+      title="Eliminar menú"
+      message="¿Seguro que deseas eliminar este menú? Esta acción no se puede deshacer."
+      :saving="deleting"
+      :error="deleteError"
+      @close="closeConfirm"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 

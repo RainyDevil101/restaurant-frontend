@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { Category } from '@/shared/types'
-import type { OrderEntry } from '../composables/useOrder'
-import OrderItemRow from './OrderItemRow.vue'
+import type { Category } from '@/shared/types';
+import type { OrderEntry } from '../composables/useOrder';
+import OrderItemRow from './OrderItemRow.vue';
 
 defineProps<{
-  entries: OrderEntry[]
-  categories: Category[]
-  totalItems: number
-}>()
+  entries: OrderEntry[];
+  categories: Category[];
+  totalItems: number;
+}>();
 
 const emit = defineEmits<{
-  add: [entry: OrderEntry]
-  remove: [entry: OrderEntry]
-}>()
+  add: [entry: OrderEntry];
+  remove: [entry: OrderEntry];
+}>();
 </script>
 
 <template>

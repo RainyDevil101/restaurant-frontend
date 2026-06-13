@@ -1,26 +1,34 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
-import { colors } from '@/shared/styles/colors'
-import { useCategories, type CategoryRow } from '../composables/useCategories'
-import { useAdminDialog } from '../composables/useAdminDialog'
-import { useAdminConfirm } from '../composables/useAdminConfirm'
-import { useInlineAreaCreate } from '../composables/useInlineAreaCreate'
-import AdminPageHeader from '../components/AdminPageHeader.vue'
-import AdminFormField from '../components/AdminFormField.vue'
-import ModalDialog from '../components/ModalDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
+import { computed, reactive } from 'vue';
+import { colors } from '@/shared/styles/colors';
+import { useCategories, type CategoryRow } from '../composables/useCategories';
+import { useAdminDialog } from '../composables/useAdminDialog';
+import { useAdminConfirm } from '../composables/useAdminConfirm';
+import { useInlineAreaCreate } from '../composables/useInlineAreaCreate';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import AdminFormField from '../components/AdminFormField.vue';
+import ModalDialog from '../components/ModalDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
+import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 
-const { categories, areas, loading, error, createArea, createCategory, updateCategory, removeCategory } =
-  useCategories()
+const {
+  categories,
+  areas,
+  loading,
+  error,
+  createArea,
+  createCategory,
+  updateCategory,
+  removeCategory,
+} = useCategories();
 
 const inlineArea = useInlineAreaCreate(createArea, {
   onCreated: (id) => {
-    form.areaId = id
+    form.areaId = id;
   },
-})
-const inlineAreaInput = inlineArea.inputName
+});
+const inlineAreaInput = inlineArea.inputName;
 
 const columns = computed<Column<CategoryRow>[]>(() => [
   { key: 'name', label: 'Categoría', sortable: true },
@@ -35,9 +43,9 @@ const columns = computed<Column<CategoryRow>[]>(() => [
   },
   { key: 'productCount', label: 'Productos', sortable: true, align: 'right' },
   { key: 'actions', label: 'Acciones', align: 'right' },
-])
+]);
 
-const form = reactive({ name: '', areaId: '' })
+const form = reactive({ name: '', areaId: '' });
 const {
   dialogOpen,
   editingId,
@@ -46,40 +54,41 @@ const {
   openCreate: _openCreate,
   openEdit: _openEdit,
   runSave,
-} = useAdminDialog()
-const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
+} = useAdminDialog();
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } =
+  useAdminConfirm();
 
 function openCreate() {
-  form.name = ''
-  form.areaId = ''
-  _openCreate()
+  form.name = '';
+  form.areaId = '';
+  _openCreate();
 }
 
 function openEdit(category: CategoryRow) {
-  form.name = category.name
-  form.areaId = category.areaId ?? ''
-  _openEdit(category.id)
+  form.name = category.name;
+  form.areaId = category.areaId ?? '';
+  _openEdit(category.id);
 }
 
 async function save() {
-  const trimmedName = form.name.trim()
+  const trimmedName = form.name.trim();
   if (!trimmedName) {
-    formError.value = ADMIN_LABELS.category.nameRequired
-    return
+    formError.value = ADMIN_LABELS.category.nameRequired;
+    return;
   }
   if (!form.areaId) {
-    formError.value = ADMIN_LABELS.category.areaRequired
-    return
+    formError.value = ADMIN_LABELS.category.areaRequired;
+    return;
   }
-  const payload = { name: trimmedName, areaId: form.areaId }
+  const payload = { name: trimmedName, areaId: form.areaId };
   await runSave(async () => {
-    if (editingId.value) await updateCategory(editingId.value, payload)
-    else await createCategory(payload)
-  })
+    if (editingId.value) await updateCategory(editingId.value, payload);
+    else await createCategory(payload);
+  });
 }
 
 async function confirmDelete() {
-  await runDelete(removeCategory)
+  await runDelete(removeCategory);
 }
 </script>
 
@@ -133,7 +142,10 @@ async function confirmDelete() {
       <AdminFormField label="Nombre" for="cat-name">
         <input id="cat-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
-      <AdminFormField label="Área" :for="areas.length === 0 && !editingId ? 'inline-area-input' : 'cat-area'">
+      <AdminFormField
+        label="Área"
+        :for="areas.length === 0 && !editingId ? 'inline-area-input' : 'cat-area'"
+      >
         <!-- No areas: inline area creation -->
         <template v-if="areas.length === 0 && !editingId">
           <div class="no-area-notice" role="alert">

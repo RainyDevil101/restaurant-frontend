@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { Route } from '@/shared/types'
-import { usePayment } from '../composables/usePayment'
-import { formatCurrency } from '../helpers/formatCurrency'
-import Badge from '@/shared/components/Badge.vue'
-import { PAYMENT_METHOD } from '@/shared/types'
+import { useRouter } from 'vue-router';
+import { Route } from '@/shared/types';
+import { usePayment } from '../composables/usePayment';
+import { formatCurrency } from '../helpers/formatCurrency';
+import Badge from '@/shared/components/Badge.vue';
+import { PAYMENT_METHOD } from '@/shared/types';
 
-const router = useRouter()
+const router = useRouter();
 const {
   table,
   billLines,
@@ -19,16 +19,16 @@ const {
   error,
   processing,
   confirmPayment,
-} = usePayment()
+} = usePayment();
 
 function goBack() {
-  router.push(Route.CHECKOUT)
+  router.push(Route.CHECKOUT);
 }
 
 async function handleConfirm() {
   try {
-    await confirmPayment()
-    router.push(Route.CHECKOUT)
+    await confirmPayment();
+    router.push(Route.CHECKOUT);
   } catch {
     // error surfaced via the composable's error ref
   }
@@ -139,7 +139,13 @@ async function handleConfirm() {
             </div>
           </div>
 
-          <div class="change-row" :class="{ positive: change !== null && change >= 0, negative: change !== null && change < 0 }">
+          <div
+            class="change-row"
+            :class="{
+              positive: change !== null && change >= 0,
+              negative: change !== null && change < 0,
+            }"
+          >
             <span>Cambio</span>
             <span class="change-amount">
               {{ change !== null ? formatCurrency(change) : '—' }}
@@ -322,7 +328,10 @@ async function handleConfirm() {
   color: #6b7280;
   font-size: 0.875rem;
   font-weight: 600;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
 }
 
 .method-btn.active {

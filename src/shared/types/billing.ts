@@ -1,33 +1,33 @@
-export type PaymentMethod = 'efectivo' | 'tarjeta'
+export type PaymentMethod = 'efectivo' | 'tarjeta';
 
 export const PAYMENT_METHOD = {
   CASH: 'efectivo' as PaymentMethod,
   CARD: 'tarjeta' as PaymentMethod,
-} as const
+} as const;
 
 export interface BillItem {
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
-  subtotal: number
-  kind?: 'product' | 'combo'
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  kind?: 'product' | 'combo';
 }
 
 export interface Bill {
-  id: string
-  tableId: string
-  items: BillItem[]
-  total: number
-  createdAt: string
+  id: string;
+  tableId: string;
+  items: BillItem[];
+  total: number;
+  createdAt: string;
 }
 
 export interface Payment {
-  id: string
-  billId: string
-  tableId: string
-  amount: number
-  method: PaymentMethod
-  change: number
-  paidAt: string
+  id: string;
+  billId: string;
+  tableId: string;
+  amount: number;
+  method: PaymentMethod;
+  change: number;
+  paidAt: string;
 }

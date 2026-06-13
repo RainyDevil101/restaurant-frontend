@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { colors } from '@/shared/styles/colors'
-import { useProducts, type ProductRow } from '../composables/useProducts'
-import { useProductForm } from '../composables/useProductForm'
-import { useAvailabilityToggle } from '../composables/useAvailabilityToggle'
-import { useAdminConfirm } from '../composables/useAdminConfirm'
-import AdminPageHeader from '../components/AdminPageHeader.vue'
-import ProductFormDialog from '../components/ProductFormDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import { formatCurrency } from '../helpers/formatCurrency'
-import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
+import { computed } from 'vue';
+import { colors } from '@/shared/styles/colors';
+import { useProducts, type ProductRow } from '../composables/useProducts';
+import { useProductForm } from '../composables/useProductForm';
+import { useAvailabilityToggle } from '../composables/useAvailabilityToggle';
+import { useAdminConfirm } from '../composables/useAdminConfirm';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import ProductFormDialog from '../components/ProductFormDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
+import { formatCurrency } from '../helpers/formatCurrency';
+import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 
 const {
   products,
@@ -24,9 +24,9 @@ const {
   toggleAvailability,
   createArea,
   createCategory,
-} = useProducts()
+} = useProducts();
 
-const { toggle, actionError } = useAvailabilityToggle(toggleAvailability)
+const { toggle, actionError } = useAvailabilityToggle(toggleAvailability);
 const {
   dialogOpen,
   editingId,
@@ -41,8 +41,9 @@ const {
   openCreate,
   openEdit,
   save,
-} = useProductForm({ categories, areas, createProduct, updateProduct, createArea, createCategory })
-const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
+} = useProductForm({ categories, areas, createProduct, updateProduct, createArea, createCategory });
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } =
+  useAdminConfirm();
 
 const columns = computed<Column<ProductRow>[]>(() => [
   { key: 'name', label: 'Producto', sortable: true },
@@ -71,14 +72,14 @@ const columns = computed<Column<ProductRow>[]>(() => [
     },
   },
   { key: 'actions', label: 'Acciones', align: 'right' },
-])
+]);
 
 function patchForm(patch: Partial<typeof form>) {
-  Object.assign(form, patch)
+  Object.assign(form, patch);
 }
 
 async function confirmDelete() {
-  await runDelete(removeProduct)
+  await runDelete(removeProduct);
 }
 </script>
 

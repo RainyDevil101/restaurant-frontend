@@ -1,100 +1,100 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useCheckoutDashboard } from '../composables/useCheckoutDashboard'
-import { formatCurrency } from '../helpers/formatCurrency'
-import Badge from '@/shared/components/Badge.vue'
-import type { TableStatus } from '@/shared/types'
-import { getComandasByTable } from '@/shared/api/orders'
-import { getPrecheck } from '@/shared/api/billing'
-import { listPrinters } from '@/shared/api/settings'
-import { usePrinterConnection } from '@/shared/printing/usePrinterConnection'
-import { printerErrorMessage } from '@/shared/printing'
-import { toast } from '@/shared/toast'
-import { ApiRequestError } from '@/shared/api/client'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useCheckoutDashboard } from '../composables/useCheckoutDashboard';
+import { formatCurrency } from '../helpers/formatCurrency';
+import Badge from '@/shared/components/Badge.vue';
+import type { TableStatus } from '@/shared/types';
+import { getComandasByTable } from '@/shared/api/orders';
+import { getPrecheck } from '@/shared/api/billing';
+import { listPrinters } from '@/shared/api/settings';
+import { usePrinterConnection } from '@/shared/printing/usePrinterConnection';
+import { printerErrorMessage } from '@/shared/printing';
+import { toast } from '@/shared/toast';
+import { ApiRequestError } from '@/shared/api/client';
 
 const tableStatusTone: Record<TableStatus, 'gray' | 'blue' | 'amber' | 'green'> = {
   libre: 'green',
   ocupada: 'blue',
   por_cobrar: 'amber',
-}
+};
 
 const tableStatusLabel: Record<TableStatus, string> = {
   libre: 'Libre',
   ocupada: 'Ocupada',
   por_cobrar: 'Por cobrar',
-}
+};
 
-const router = useRouter()
+const router = useRouter();
 const { activeTables, selectedTableId, selectedSummary, billLines, billTotal, loading, error } =
-  useCheckoutDashboard()
-const { isConnected, printBase64 } = usePrinterConnection()
+  useCheckoutDashboard();
+const { isConnected, printBase64 } = usePrinterConnection();
 
-const printing = ref(false)
+const printing = ref(false);
 
 function selectTable(id: string) {
-  selectedTableId.value = id
+  selectedTableId.value = id;
 }
 
 function registerPayment() {
   if (selectedTableId.value) {
-    router.push(`/checkout/table/${selectedTableId.value}`)
+    router.push(`/checkout/table/${selectedTableId.value}`);
   }
 }
 
 async function defaultPaperWidth(): Promise<number | null> {
-  const printers = await listPrinters().catch(() => [])
-  const def = printers.find((p) => p.isDefault) ?? printers[0]
-  return def?.paperWidth ?? null
+  const printers = await listPrinters().catch(() => []);
+  const def = printers.find((p) => p.isDefault) ?? printers[0];
+  return def?.paperWidth ?? null;
 }
 
 async function onPrintComanda() {
-  if (!selectedTableId.value) return
+  if (!selectedTableId.value) return;
   if (!isConnected.value) {
-    toast.error('Conecta la impresora primero en Configuraciones')
-    return
+    toast.error('Conecta la impresora primero en Configuraciones');
+    return;
   }
-  printing.value = true
+  printing.value = true;
   try {
-    const width = await defaultPaperWidth()
+    const width = await defaultPaperWidth();
     if (width === null) {
-      toast.error('Configura una impresora en Ajustes antes de imprimir')
-      return
+      toast.error('Configura una impresora en Ajustes antes de imprimir');
+      return;
     }
-    const comandas = await getComandasByTable(selectedTableId.value, width)
+    const comandas = await getComandasByTable(selectedTableId.value, width);
     for (const comanda of comandas) {
-      await printBase64(comanda.escposBase64)
+      await printBase64(comanda.escposBase64);
     }
-    toast.success(`Comanda impresa · ${comandas.length} área${comandas.length !== 1 ? 's' : ''}`)
+    toast.success(`Comanda impresa · ${comandas.length} área${comandas.length !== 1 ? 's' : ''}`);
   } catch (err) {
-    const msg = err instanceof ApiRequestError ? err.message : printerErrorMessage(err)
-    toast.error(msg)
+    const msg = err instanceof ApiRequestError ? err.message : printerErrorMessage(err);
+    toast.error(msg);
   } finally {
-    printing.value = false
+    printing.value = false;
   }
 }
 
 async function onPrintPrecheck() {
-  if (!selectedTableId.value) return
+  if (!selectedTableId.value) return;
   if (!isConnected.value) {
-    toast.error('Conecta la impresora primero en Configuraciones')
-    return
+    toast.error('Conecta la impresora primero en Configuraciones');
+    return;
   }
-  printing.value = true
+  printing.value = true;
   try {
-    const width = await defaultPaperWidth()
+    const width = await defaultPaperWidth();
     if (width === null) {
-      toast.error('Configura una impresora en Ajustes antes de imprimir')
-      return
+      toast.error('Configura una impresora en Ajustes antes de imprimir');
+      return;
     }
-    const precheck = await getPrecheck(selectedTableId.value, width)
-    await printBase64(precheck.escposBase64)
-    toast.success('Precuenta impresa')
+    const precheck = await getPrecheck(selectedTableId.value, width);
+    await printBase64(precheck.escposBase64);
+    toast.success('Precuenta impresa');
   } catch (err) {
-    const msg = err instanceof ApiRequestError ? err.message : printerErrorMessage(err)
-    toast.error(msg)
+    const msg = err instanceof ApiRequestError ? err.message : printerErrorMessage(err);
+    toast.error(msg);
   } finally {
-    printing.value = false
+    printing.value = false;
   }
 }
 </script>

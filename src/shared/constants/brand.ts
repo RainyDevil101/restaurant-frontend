@@ -1,15 +1,15 @@
 // Subito brand identity — single source of truth for the product name,
 // tagline, and the per-route document titles shown in the browser tab.
 
-export const BRAND = 'Subito'
-export const BRAND_TAGLINE = 'Gestión de pedidos'
+export const BRAND = 'Subito';
+export const BRAND_TAGLINE = 'Gestión de pedidos';
 
 // Shown when a route declares no title (e.g. the login screen).
-export const DEFAULT_TITLE = `${BRAND} — ${BRAND_TAGLINE}`
+export const DEFAULT_TITLE = `${BRAND} — ${BRAND_TAGLINE}`;
 
 // Builds the tab title for a route: "Mesas · Subito".
 export function brandTitle(title?: string): string {
-  return title ? `${title} · ${BRAND}` : DEFAULT_TITLE
+  return title ? `${title} · ${BRAND}` : DEFAULT_TITLE;
 }
 
 // Per-view titles. Reused across modules where the concept matches
@@ -27,4 +27,4 @@ export const ROUTE_TITLES = {
   USUARIOS: 'Usuarios',
   PAGOS: 'Pagos',
   CONFIGURACION: 'Configuración',
-} as const
+} as const;

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { Menu, Product } from '@/shared/types'
-import Badge from '@/shared/components/Badge.vue'
-import { formatCurrency } from '../helpers/formatCurrency'
+import type { Menu, Product } from '@/shared/types';
+import Badge from '@/shared/components/Badge.vue';
+import { formatCurrency } from '../helpers/formatCurrency';
 
-const props = defineProps<{ menu: Menu; products: Product[] }>()
-defineEmits<{ add: [] }>()
+const props = defineProps<{ menu: Menu; products: Product[] }>();
+defineEmits<{ add: [] }>();
 
 const memberNames = props.menu.items
   .map((item) => {
-    const product = props.products.find((p) => p.id === item.productId)
-    return product ? `${item.quantity}× ${product.name}` : null
+    const product = props.products.find((p) => p.id === item.productId);
+    return product ? `${item.quantity}× ${product.name}` : null;
   })
   .filter((label): label is string => Boolean(label))
-  .join(', ')
+  .join(', ');
 </script>
 
 <template>

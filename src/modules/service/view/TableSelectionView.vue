@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useTables } from '../composables/useTables'
-import TableCard from '../components/TableCard.vue'
-import { colors } from '@/shared/styles/colors'
+import { useTables } from '../composables/useTables';
+import TableCard from '../components/TableCard.vue';
+import { colors } from '@/shared/styles/colors';
 
-const { tables, loading, error } = useTables()
+const { tables, loading, error } = useTables();
 </script>
 
 <template>
@@ -61,9 +61,15 @@ const { tables, loading, error } = useTables()
   flex-shrink: 0;
 }
 
-.legend-dot.libre      { background: v-bind('colors.table.free.bg'); }
-.legend-dot.ocupada    { background: v-bind('colors.table.occupied.bg'); }
-.legend-dot.por_cobrar { background: v-bind('colors.table.pendingPayment.bg'); }
+.legend-dot.libre {
+  background: v-bind('colors.table.free.bg');
+}
+.legend-dot.ocupada {
+  background: v-bind('colors.table.occupied.bg');
+}
+.legend-dot.por_cobrar {
+  background: v-bind('colors.table.pendingPayment.bg');
+}
 
 .table-grid {
   display: grid;

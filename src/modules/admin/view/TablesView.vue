@@ -1,32 +1,25 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
-import { colors } from '@/shared/styles/colors'
-import { useAdminTables, type TableRow } from '../composables/useAdminTables'
-import { useAdminDialog } from '../composables/useAdminDialog'
-import { useAdminConfirm } from '../composables/useAdminConfirm'
-import AdminPageHeader from '../components/AdminPageHeader.vue'
-import AdminFormField from '../components/AdminFormField.vue'
-import ModalDialog from '../components/ModalDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import Badge from '@/shared/components/Badge.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
+import { computed, reactive } from 'vue';
+import { colors } from '@/shared/styles/colors';
+import { useAdminTables, type TableRow } from '../composables/useAdminTables';
+import { useAdminDialog } from '../composables/useAdminDialog';
+import { useAdminConfirm } from '../composables/useAdminConfirm';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import AdminFormField from '../components/AdminFormField.vue';
+import ModalDialog from '../components/ModalDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import Badge from '@/shared/components/Badge.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import {
   ADMIN_LABELS,
   TABLE_CAPACITY_MAX,
   PRODUCTS_PER_PAGE,
   PAGE_SIZE_OPTIONS,
-} from '../constants'
+} from '../constants';
 
-const {
-  tables,
-  loading,
-  error,
-  createTable,
-  updateTable,
-  removeTable,
-} = useAdminTables()
+const { tables, loading, error, createTable, updateTable, removeTable } = useAdminTables();
 
-const STATUS_MAP = ADMIN_LABELS.table.statusLabels
+const STATUS_MAP = ADMIN_LABELS.table.statusLabels;
 
 const columns = computed<Column<TableRow>[]>(() => [
   { key: 'name', label: 'Mesa', sortable: true },
@@ -42,9 +35,9 @@ const columns = computed<Column<TableRow>[]>(() => [
     },
   },
   { key: 'actions', label: 'Acciones', align: 'right' },
-])
+]);
 
-const form = reactive({ name: '', capacity: 2 })
+const form = reactive({ name: '', capacity: 2 });
 const {
   dialogOpen,
   editingId,
@@ -53,46 +46,47 @@ const {
   openCreate: _openCreate,
   openEdit: _openEdit,
   runSave,
-} = useAdminDialog()
-const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
+} = useAdminDialog();
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } =
+  useAdminConfirm();
 
 function openCreate() {
-  form.name = ''
-  form.capacity = 2
-  _openCreate()
+  form.name = '';
+  form.capacity = 2;
+  _openCreate();
 }
 
 function openEdit(table: TableRow) {
-  form.name = table.name
-  form.capacity = table.capacity
-  _openEdit(table.id)
+  form.name = table.name;
+  form.capacity = table.capacity;
+  _openEdit(table.id);
 }
 
 function clampCapacity() {
-  form.capacity = Math.round(form.capacity)
-  if (form.capacity > TABLE_CAPACITY_MAX) form.capacity = TABLE_CAPACITY_MAX
-  if (form.capacity < 1) form.capacity = 1
+  form.capacity = Math.round(form.capacity);
+  if (form.capacity > TABLE_CAPACITY_MAX) form.capacity = TABLE_CAPACITY_MAX;
+  if (form.capacity < 1) form.capacity = 1;
 }
 
 async function save() {
-  const trimmedName = form.name.trim()
+  const trimmedName = form.name.trim();
   if (!trimmedName) {
-    formError.value = ADMIN_LABELS.table.nameRequired
-    return
+    formError.value = ADMIN_LABELS.table.nameRequired;
+    return;
   }
   if (!Number.isInteger(form.capacity) || form.capacity < 1 || form.capacity > TABLE_CAPACITY_MAX) {
-    formError.value = ADMIN_LABELS.table.capacityInvalid
-    return
+    formError.value = ADMIN_LABELS.table.capacityInvalid;
+    return;
   }
-  const payload = { name: trimmedName, capacity: form.capacity }
+  const payload = { name: trimmedName, capacity: form.capacity };
   await runSave(async () => {
-    if (editingId.value) await updateTable(editingId.value, payload)
-    else await createTable(payload)
-  })
+    if (editingId.value) await updateTable(editingId.value, payload);
+    else await createTable(payload);
+  });
 }
 
 async function confirmDelete() {
-  await runDelete(removeTable)
+  await runDelete(removeTable);
 }
 </script>
 

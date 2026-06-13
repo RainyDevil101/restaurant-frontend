@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
-import { colors } from '@/shared/styles/colors'
-import { usePrinters } from '../composables/usePrinters'
-import { useReceiptSettings } from '../composables/useReceiptSettings'
-import { usePrinterSupport } from '../composables/usePrinterSupport'
-import { usePrinterConnection } from '@/shared/printing/usePrinterConnection'
-import { printerErrorMessage } from '@/shared/printing'
-import { toast } from '@/shared/toast'
-import AdminFormField from '../components/AdminFormField.vue'
-import ModalDialog from '../components/ModalDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import Badge from '@/shared/components/Badge.vue'
-import { ApiRequestError } from '@/shared/api/client'
-import type { Printer, PrinterConnection, PaperWidth } from '@/shared/api/settings'
+import { computed, reactive, ref, watch } from 'vue';
+import { colors } from '@/shared/styles/colors';
+import { usePrinters } from '../composables/usePrinters';
+import { useReceiptSettings } from '../composables/useReceiptSettings';
+import { usePrinterSupport } from '../composables/usePrinterSupport';
+import { usePrinterConnection } from '@/shared/printing/usePrinterConnection';
+import { printerErrorMessage } from '@/shared/printing';
+import { toast } from '@/shared/toast';
+import AdminFormField from '../components/AdminFormField.vue';
+import ModalDialog from '../components/ModalDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import Badge from '@/shared/components/Badge.vue';
+import { ApiRequestError } from '@/shared/api/client';
+import type { Printer, PrinterConnection, PaperWidth } from '@/shared/api/settings';
 
-const { printingSupported, usbSupported, bluetoothSupported } = usePrinterSupport()
+const { printingSupported, usbSupported, bluetoothSupported } = usePrinterSupport();
 const { printers, loading, error, createPrinter, updatePrinter, removePrinter, setDefault } =
-  usePrinters()
-const { settings, save: saveReceipt } = useReceiptSettings()
+  usePrinters();
+const { settings, save: saveReceipt } = useReceiptSettings();
 
 const {
   isConnected,
@@ -27,74 +27,74 @@ const {
   connect,
   printTest,
   disconnect,
-} = usePrinterConnection()
+} = usePrinterConnection();
 
 const defaultColumns = computed(() => {
-  const fallback = printers.value.find((p) => p.isDefault) ?? printers.value[0]
-  return fallback?.paperWidth === 58 ? 32 : 48
-})
+  const fallback = printers.value.find((p) => p.isDefault) ?? printers.value[0];
+  return fallback?.paperWidth === 58 ? 32 : 48;
+});
 
 async function connectUsb() {
-  if (await connect('usb')) toast.success(`Impresora conectada · ${deviceName.value}`)
+  if (await connect('usb')) toast.success(`Impresora conectada · ${deviceName.value}`);
 }
 
 async function connectBluetooth() {
-  if (await connect('bluetooth')) toast.success(`Impresora conectada · ${deviceName.value}`)
+  if (await connect('bluetooth')) toast.success(`Impresora conectada · ${deviceName.value}`);
 }
 
 async function testPrint() {
   try {
-    await printTest(defaultColumns.value)
-    toast.success('Prueba enviada a la impresora')
+    await printTest(defaultColumns.value);
+    toast.success('Prueba enviada a la impresora');
   } catch (err) {
-    toast.error(printerErrorMessage(err))
+    toast.error(printerErrorMessage(err));
   }
 }
 
-const dialogOpen = ref(false)
-const editingId = ref<string | null>(null)
-const saving = ref(false)
-const formError = ref('')
+const dialogOpen = ref(false);
+const editingId = ref<string | null>(null);
+const saving = ref(false);
+const formError = ref('');
 
 const form = reactive({
   name: '',
   connection: 'usb' as PrinterConnection,
   paperWidth: 80 as PaperWidth,
   isDefault: false,
-})
+});
 
 function openCreate() {
-  editingId.value = null
-  formError.value = ''
-  form.name = ''
-  form.connection = 'usb'
-  form.paperWidth = 80
-  form.isDefault = false
-  dialogOpen.value = true
+  editingId.value = null;
+  formError.value = '';
+  form.name = '';
+  form.connection = 'usb';
+  form.paperWidth = 80;
+  form.isDefault = false;
+  dialogOpen.value = true;
 }
 
 function openEdit(printer: Printer) {
-  editingId.value = printer.id
-  formError.value = ''
-  form.name = printer.name
-  form.connection = printer.connection
-  form.paperWidth = printer.paperWidth
-  form.isDefault = printer.isDefault
-  dialogOpen.value = true
+  editingId.value = printer.id;
+  formError.value = '';
+  form.name = printer.name;
+  form.connection = printer.connection;
+  form.paperWidth = printer.paperWidth;
+  form.isDefault = printer.isDefault;
+  dialogOpen.value = true;
 }
 
 function closeDialog() {
-  dialogOpen.value = false
+  dialogOpen.value = false;
 }
 
 async function savePrinter() {
-  const trimmedName = form.name.trim()
+  const trimmedName = form.name.trim();
   if (!trimmedName) {
-    formError.value = 'El nombre es obligatorio.'
-    return
+    formError.value = 'El nombre es obligatorio.';
+    return;
   }
-  saving.value = true
-  formError.value = ''
+  saving.value = true;
+  formError.value = '';
   try {
     if (editingId.value) {
       await updatePrinter(editingId.value, {
@@ -102,51 +102,51 @@ async function savePrinter() {
         connection: form.connection,
         paperWidth: form.paperWidth,
         isDefault: form.isDefault,
-      })
+      });
     } else {
       await createPrinter({
         name: trimmedName,
         connection: form.connection,
         paperWidth: form.paperWidth,
         isDefault: form.isDefault,
-      })
+      });
     }
-    dialogOpen.value = false
+    dialogOpen.value = false;
   } catch (err) {
-    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.'
+    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.';
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
-const confirmOpen = ref(false)
-const deletingId = ref<string | null>(null)
-const deleting = ref(false)
-const deleteError = ref('')
+const confirmOpen = ref(false);
+const deletingId = ref<string | null>(null);
+const deleting = ref(false);
+const deleteError = ref('');
 
 function openDelete(id: string) {
-  deletingId.value = id
-  deleteError.value = ''
-  confirmOpen.value = true
+  deletingId.value = id;
+  deleteError.value = '';
+  confirmOpen.value = true;
 }
 
 function closeConfirm() {
-  confirmOpen.value = false
-  deletingId.value = null
+  confirmOpen.value = false;
+  deletingId.value = null;
 }
 
 async function confirmDelete() {
-  if (!deletingId.value) return
-  deleting.value = true
-  deleteError.value = ''
+  if (!deletingId.value) return;
+  deleting.value = true;
+  deleteError.value = '';
   try {
-    await removePrinter(deletingId.value)
-    confirmOpen.value = false
-    deletingId.value = null
+    await removePrinter(deletingId.value);
+    confirmOpen.value = false;
+    deletingId.value = null;
   } catch (err) {
-    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.'
+    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.';
   } finally {
-    deleting.value = false
+    deleting.value = false;
   }
 }
 
@@ -154,37 +154,37 @@ const receiptForm = reactive({
   businessName: '',
   address: '',
   footer: '',
-})
-const receiptSaving = ref(false)
+});
+const receiptSaving = ref(false);
 
 watch(
   settings,
   (value) => {
-    if (!value) return
-    receiptForm.businessName = value.businessName
-    receiptForm.address = value.address
-    receiptForm.footer = value.footer
+    if (!value) return;
+    receiptForm.businessName = value.businessName;
+    receiptForm.address = value.address;
+    receiptForm.footer = value.footer;
   },
   { immediate: true },
-)
+);
 
 async function onSaveReceipt() {
-  receiptSaving.value = true
+  receiptSaving.value = true;
   try {
     await saveReceipt({
       businessName: receiptForm.businessName.trim(),
       address: receiptForm.address.trim(),
       footer: receiptForm.footer.trim(),
-    })
+    });
   } catch {
-    receiptSaving.value = false
-    return
+    receiptSaving.value = false;
+    return;
   }
-  receiptSaving.value = false
+  receiptSaving.value = false;
 }
 
 function connectionLabel(connection: PrinterConnection): string {
-  return connection === 'usb' ? 'USB' : 'Bluetooth'
+  return connection === 'usb' ? 'USB' : 'Bluetooth';
 }
 </script>
 
@@ -264,11 +264,7 @@ function connectionLabel(connection: PrinterConnection): string {
           </div>
 
           <div class="row-actions">
-            <button
-              v-if="!printer.isDefault"
-              class="action-btn"
-              @click="setDefault(printer.id)"
-            >
+            <button v-if="!printer.isDefault" class="action-btn" @click="setDefault(printer.id)">
               Hacer predeterminada
             </button>
             <button class="action-btn" @click="openEdit(printer)">Editar</button>

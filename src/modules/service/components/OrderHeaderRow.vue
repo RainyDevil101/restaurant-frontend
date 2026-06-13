@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ tableName: string }>()
+defineProps<{ tableName: string }>();
 </script>
 
 <template>

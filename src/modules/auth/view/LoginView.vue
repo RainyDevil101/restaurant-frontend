@@ -1,18 +1,10 @@
 <script setup lang="ts">
 import { EyeSlashIcon } from '@/modules/shared/components/icons';
-import { useLogin } from '../composables/useLogin'
-import BrandLogo from '@/shared/components/BrandLogo.vue'
+import { useLogin } from '../composables/useLogin';
+import BrandLogo from '@/shared/components/BrandLogo.vue';
 
-const {
-  email,
-  credential,
-  showCredential,
-  credentialLabel,
-  inputType,
-  error,
-  loading,
-  submit,
-} = useLogin()
+const { email, credential, showCredential, credentialLabel, inputType, error, loading, submit } =
+  useLogin();
 </script>
 
 <template>
@@ -27,18 +19,36 @@ const {
       <form class="form" novalidate @submit.prevent="submit">
         <div class="field-group">
           <label class="field-label" for="email">Correo</label>
-          <input id="email" v-model="email" class="field-input" type="email" inputmode="email"
-            placeholder="nombre@restaurante.cl" autocomplete="email" required />
+          <input
+            id="email"
+            v-model="email"
+            class="field-input"
+            type="email"
+            inputmode="email"
+            placeholder="nombre@restaurante.cl"
+            autocomplete="email"
+            required
+          />
         </div>
 
         <div class="field-group">
           <label class="field-label" for="credential">{{ credentialLabel }}</label>
           <div class="credential-wrap">
-            <input id="credential" v-model="credential" class="field-input credential-input" :type="inputType"
+            <input
+              id="credential"
+              v-model="credential"
+              class="field-input credential-input"
+              :type="inputType"
               placeholder="••••••••"
-              autocomplete="current-password" required />
-            <button type="button" class="eye-btn" :aria-label="showCredential ? 'Ocultar' : 'Mostrar'"
-              @click="showCredential = !showCredential">
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              class="eye-btn"
+              :aria-label="showCredential ? 'Ocultar' : 'Mostrar'"
+              @click="showCredential = !showCredential"
+            >
               <EyeSlashIcon :show-credential="showCredential" />
             </button>
           </div>
@@ -80,8 +90,6 @@ const {
 .brand {
   text-align: center;
 }
-
-
 
 /* Form */
 .form {

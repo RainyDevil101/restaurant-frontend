@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { usePayments } from '../composables/usePayments'
-import { formatCurrency } from '../helpers/formatCurrency'
-import Badge from '@/shared/components/Badge.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import PaymentDetailDialog from '../components/PaymentDetailDialog.vue'
-import { PAYMENT_METHOD } from '@/shared/types'
-import { colors } from '@/shared/styles/colors'
-import type { PaymentRow } from '../composables/usePayments'
+import { ref, computed } from 'vue';
+import { usePayments } from '../composables/usePayments';
+import { formatCurrency } from '../helpers/formatCurrency';
+import Badge from '@/shared/components/Badge.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
+import PaymentDetailDialog from '../components/PaymentDetailDialog.vue';
+import { PAYMENT_METHOD } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
+import type { PaymentRow } from '../composables/usePayments';
 
-const { payments, loading, error, reload } = usePayments()
+const { payments, loading, error, reload } = usePayments();
 
-const selectedPayment = ref<PaymentRow | null>(null)
+const selectedPayment = ref<PaymentRow | null>(null);
 
 const columns = computed<Column<PaymentRow>[]>(() => [
   { key: 'tableName', label: 'Mesa', sortable: true },
@@ -48,7 +48,7 @@ const columns = computed<Column<PaymentRow>[]>(() => [
     accessor: (row) => row.paidAt,
   },
   { key: 'actions', label: '', align: 'right' },
-])
+]);
 </script>
 
 <template>
@@ -56,8 +56,17 @@ const columns = computed<Column<PaymentRow>[]>(() => [
     <div class="page-header">
       <h1 class="page-title">Historial de pagos</h1>
       <button class="reload-btn" :disabled="loading" @click="reload">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
-          <path d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          width="16"
+          height="16"
+          aria-hidden="true"
+        >
+          <path
+            d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+          />
         </svg>
         Actualizar
       </button>
@@ -177,7 +186,9 @@ const columns = computed<Column<PaymentRow>[]>(() => [
   font-size: 0.8rem;
   font-weight: 600;
   color: v-bind('colors.neutral.textMedium');
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
   white-space: nowrap;
 }
 

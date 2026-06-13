@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import BrandLogo from '@/shared/components/BrandLogo.vue'
+import BrandLogo from '@/shared/components/BrandLogo.vue';
 
-defineProps<{ userName: string | undefined }>()
-defineEmits<{ back: [] }>()
+defineProps<{ userName: string | undefined }>();
+defineEmits<{ back: [] }>();
 </script>
 
 <template>

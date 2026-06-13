@@ -1,17 +1,17 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    title: string
-    message?: string
-    confirmLabel?: string
-    savingLabel?: string
-    saving?: boolean
-    error?: string
+    title: string;
+    message?: string;
+    confirmLabel?: string;
+    savingLabel?: string;
+    saving?: boolean;
+    error?: string;
   }>(),
   { confirmLabel: 'Eliminar', savingLabel: 'Eliminando…' },
-)
+);
 
-const emit = defineEmits<{ confirm: []; cancel: [] }>()
+const emit = defineEmits<{ confirm: []; cancel: [] }>();
 </script>
 
 <template>

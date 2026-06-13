@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
-  label: string
-  for: string
-}>()
+  label: string;
+  for: string;
+}>();
 </script>
 
 <template>

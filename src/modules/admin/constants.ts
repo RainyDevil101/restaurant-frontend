@@ -1,10 +1,10 @@
-import type { BadgeTone } from '@/shared/components/Badge.vue'
+import type { BadgeTone } from '@/shared/components/Badge.vue';
 
-export const PRODUCT_PRICE_MAX = 999_999
-export const TABLE_CAPACITY_MAX = 20
+export const PRODUCT_PRICE_MAX = 999_999;
+export const TABLE_CAPACITY_MAX = 20;
 
-export const PRODUCTS_PER_PAGE = 10
-export const PAGE_SIZE_OPTIONS = [10, 20, 50] as const
+export const PRODUCTS_PER_PAGE = 10;
+export const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
 export const ADMIN_LABELS = {
   product: {
@@ -36,7 +36,8 @@ export const ADMIN_LABELS = {
   },
   area: {
     nameRequired: 'El nombre del área es obligatorio.',
-    deleteBlockedTitle: 'No se puede eliminar: esta área tiene categorías asociadas. Elimina o reasigna las categorías primero.',
+    deleteBlockedTitle:
+      'No se puede eliminar: esta área tiene categorías asociadas. Elimina o reasigna las categorías primero.',
   },
   menu: {
     nameRequired: 'El nombre del menú es obligatorio.',
@@ -46,6 +47,7 @@ export const ADMIN_LABELS = {
   category: {
     nameRequired: 'El nombre de la categoría es obligatorio.',
     areaRequired: 'Selecciona un área para la categoría.',
-    deleteBlockedTitle: 'No se puede eliminar: esta categoría tiene productos asociados. Elimina o reasigna los productos primero.',
+    deleteBlockedTitle:
+      'No se puede eliminar: esta categoría tiene productos asociados. Elimina o reasigna los productos primero.',
   },
-} as const
+} as const;

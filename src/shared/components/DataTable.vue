@@ -1,42 +1,47 @@
 <script lang="ts">
 export interface ColumnSelectOption {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 export type ColumnFilterConfig =
   | { type: 'text' }
-  | { type: 'select'; options: ColumnSelectOption[] }
+  | { type: 'select'; options: ColumnSelectOption[] };
 
 export interface Column<T> {
-  key: string
-  label: string
-  sortable?: boolean
-  align?: 'left' | 'right'
-  accessor?: (row: T) => string | number
-  filter?: ColumnFilterConfig
+  key: string;
+  label: string;
+  sortable?: boolean;
+  align?: 'left' | 'right';
+  accessor?: (row: T) => string | number;
+  filter?: ColumnFilterConfig;
 }
 </script>
 
 <script setup lang="ts" generic="T extends { id: string }">
-import { computed, toRef } from 'vue'
-import { useDataTable, type ColumnFilter, type SortAccessor, type SortDir } from '@/shared/stores/useDataTable'
-import AdminSearchBar from '@/modules/admin/components/AdminSearchBar.vue'
-import AdminPagination from '@/modules/admin/components/AdminPagination.vue'
-import { PAGE_SIZE_OPTIONS } from '@/modules/admin/constants'
+import { computed, toRef } from 'vue';
+import {
+  useDataTable,
+  type ColumnFilter,
+  type SortAccessor,
+  type SortDir,
+} from '@/shared/stores/useDataTable';
+import AdminSearchBar from '@/modules/admin/components/AdminSearchBar.vue';
+import AdminPagination from '@/modules/admin/components/AdminPagination.vue';
+import { PAGE_SIZE_OPTIONS } from '@/modules/admin/constants';
 
 const props = withDefaults(
   defineProps<{
-    items: T[]
-    columns: Column<T>[]
-    loading?: boolean
-    error?: string
-    pageSize?: number
-    pageSizeOptions?: readonly number[]
-    defaultSort?: string
-    defaultSortDir?: SortDir
-    searchPlaceholder?: string
-    emptyText?: string
+    items: T[];
+    columns: Column<T>[];
+    loading?: boolean;
+    error?: string;
+    pageSize?: number;
+    pageSizeOptions?: readonly number[];
+    defaultSort?: string;
+    defaultSortDir?: SortDir;
+    searchPlaceholder?: string;
+    emptyText?: string;
   }>(),
   {
     loading: false,
@@ -48,29 +53,29 @@ const props = withDefaults(
     searchPlaceholder: 'Buscar...',
     emptyText: 'Sin resultados',
   },
-)
+);
 
 function resolveValue(column: Column<T>, row: T): string | number {
-  if (column.accessor) return column.accessor(row)
-  const raw = (row as Record<string, unknown>)[column.key]
-  if (raw === null || raw === undefined) return ''
-  if (typeof raw === 'number') return raw
-  return String(raw)
+  if (column.accessor) return column.accessor(row);
+  const raw = (row as Record<string, unknown>)[column.key];
+  if (raw === null || raw === undefined) return '';
+  if (typeof raw === 'number') return raw;
+  return String(raw);
 }
 
 function resolveText(column: Column<T>, row: T): string {
-  return String(resolveValue(column, row))
+  return String(resolveValue(column, row));
 }
 
 const sortAccessors = computed<Record<string, SortAccessor<T>>>(() => {
-  const map: Record<string, SortAccessor<T>> = {}
+  const map: Record<string, SortAccessor<T>> = {};
   for (const column of props.columns) {
-    if (column.sortable) map[column.key] = (row) => resolveValue(column, row)
+    if (column.sortable) map[column.key] = (row) => resolveValue(column, row);
   }
-  return map
-})
+  return map;
+});
 
-const filterableColumns = computed(() => props.columns.filter((column) => column.filter))
+const filterableColumns = computed(() => props.columns.filter((column) => column.filter));
 
 const columnFilters = computed<Array<ColumnFilter<T>>>(() =>
   filterableColumns.value.map((column) => ({
@@ -78,19 +83,19 @@ const columnFilters = computed<Array<ColumnFilter<T>>>(() =>
     accessor: (row) => resolveText(column, row),
     match: column.filter?.type === 'select' ? 'equals' : 'includes',
   })),
-)
+);
 
 function searchAccessor(row: T): string {
-  return props.columns.map((column) => resolveText(column, row)).join(' ')
+  return props.columns.map((column) => resolveText(column, row)).join(' ');
 }
 
-const itemsRef = toRef(props, 'items')
+const itemsRef = toRef(props, 'items');
 
 const initialSort = computed(() => {
-  if (props.defaultSort) return props.defaultSort
-  const firstSortable = props.columns.find((column) => column.sortable)
-  return firstSortable?.key ?? props.columns[0]?.key ?? ''
-})
+  if (props.defaultSort) return props.defaultSort;
+  const firstSortable = props.columns.find((column) => column.sortable);
+  return firstSortable?.key ?? props.columns[0]?.key ?? '';
+});
 
 const table = useDataTable<T>(itemsRef, {
   sortBy: initialSort.value,
@@ -99,19 +104,19 @@ const table = useDataTable<T>(itemsRef, {
   sortAccessors: sortAccessors.value,
   searchAccessor,
   columnFilters: columnFilters.value,
-})
+});
 
-const hasFilters = computed(() => filterableColumns.value.length > 0)
+const hasFilters = computed(() => filterableColumns.value.length > 0);
 
 const hasActiveFilters = computed(() =>
   Object.values(table.filters.value).some((value) => value.trim().length > 0),
-)
+);
 
 function clearFilters(): void {
-  for (const column of filterableColumns.value) table.setFilter(column.key, '')
+  for (const column of filterableColumns.value) table.setFilter(column.key, '');
 }
 
-const isEmpty = computed(() => table.totalItems.value === 0)
+const isEmpty = computed(() => table.totalItems.value === 0);
 </script>
 
 <template>
@@ -145,12 +150,7 @@ const isEmpty = computed(() => table.totalItems.value === 0)
             @input="table.setFilter(column.key, ($event.target as HTMLInputElement).value)"
           />
         </label>
-        <button
-          v-if="hasActiveFilters"
-          type="button"
-          class="filter-clear"
-          @click="clearFilters"
-        >
+        <button v-if="hasActiveFilters" type="button" class="filter-clear" @click="clearFilters">
           Limpiar filtros
         </button>
       </div>

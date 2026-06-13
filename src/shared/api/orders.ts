@@ -1,77 +1,79 @@
-import { api } from './client'
-import type { OrderStatus } from '@/shared/types'
+import { api } from './client';
+import type { OrderStatus } from '@/shared/types';
 
 export interface ApiOrderItem {
-  itemId: string
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
-  subtotal: number
-  notes?: string
-  kind?: 'product' | 'combo'
+  itemId: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  notes?: string;
+  kind?: 'product' | 'combo';
 }
 
 export interface ApiOrder {
-  id: string
-  tableId: string
-  createdBy: string
-  createdAt: string
-  status: OrderStatus
-  items: ApiOrderItem[]
-  total: number
-  paid: boolean
-  cancellationReason?: string
-  cancelledBy?: string
-  cancelledAt?: string
+  id: string;
+  tableId: string;
+  createdBy: string;
+  createdAt: string;
+  status: OrderStatus;
+  items: ApiOrderItem[];
+  total: number;
+  paid: boolean;
+  cancellationReason?: string;
+  cancelledBy?: string;
+  cancelledAt?: string;
 }
 
 export interface CancelOrderInput {
-  reason: string
-  adminEmail: string
-  adminCredential: string
+  reason: string;
+  adminEmail: string;
+  adminCredential: string;
 }
 
 export interface OrderItemInput {
-  productId?: string
-  menuId?: string
-  quantity: number
-  notes?: string
+  productId?: string;
+  menuId?: string;
+  quantity: number;
+  notes?: string;
 }
 
 export interface CreateOrderInput {
-  tableId: string
-  items: OrderItemInput[]
+  tableId: string;
+  items: OrderItemInput[];
 }
 
 export function listOrders(tableId?: string): Promise<ApiOrder[]> {
-  const query = tableId ? `?tableId=${encodeURIComponent(tableId)}` : ''
-  return api.get<ApiOrder[]>(`/orders${query}`)
+  const query = tableId ? `?tableId=${encodeURIComponent(tableId)}` : '';
+  return api.get<ApiOrder[]>(`/orders${query}`);
 }
 
 export function listOrdersByTable(tableId: string): Promise<ApiOrder[]> {
-  return api.get<ApiOrder[]>(`/orders/table/${tableId}`)
+  return api.get<ApiOrder[]>(`/orders/table/${tableId}`);
 }
 
 export function createOrder(input: CreateOrderInput): Promise<ApiOrder> {
-  return api.post<ApiOrder>('/orders', input)
+  return api.post<ApiOrder>('/orders', input);
 }
 
 export function updateOrderStatus(id: string, status: OrderStatus): Promise<ApiOrder> {
-  return api.patch<ApiOrder>(`/orders/${id}/status`, { status })
+  return api.patch<ApiOrder>(`/orders/${id}/status`, { status });
 }
 
 export function cancelOrder(id: string, body: CancelOrderInput): Promise<ApiOrder> {
-  return api.postKeepingSession<ApiOrder>(`/orders/${id}/cancel`, body)
+  return api.postKeepingSession<ApiOrder>(`/orders/${id}/cancel`, body);
 }
 
 export interface ComandaDto {
-  areaId: string | null
-  areaName: string
-  preview: string
-  escposBase64: string
+  areaId: string | null;
+  areaName: string;
+  preview: string;
+  escposBase64: string;
 }
 
 export function getComandasByTable(tableId: string, width = 80): Promise<ComandaDto[]> {
-  return api.get<ComandaDto[]>(`/orders/table/${encodeURIComponent(tableId)}/comandas?width=${width}`)
+  return api.get<ComandaDto[]>(
+    `/orders/table/${encodeURIComponent(tableId)}/comandas?width=${width}`,
+  );
 }

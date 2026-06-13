@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useBilling } from '../composables/useBilling'
-import { formatCurrency } from '../helpers/formatCurrency'
-import CancelOrderDialog from '../components/CancelOrderDialog.vue'
-import Badge from '@/shared/components/Badge.vue'
-import { cancelOrder } from '@/shared/api/orders'
-import { ApiRequestError } from '@/shared/api/client'
-import { Route, ORDER_STATUS } from '@/shared/types'
-import type { OrderStatus } from '@/shared/types'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useBilling } from '../composables/useBilling';
+import { formatCurrency } from '../helpers/formatCurrency';
+import CancelOrderDialog from '../components/CancelOrderDialog.vue';
+import Badge from '@/shared/components/Badge.vue';
+import { cancelOrder } from '@/shared/api/orders';
+import { ApiRequestError } from '@/shared/api/client';
+import { Route, ORDER_STATUS } from '@/shared/types';
+import type { OrderStatus } from '@/shared/types';
 
 const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' | 'red'> = {
   pendiente: 'amber',
@@ -16,7 +16,7 @@ const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' |
   listo: 'green',
   entregado: 'gray',
   cancelado: 'red',
-}
+};
 
 const orderStatusLabel: Record<OrderStatus, string> = {
   pendiente: 'Pendiente',
@@ -24,9 +24,9 @@ const orderStatusLabel: Record<OrderStatus, string> = {
   listo: 'Listo',
   entregado: 'Entregado',
   cancelado: 'Cancelado',
-}
+};
 
-const router = useRouter()
+const router = useRouter();
 const {
   table,
   activeOrders,
@@ -37,54 +37,54 @@ const {
   loading,
   error,
   reload,
-} = useBilling()
+} = useBilling();
 
-const cancelTargetId = ref<string | null>(null)
-const cancelSaving = ref(false)
-const cancelError = ref('')
+const cancelTargetId = ref<string | null>(null);
+const cancelSaving = ref(false);
+const cancelError = ref('');
 
 function canCancel(status: OrderStatus, paid: boolean): boolean {
-  return !paid && status !== ORDER_STATUS.CANCELLED
+  return !paid && status !== ORDER_STATUS.CANCELLED;
 }
 
 function openCancelDialog(orderId: string) {
-  cancelTargetId.value = orderId
-  cancelError.value = ''
-  cancelSaving.value = false
+  cancelTargetId.value = orderId;
+  cancelError.value = '';
+  cancelSaving.value = false;
 }
 
 function closeCancelDialog() {
-  cancelTargetId.value = null
-  cancelError.value = ''
-  cancelSaving.value = false
+  cancelTargetId.value = null;
+  cancelError.value = '';
+  cancelSaving.value = false;
 }
 
 async function confirmCancel(payload: {
-  reason: string
-  adminEmail: string
-  adminCredential: string
+  reason: string;
+  adminEmail: string;
+  adminCredential: string;
 }) {
-  if (!cancelTargetId.value) return
-  cancelSaving.value = true
-  cancelError.value = ''
+  if (!cancelTargetId.value) return;
+  cancelSaving.value = true;
+  cancelError.value = '';
   try {
-    await cancelOrder(cancelTargetId.value, payload)
-    await reload()
-    closeCancelDialog()
+    await cancelOrder(cancelTargetId.value, payload);
+    await reload();
+    closeCancelDialog();
   } catch (err) {
     cancelError.value =
-      err instanceof ApiRequestError ? err.message : 'No se pudo cancelar el pedido.'
+      err instanceof ApiRequestError ? err.message : 'No se pudo cancelar el pedido.';
   } finally {
-    cancelSaving.value = false
+    cancelSaving.value = false;
   }
 }
 
 function goBack() {
-  router.push(Route.CHECKOUT)
+  router.push(Route.CHECKOUT);
 }
 
 function goToPayment() {
-  router.push(`/checkout/table/${table.value?.id}/payment`)
+  router.push(`/checkout/table/${table.value?.id}/payment`);
 }
 </script>
 
@@ -93,7 +93,14 @@ function goToPayment() {
     <!-- Header -->
     <div class="page-header">
       <button class="back-btn" @click="goBack">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          width="20"
+          height="20"
+          aria-hidden="true"
+        >
           <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
         </svg>
         <span>Caja</span>
@@ -153,7 +160,12 @@ function goToPayment() {
                 </li>
               </ul>
               <div class="order-footer">
-                <span class="order-time">{{ new Date(order.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) }}</span>
+                <span class="order-time">{{
+                  new Date(order.createdAt).toLocaleTimeString('es-MX', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                }}</span>
                 <span class="order-subtotal">{{ formatCurrency(order.total) }}</span>
               </div>
               <div v-if="canCancel(order.status, order.paid)" class="order-actions">
@@ -198,13 +210,18 @@ function goToPayment() {
       <p v-if="hasPendingOrders" class="pending-warning">
         Hay pedidos sin entregar. Confirma antes de cobrar.
       </p>
-      <button
-        class="pay-btn"
-        :disabled="billLines.length === 0"
-        @click="goToPayment"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-          <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
+      <button class="pay-btn" :disabled="billLines.length === 0" @click="goToPayment">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          width="20"
+          height="20"
+          aria-hidden="true"
+        >
+          <path
+            d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
+          />
         </svg>
         Proceder al cobro · {{ formatCurrency(billTotal) }}
       </button>

@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import Badge from '@/shared/components/Badge.vue'
-import type { ApiOrder } from '@/shared/api/orders'
-import { ORDER_STATUS } from '@/shared/types'
-import { formatCurrency } from '../helpers/formatCurrency'
+import Badge from '@/shared/components/Badge.vue';
+import type { ApiOrder } from '@/shared/api/orders';
+import { ORDER_STATUS } from '@/shared/types';
+import { formatCurrency } from '../helpers/formatCurrency';
 
 defineProps<{
-  orders: ApiOrder[]
-  error: string
-  deliveringId: string | null
-}>()
+  orders: ApiOrder[];
+  error: string;
+  deliveringId: string | null;
+}>();
 
 const emit = defineEmits<{
-  deliver: [orderId: string]
-}>()
+  deliver: [orderId: string];
+}>();
 
 function itemCount(order: ApiOrder): number {
-  return order.items.reduce((sum, item) => sum + item.quantity, 0)
+  return order.items.reduce((sum, item) => sum + item.quantity, 0);
 }
 </script>
 

@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { Category } from '@/shared/types'
-import Badge from '@/shared/components/Badge.vue'
-import type { OrderEntry } from '../composables/useOrder'
-import { categoryColor, categoryName } from '../helpers/categoryColor'
+import type { Category } from '@/shared/types';
+import Badge from '@/shared/components/Badge.vue';
+import type { OrderEntry } from '../composables/useOrder';
+import { categoryColor, categoryName } from '../helpers/categoryColor';
 
-defineProps<{ entry: OrderEntry; categories: Category[] }>()
-const emit = defineEmits<{ add: []; remove: [] }>()
+defineProps<{ entry: OrderEntry; categories: Category[] }>();
+const emit = defineEmits<{ add: []; remove: [] }>();
 </script>
 
 <template>
   <div class="order-item-row">
     <div class="item-name-wrap">
-      <span class="item-name">{{ entry.kind === 'combo' ? entry.menu.name : entry.product.name }}</span>
+      <span class="item-name">{{
+        entry.kind === 'combo' ? entry.menu.name : entry.product.name
+      }}</span>
       <Badge v-if="entry.kind === 'combo'" tone="teal" class="combo-tag">Combo</Badge>
       <span v-else class="category-tag">
         <span

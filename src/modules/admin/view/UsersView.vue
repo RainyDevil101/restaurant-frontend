@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
-import { colors } from '@/shared/styles/colors'
-import { useUsers } from '../composables/useUsers'
-import { useAdminDialog } from '../composables/useAdminDialog'
-import { useAdminConfirm } from '../composables/useAdminConfirm'
-import { roleLabel } from '../helpers/roleLabel'
-import AdminPageHeader from '../components/AdminPageHeader.vue'
-import AdminFormField from '../components/AdminFormField.vue'
-import ModalDialog from '../components/ModalDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import Badge from '@/shared/components/Badge.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import { Role, useAuthStore, type User } from '@/modules/auth/store'
-import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
+import { computed, reactive } from 'vue';
+import { colors } from '@/shared/styles/colors';
+import { useUsers } from '../composables/useUsers';
+import { useAdminDialog } from '../composables/useAdminDialog';
+import { useAdminConfirm } from '../composables/useAdminConfirm';
+import { roleLabel } from '../helpers/roleLabel';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import AdminFormField from '../components/AdminFormField.vue';
+import ModalDialog from '../components/ModalDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import Badge from '@/shared/components/Badge.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
+import { Role, useAuthStore, type User } from '@/modules/auth/store';
+import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const auth = useAuthStore()
-const currentUserId = computed(() => auth.user?.id ?? '')
+const auth = useAuthStore();
+const currentUserId = computed(() => auth.user?.id ?? '');
 
-const { users, loading, error, createUser, updateUser, removeUser } = useUsers()
+const { users, loading, error, createUser, updateUser, removeUser } = useUsers();
 
-const roleOptions = [Role.MESERO, Role.CAJERO, Role.ADMIN]
+const roleOptions = [Role.MESERO, Role.CAJERO, Role.ADMIN];
 
 function canEditUser(row: User): boolean {
-  return !row.isOwner || row.id === currentUserId.value
+  return !row.isOwner || row.id === currentUserId.value;
 }
 
 function canDeleteUser(row: User): boolean {
-  return !row.isOwner && row.id !== currentUserId.value
+  return !row.isOwner && row.id !== currentUserId.value;
 }
 
 const columns = computed<Column<User>[]>(() => [
@@ -58,7 +58,7 @@ const columns = computed<Column<User>[]>(() => [
     },
   },
   { key: 'actions', label: 'Acciones', align: 'right' },
-])
+]);
 
 const form = reactive({
   name: '',
@@ -66,7 +66,7 @@ const form = reactive({
   role: Role.MESERO as Role,
   credential: '',
   active: true,
-})
+});
 const {
   dialogOpen,
   editingId,
@@ -75,45 +75,46 @@ const {
   openCreate: _openCreate,
   openEdit: _openEdit,
   runSave,
-} = useAdminDialog()
-const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
+} = useAdminDialog();
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } =
+  useAdminConfirm();
 
 function openCreate() {
-  form.name = ''
-  form.email = ''
-  form.role = Role.MESERO
-  form.credential = ''
-  form.active = true
-  _openCreate()
+  form.name = '';
+  form.email = '';
+  form.role = Role.MESERO;
+  form.credential = '';
+  form.active = true;
+  _openCreate();
 }
 
 function openEdit(user: User) {
-  form.name = user.name
-  form.email = user.email
-  form.role = user.role
-  form.credential = ''
-  form.active = user.active
-  _openEdit(user.id)
+  form.name = user.name;
+  form.email = user.email;
+  form.role = user.role;
+  form.credential = '';
+  form.active = user.active;
+  _openEdit(user.id);
 }
 
 async function save() {
-  const trimmedName = form.name.trim()
+  const trimmedName = form.name.trim();
   if (!trimmedName) {
-    formError.value = ADMIN_LABELS.user.nameRequired
-    return
+    formError.value = ADMIN_LABELS.user.nameRequired;
+    return;
   }
-  const trimmedEmail = form.email.trim()
+  const trimmedEmail = form.email.trim();
   if (!trimmedEmail) {
-    formError.value = ADMIN_LABELS.user.emailRequired
-    return
+    formError.value = ADMIN_LABELS.user.emailRequired;
+    return;
   }
   if (!EMAIL_RE.test(trimmedEmail)) {
-    formError.value = ADMIN_LABELS.user.emailInvalid
-    return
+    formError.value = ADMIN_LABELS.user.emailInvalid;
+    return;
   }
   if (!editingId.value && !form.credential) {
-    formError.value = ADMIN_LABELS.user.credentialRequired
-    return
+    formError.value = ADMIN_LABELS.user.credentialRequired;
+    return;
   }
   await runSave(async () => {
     if (editingId.value) {
@@ -122,22 +123,22 @@ async function save() {
         email: trimmedEmail,
         role: form.role,
         active: form.active,
-      }
-      if (form.credential) input.credential = form.credential
-      await updateUser(editingId.value, input)
+      };
+      if (form.credential) input.credential = form.credential;
+      await updateUser(editingId.value, input);
     } else {
       await createUser({
         name: trimmedName,
         email: trimmedEmail,
         role: form.role,
         credential: form.credential,
-      })
+      });
     }
-  })
+  });
 }
 
 async function confirmDelete() {
-  await runDelete(removeUser)
+  await runDelete(removeUser);
 }
 </script>
 
@@ -169,17 +170,15 @@ async function confirmDelete() {
       </template>
 
       <template #cell-active="{ row }">
-        <Badge :tone="row.active ? 'green' : 'gray'">{{ row.active ? 'Activo' : 'Inactivo' }}</Badge>
+        <Badge :tone="row.active ? 'green' : 'gray'">{{
+          row.active ? 'Activo' : 'Inactivo'
+        }}</Badge>
       </template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
           <button v-if="canEditUser(row)" class="action-btn" @click="openEdit(row)">Editar</button>
-          <button
-            v-if="canDeleteUser(row)"
-            class="action-btn danger"
-            @click="openDelete(row.id)"
-          >
+          <button v-if="canDeleteUser(row)" class="action-btn danger" @click="openDelete(row.id)">
             Eliminar
           </button>
           <span v-if="!canEditUser(row) && !canDeleteUser(row)" class="col-muted">—</span>

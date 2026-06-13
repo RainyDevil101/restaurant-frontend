@@ -1,12 +1,12 @@
 <script setup lang="ts">
 defineProps<{
-  title: string
-  newLabel: string
-}>()
+  title: string;
+  newLabel: string;
+}>();
 
 defineEmits<{
-  create: []
-}>()
+  create: [];
+}>();
 </script>
 
 <template>

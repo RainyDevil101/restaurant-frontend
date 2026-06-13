@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
-import { useAreas, type AreaRow } from '../composables/useAreas'
-import { useAdminDialog } from '../composables/useAdminDialog'
-import { useAdminConfirm } from '../composables/useAdminConfirm'
-import AdminPageHeader from '../components/AdminPageHeader.vue'
-import AdminFormField from '../components/AdminFormField.vue'
-import ModalDialog from '../components/ModalDialog.vue'
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import DataTable, { type Column } from '@/shared/components/DataTable.vue'
-import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants'
+import { computed, reactive } from 'vue';
+import { useAreas, type AreaRow } from '../composables/useAreas';
+import { useAdminDialog } from '../composables/useAdminDialog';
+import { useAdminConfirm } from '../composables/useAdminConfirm';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import AdminFormField from '../components/AdminFormField.vue';
+import ModalDialog from '../components/ModalDialog.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import DataTable, { type Column } from '@/shared/components/DataTable.vue';
+import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 
-const { areas, loading, error, createArea, updateArea, removeArea } = useAreas()
+const { areas, loading, error, createArea, updateArea, removeArea } = useAreas();
 
 const columns = computed<Column<AreaRow>[]>(() => [
   { key: 'name', label: 'Área', sortable: true },
   { key: 'categoryCount', label: 'Categorías', sortable: true, align: 'right' },
   { key: 'actions', label: 'Acciones', align: 'right' },
-])
+]);
 
-const form = reactive({ name: '' })
+const form = reactive({ name: '' });
 const {
   dialogOpen,
   editingId,
@@ -27,33 +27,34 @@ const {
   openCreate: _openCreate,
   openEdit: _openEdit,
   runSave,
-} = useAdminDialog()
-const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } = useAdminConfirm()
+} = useAdminDialog();
+const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete } =
+  useAdminConfirm();
 
 function openCreate() {
-  form.name = ''
-  _openCreate()
+  form.name = '';
+  _openCreate();
 }
 
 function openEdit(area: AreaRow) {
-  form.name = area.name
-  _openEdit(area.id)
+  form.name = area.name;
+  _openEdit(area.id);
 }
 
 async function save() {
-  const trimmedName = form.name.trim()
+  const trimmedName = form.name.trim();
   if (!trimmedName) {
-    formError.value = ADMIN_LABELS.area.nameRequired
-    return
+    formError.value = ADMIN_LABELS.area.nameRequired;
+    return;
   }
   await runSave(async () => {
-    if (editingId.value) await updateArea(editingId.value, { name: trimmedName })
-    else await createArea({ name: trimmedName })
-  })
+    if (editingId.value) await updateArea(editingId.value, { name: trimmedName });
+    else await createArea({ name: trimmedName });
+  });
 }
 
 async function confirmDelete() {
-  await runDelete(removeArea)
+  await runDelete(removeArea);
 }
 </script>
 
@@ -86,7 +87,9 @@ async function confirmDelete() {
             :disabled="row.categoryCount > 0"
             :title="row.categoryCount > 0 ? ADMIN_LABELS.area.deleteBlockedTitle : undefined"
             @click="openDelete(row.id)"
-          >Eliminar</button>
+          >
+            Eliminar
+          </button>
         </div>
       </template>
     </DataTable>

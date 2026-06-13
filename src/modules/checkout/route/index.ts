@@ -1,7 +1,7 @@
-import type { RouteRecordRaw } from 'vue-router'
-import { ROLE_GROUPS } from '@/modules/auth/constants'
-import { Route } from '@/shared/types'
-import { ROUTE_TITLES } from '@/shared/constants/brand'
+import type { RouteRecordRaw } from 'vue-router';
+import { ROLE_GROUPS } from '@/modules/auth/constants';
+import { Route } from '@/shared/types';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
 
 export const checkoutRoutes: RouteRecordRaw[] = [
   {
@@ -26,4 +26,4 @@ export const checkoutRoutes: RouteRecordRaw[] = [
       },
     ],
   },
-]
+];

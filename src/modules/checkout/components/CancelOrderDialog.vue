@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed } from 'vue';
 
-const props = defineProps<{ orderId: string; saving?: boolean; error?: string }>()
+const props = defineProps<{ orderId: string; saving?: boolean; error?: string }>();
 const emit = defineEmits<{
-  confirm: [payload: { reason: string; adminEmail: string; adminCredential: string }]
-  close: []
-}>()
+  confirm: [payload: { reason: string; adminEmail: string; adminCredential: string }];
+  close: [];
+}>();
 
-const reason = ref('')
-const adminEmail = ref('')
-const adminCredential = ref('')
+const reason = ref('');
+const adminEmail = ref('');
+const adminCredential = ref('');
 
-const orderLabel = computed(() => props.orderId.slice(-6).toUpperCase())
+const orderLabel = computed(() => props.orderId.slice(-6).toUpperCase());
 
 const canSubmit = computed(
   () =>
     reason.value.trim().length > 0 &&
     adminEmail.value.trim().length > 0 &&
     adminCredential.value.length > 0,
-)
+);
 
 function onSubmit() {
-  if (!canSubmit.value || props.saving) return
+  if (!canSubmit.value || props.saving) return;
   emit('confirm', {
     reason: reason.value.trim(),
     adminEmail: adminEmail.value.trim(),
     adminCredential: adminCredential.value,
-  })
+  });
 }
 </script>
 
@@ -36,7 +36,9 @@ function onSubmit() {
       <div class="dialog">
         <div class="dialog-header">
           <h2 class="title">Cancelar pedido #{{ orderLabel }}</h2>
-          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">×</button>
+          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">
+            ×
+          </button>
         </div>
 
         <p class="note">

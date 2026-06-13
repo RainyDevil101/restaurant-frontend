@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/modules/auth/store'
-import { Route } from '@/shared/types'
-import BrandLogo from '@/shared/components/BrandLogo.vue'
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/modules/auth/store';
+import { Route } from '@/shared/types';
+import BrandLogo from '@/shared/components/BrandLogo.vue';
 
-const router = useRouter()
-const auth = useAuthStore()
+const router = useRouter();
+const auth = useAuthStore();
 
 function logout() {
-  auth.logout()
-  router.push(Route.LOGIN)
+  auth.logout();
+  router.push(Route.LOGIN);
 }
 
 const navItems = [
-  { label: 'Productos',   to: Route.ADMIN_PRODUCTS   },
-  { label: 'Categorías',  to: Route.ADMIN_CATEGORIES },
-  { label: 'Menús',       to: Route.ADMIN_MENUS      },
-  { label: 'Áreas',       to: Route.ADMIN_AREAS      },
-  { label: 'Mesas',       to: Route.ADMIN_TABLES     },
-  { label: 'Usuarios',    to: Route.ADMIN_USERS      },
-  { label: 'Pagos',       to: Route.ADMIN_PAYMENTS   },
+  { label: 'Productos', to: Route.ADMIN_PRODUCTS },
+  { label: 'Categorías', to: Route.ADMIN_CATEGORIES },
+  { label: 'Menús', to: Route.ADMIN_MENUS },
+  { label: 'Áreas', to: Route.ADMIN_AREAS },
+  { label: 'Mesas', to: Route.ADMIN_TABLES },
+  { label: 'Usuarios', to: Route.ADMIN_USERS },
+  { label: 'Pagos', to: Route.ADMIN_PAYMENTS },
   { label: 'Configuraciones', to: Route.ADMIN_SETTINGS },
-]
+];
 </script>
 
 <template>
@@ -33,8 +33,13 @@ const navItems = [
       </div>
 
       <nav class="nav" aria-label="Administración">
-        <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item"
-          exact-active-class="nav-item--active">
+        <RouterLink
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="nav-item"
+          exact-active-class="nav-item--active"
+        >
           {{ item.label }}
         </RouterLink>
       </nav>
@@ -43,10 +48,17 @@ const navItems = [
         <button class="mode-btn" @click="router.push(Route.SERVICE)">Tomar pedido</button>
         <button class="mode-btn" @click="router.push(Route.CHECKOUT)">Ir a caja</button>
         <div class="user-row">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"
-            aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            width="18"
+            height="18"
+            aria-hidden="true"
+          >
             <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+            />
           </svg>
           <span>{{ auth.user?.name }}</span>
         </div>
@@ -98,7 +110,9 @@ const navItems = [
   font-size: 0.925rem;
   font-weight: 500;
   color: #374151;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
 }
 
 .nav-item:hover {

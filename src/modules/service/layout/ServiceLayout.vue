@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/modules/auth/store'
-import { Role, Route } from '@/shared/types'
-import { colors } from '@/shared/styles/colors'
-import BrandLogo from '@/shared/components/BrandLogo.vue'
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/modules/auth/store';
+import { Role, Route } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
+import BrandLogo from '@/shared/components/BrandLogo.vue';
 
-const router = useRouter()
-const auth = useAuthStore()
-const isAdmin = auth.user?.role === Role.ADMIN
+const router = useRouter();
+const auth = useAuthStore();
+const isAdmin = auth.user?.role === Role.ADMIN;
 
 function logout() {
-  auth.logout()
-  router.push(Route.LOGIN)
+  auth.logout();
+  router.push(Route.LOGIN);
 }
 </script>
 
@@ -19,9 +19,20 @@ function logout() {
   <div class="service-layout">
     <header class="header">
       <div class="header-left">
-        <button v-if="isAdmin" class="menu-btn" aria-label="Volver a administración" @click="router.push(Route.ADMIN)">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"
-            aria-hidden="true">
+        <button
+          v-if="isAdmin"
+          class="menu-btn"
+          aria-label="Volver a administración"
+          @click="router.push(Route.ADMIN)"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            width="22"
+            height="22"
+            aria-hidden="true"
+          >
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
           <span class="back-label">Admin</span>
@@ -30,9 +41,16 @@ function logout() {
       </div>
       <div class="user-info">
         <div class="avatar" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            width="22"
+            height="22"
+          >
             <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+            />
           </svg>
         </div>
         <span class="user-name">{{ auth.user?.name }}</span>

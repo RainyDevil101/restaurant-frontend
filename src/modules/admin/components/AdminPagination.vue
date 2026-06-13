@@ -1,15 +1,15 @@
 <script setup lang="ts">
 defineProps<{
-  page: number
-  pageSize: number
-  totalPages: number
-  pageSizeOptions: readonly number[]
-}>()
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  pageSizeOptions: readonly number[];
+}>();
 
 defineEmits<{
-  'update:page': [value: number]
-  'update:pageSize': [value: number]
-}>()
+  'update:page': [value: number];
+  'update:pageSize': [value: number];
+}>();
 </script>
 
 <template>
@@ -32,7 +32,9 @@ defineEmits<{
         :disabled="page <= 1"
         aria-label="Página anterior"
         @click="$emit('update:page', page - 1)"
-      >◀</button>
+      >
+        ◀
+      </button>
       <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
       <button
         type="button"
@@ -40,7 +42,9 @@ defineEmits<{
         :disabled="page >= totalPages"
         aria-label="Página siguiente"
         @click="$emit('update:page', page + 1)"
-      >▶</button>
+      >
+        ▶
+      </button>
     </div>
   </div>
 </template>

@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount } from 'vue'
-import Badge from '@/shared/components/Badge.vue'
-import { PAYMENT_METHOD } from '@/shared/types'
-import { colors } from '@/shared/styles/colors'
-import { formatCurrency } from '../helpers/formatCurrency'
-import type { PaymentRow } from '../composables/usePayments'
+import { onMounted, onBeforeUnmount } from 'vue';
+import Badge from '@/shared/components/Badge.vue';
+import { PAYMENT_METHOD } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
+import { formatCurrency } from '../helpers/formatCurrency';
+import type { PaymentRow } from '../composables/usePayments';
 
-defineProps<{ payment: PaymentRow }>()
-const emit = defineEmits<{ close: [] }>()
+defineProps<{ payment: PaymentRow }>();
+const emit = defineEmits<{ close: [] }>();
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') emit('close')
+  if (e.key === 'Escape') emit('close');
 }
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
+onMounted(() => document.addEventListener('keydown', onKeydown));
+onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 </script>
 
 <template>
@@ -37,7 +37,9 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
               }}
             </p>
           </div>
-          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">×</button>
+          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">
+            ×
+          </button>
         </div>
 
         <!-- Items -->

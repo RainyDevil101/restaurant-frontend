@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Product } from '@/shared/types'
-import Badge from '@/shared/components/Badge.vue'
+import type { Product } from '@/shared/types';
+import Badge from '@/shared/components/Badge.vue';
 
-const props = defineProps<{ product: Product }>()
-const emit = defineEmits<{ add: [] }>()
+const props = defineProps<{ product: Product }>();
+const emit = defineEmits<{ add: [] }>();
 
 function handleAdd() {
-  if (!props.product.available) return
-  emit('add')
+  if (!props.product.available) return;
+  emit('add');
 }
 </script>
 
@@ -15,12 +15,7 @@ function handleAdd() {
   <div class="product-row" :class="{ disabled: !product.available }">
     <span class="product-name">{{ product.name }}</span>
     <Badge v-if="!product.available" tone="gray" class="status-badge">Desactivado</Badge>
-    <button
-      v-else
-      class="add-btn"
-      :aria-label="`Agregar ${product.name}`"
-      @click="handleAdd"
-    >
+    <button v-else class="add-btn" :aria-label="`Agregar ${product.name}`" @click="handleAdd">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"

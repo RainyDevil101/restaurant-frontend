@@ -1,90 +1,90 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Ref } from 'vue'
-import ModalDialog from './ModalDialog.vue'
-import AdminFormField from './AdminFormField.vue'
-import type { Area, Category } from '@/shared/types'
-import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants'
+import { computed } from 'vue';
+import type { Ref } from 'vue';
+import ModalDialog from './ModalDialog.vue';
+import AdminFormField from './AdminFormField.vue';
+import type { Area, Category } from '@/shared/types';
+import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants';
 
 interface InlineAreaState {
-  creating: Ref<boolean>
-  inputName: Ref<string>
-  error: Ref<string>
-  submit: () => Promise<void>
+  creating: Ref<boolean>;
+  inputName: Ref<string>;
+  error: Ref<string>;
+  submit: () => Promise<void>;
 }
 
 interface InlineCatState {
-  creating: Ref<boolean>
-  inputName: Ref<string>
-  inputAreaId: Ref<string>
-  error: Ref<string>
-  submit: () => Promise<void>
+  creating: Ref<boolean>;
+  inputName: Ref<string>;
+  inputAreaId: Ref<string>;
+  error: Ref<string>;
+  submit: () => Promise<void>;
 }
 
 interface ProductForm {
-  name: string
-  description: string
-  price: number
-  categoryId: string
+  name: string;
+  description: string;
+  price: number;
+  categoryId: string;
 }
 
 const props = defineProps<{
-  open: boolean
-  editingId: string | null
-  saving: boolean
-  error: string
-  form: ProductForm
-  categories: Category[]
-  areas: Area[]
-  inlineArea: InlineAreaState
-  inlineCat: InlineCatState
-}>()
+  open: boolean;
+  editingId: string | null;
+  saving: boolean;
+  error: string;
+  form: ProductForm;
+  categories: Category[];
+  areas: Area[];
+  inlineArea: InlineAreaState;
+  inlineCat: InlineCatState;
+}>();
 
 const emit = defineEmits<{
-  close: []
-  submit: []
-  'clamp-price': []
-  'update:form': [patch: Partial<ProductForm>]
-  'update:inlineAreaInput': [value: string]
-  'update:inlineCatInput': [value: string]
-  'update:inlineCatArea': [value: string]
-}>()
+  close: [];
+  submit: [];
+  'clamp-price': [];
+  'update:form': [patch: Partial<ProductForm>];
+  'update:inlineAreaInput': [value: string];
+  'update:inlineCatInput': [value: string];
+  'update:inlineCatArea': [value: string];
+}>();
 
 const formName = computed({
   get: () => props.form.name,
   set: (v: string) => emit('update:form', { name: v }),
-})
+});
 const formDescription = computed({
   get: () => props.form.description,
   set: (v: string) => emit('update:form', { description: v }),
-})
+});
 const formPrice = computed({
   get: () => props.form.price,
   set: (v: number) => emit('update:form', { price: v }),
-})
+});
 const formCategoryId = computed({
   get: () => props.form.categoryId,
   set: (v: string) => emit('update:form', { categoryId: v }),
-})
+});
 
 const inlineAreaInputName = computed({
   get: () => props.inlineArea.inputName.value,
   set: (v: string) => emit('update:inlineAreaInput', v),
-})
+});
 
 const inlineCatInputName = computed({
   get: () => props.inlineCat.inputName.value,
   set: (v: string) => emit('update:inlineCatInput', v),
-})
+});
 
 const inlineCatAreaId = computed({
   get: () => props.inlineCat.inputAreaId.value,
   set: (v: string) => emit('update:inlineCatArea', v),
-})
+});
 
-const showInline = computed(() => props.categories.length === 0 && !props.editingId)
-const needsArea = computed(() => showInline.value && props.areas.length === 0)
-const canCreateCat = computed(() => showInline.value && props.areas.length > 0)
+const showInline = computed(() => props.categories.length === 0 && !props.editingId);
+const needsArea = computed(() => showInline.value && props.areas.length === 0);
+const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
 </script>
 
 <template>
@@ -116,10 +116,7 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0)
       />
     </AdminFormField>
 
-    <AdminFormField
-      :label="'Categoría'"
-      :for="showInline ? 'inline-cat-input' : 'prod-cat'"
-    >
+    <AdminFormField :label="'Categoría'" :for="showInline ? 'inline-cat-input' : 'prod-cat'">
       <!-- No categories: cascaded inline creation -->
       <template v-if="showInline">
         <div class="no-cat-notice" role="alert">
@@ -146,7 +143,9 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0)
             <button
               type="button"
               class="inline-btn"
-              :disabled="props.inlineArea.creating.value || !props.inlineArea.inputName.value.trim()"
+              :disabled="
+                props.inlineArea.creating.value || !props.inlineArea.inputName.value.trim()
+              "
               @click="props.inlineArea.submit()"
             >
               {{ props.inlineArea.creating.value ? 'Creando...' : '+ Crear área' }}

@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import type { Category } from '@/shared/types'
+import type { Category } from '@/shared/types';
 
 withDefaults(
   defineProps<{
-    modelValue: string | null
-    categories: Category[]
-    dark?: boolean
-    wrap?: boolean
+    modelValue: string | null;
+    categories: Category[];
+    dark?: boolean;
+    wrap?: boolean;
   }>(),
   { dark: false, wrap: false },
-)
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | null]
-}>()
+  'update:modelValue': [value: string | null];
+}>();
 </script>
 
 <template>

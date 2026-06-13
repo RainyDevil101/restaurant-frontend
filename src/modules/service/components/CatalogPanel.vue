@@ -1,35 +1,36 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Product, Category, Menu } from '@/shared/types'
-import CategoryTabs from './CategoryTabs.vue'
-import ProductRow from './ProductRow.vue'
-import ComboRow from './ComboRow.vue'
+import { computed } from 'vue';
+import type { Product, Category, Menu } from '@/shared/types';
+import CategoryTabs from './CategoryTabs.vue';
+import ProductRow from './ProductRow.vue';
+import ComboRow from './ComboRow.vue';
 
 const props = defineProps<{
-  products: Product[]
-  categories: Category[]
-  combos: Menu[]
-  loading: boolean
-  error: string
-}>()
+  products: Product[];
+  categories: Category[];
+  combos: Menu[];
+  loading: boolean;
+  error: string;
+}>();
 
 const emit = defineEmits<{
-  'add-product': [product: Product]
-  'add-combo': [menu: Menu]
-}>()
+  'add-product': [product: Product];
+  'add-combo': [menu: Menu];
+}>();
 
-const searchQuery = defineModel<string>('searchQuery', { required: true })
-const selectedCategoryId = defineModel<string | null>('selectedCategoryId', { required: true })
+const searchQuery = defineModel<string>('searchQuery', { required: true });
+const selectedCategoryId = defineModel<string | null>('selectedCategoryId', { required: true });
 
 const filteredProducts = computed(() =>
   props.products.filter((p) => {
-    if (selectedCategoryId.value !== null && p.categoryId !== selectedCategoryId.value) return false
-    const q = searchQuery.value.trim().toLowerCase()
+    if (selectedCategoryId.value !== null && p.categoryId !== selectedCategoryId.value)
+      return false;
+    const q = searchQuery.value.trim().toLowerCase();
     if (q && !p.name.toLowerCase().includes(q) && !p.description?.toLowerCase().includes(q))
-      return false
-    return true
+      return false;
+    return true;
   }),
-)
+);
 </script>
 
 <template>

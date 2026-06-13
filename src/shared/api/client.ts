@@ -1,68 +1,68 @@
-import { getToken, clearSession } from '@/shared/session'
-import { Route } from '@/shared/types'
+import { getToken, clearSession } from '@/shared/session';
+import { Route } from '@/shared/types';
 
-const BASE_URL = import.meta.env.VITE_API_URL
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface ApiErrorBody {
-  statusCode: number
-  error: string
-  message: string | string[]
+  statusCode: number;
+  error: string;
+  message: string | string[];
 }
 
 export class ApiRequestError extends Error {
-  readonly statusCode: number
-  readonly body: ApiErrorBody | null
+  readonly statusCode: number;
+  readonly body: ApiErrorBody | null;
 
   constructor(message: string, statusCode: number, body: ApiErrorBody | null) {
-    super(message)
-    this.name = 'ApiRequestError'
-    this.statusCode = statusCode
-    this.body = body
+    super(message);
+    this.name = 'ApiRequestError';
+    this.statusCode = statusCode;
+    this.body = body;
   }
 }
 
 interface RequestOptions {
-  method?: string
-  body?: unknown
-  auth?: boolean
-  keepSessionOnUnauthorized?: boolean
+  method?: string;
+  body?: unknown;
+  auth?: boolean;
+  keepSessionOnUnauthorized?: boolean;
 }
 
 function messageFrom(body: ApiErrorBody | null, status: number): string {
-  if (!body) return `Error ${status}`
-  return Array.isArray(body.message) ? body.message.join(', ') : body.message
+  if (!body) return `Error ${status}`;
+  return Array.isArray(body.message) ? body.message.join(', ') : body.message;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = true, keepSessionOnUnauthorized = false } = options
-  const headers: Record<string, string> = {}
+  const { method = 'GET', body, auth = true, keepSessionOnUnauthorized = false } = options;
+  const headers: Record<string, string> = {};
 
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (auth) {
-    const token = getToken()
-    if (token) headers.Authorization = `Bearer ${token}`
+    const token = getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
-  })
+  });
 
-  if (response.status === 204) return undefined as T
+  if (response.status === 204) return undefined as T;
 
-  const data: unknown = await response.json().catch(() => null)
+  const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const errorBody = data as ApiErrorBody | null
+    const errorBody = data as ApiErrorBody | null;
     if (response.status === 401 && auth && !keepSessionOnUnauthorized) {
-      clearSession()
-      if (window.location.pathname !== Route.LOGIN) window.location.assign(Route.LOGIN)
+      clearSession();
+      if (window.location.pathname !== Route.LOGIN) window.location.assign(Route.LOGIN);
     }
-    throw new ApiRequestError(messageFrom(errorBody, response.status), response.status, errorBody)
+    throw new ApiRequestError(messageFrom(errorBody, response.status), response.status, errorBody);
   }
 
-  return data as T
+  return data as T;
 }
 
 export const api = {
@@ -76,4 +76,4 @@ export const api = {
   put: <T>(path: string, body?: unknown, auth = true) =>
     request<T>(path, { method: 'PUT', body, auth }),
   delete: <T>(path: string, auth = true) => request<T>(path, { method: 'DELETE', auth }),
-}
+};

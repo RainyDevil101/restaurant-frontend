@@ -1,6 +1,6 @@
-import type { Product } from './product'
+import type { Product } from './product';
 
-export type OrderStatus = 'pendiente' | 'en_proceso' | 'listo' | 'entregado' | 'cancelado'
+export type OrderStatus = 'pendiente' | 'en_proceso' | 'listo' | 'entregado' | 'cancelado';
 
 export const ORDER_STATUS = {
   PENDING: 'pendiente' as OrderStatus,
@@ -8,20 +8,20 @@ export const ORDER_STATUS = {
   READY: 'listo' as OrderStatus,
   DELIVERED: 'entregado' as OrderStatus,
   CANCELLED: 'cancelado' as OrderStatus,
-} as const
+} as const;
 
 export interface OrderItem {
-  id: string
-  product: Product
-  quantity: number
-  notes?: string
+  id: string;
+  product: Product;
+  quantity: number;
+  notes?: string;
 }
 
 export interface Order {
-  id: string
-  tableId: string
-  items: OrderItem[]
-  status: OrderStatus
-  createdAt: string
-  createdBy: string
+  id: string;
+  tableId: string;
+  items: OrderItem[];
+  status: OrderStatus;
+  createdAt: string;
+  createdBy: string;
 }

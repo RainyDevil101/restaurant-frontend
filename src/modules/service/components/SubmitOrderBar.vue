@@ -1,6 +1,6 @@
 <script setup lang="ts">
-defineProps<{ disabled: boolean; submitting: boolean }>()
-defineEmits<{ submit: [] }>()
+defineProps<{ disabled: boolean; submitting: boolean }>();
+defineEmits<{ submit: [] }>();
 </script>
 
 <template>

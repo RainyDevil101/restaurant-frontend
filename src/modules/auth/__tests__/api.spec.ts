@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Role } from '@/shared/types'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Role } from '@/shared/types';
 
 vi.mock('@/shared/api/client', () => ({
   api: {
     post: vi.fn<typeof import('@/shared/api/client').api.post>(),
   },
-}))
+}));
 
-import { api } from '@/shared/api/client'
-import { requestLogin } from '../api'
+import { api } from '@/shared/api/client';
+import { requestLogin } from '../api';
 
 const loginResponse = {
   accessToken: 'jwt-token',
@@ -21,36 +21,36 @@ const loginResponse = {
     active: true,
     isOwner: false,
   },
-}
+};
 
 describe('requestLogin', () => {
   beforeEach(() => {
-    vi.mocked(api.post).mockReset()
-  })
+    vi.mocked(api.post).mockReset();
+  });
 
   it('posts { email, credential } to /auth/login with auth disabled', async () => {
-    vi.mocked(api.post).mockResolvedValue(loginResponse)
+    vi.mocked(api.post).mockResolvedValue(loginResponse);
 
-    await requestLogin('ana@subito.mx', '1234')
+    await requestLogin('ana@subito.mx', '1234');
 
     expect(api.post).toHaveBeenCalledWith(
       '/auth/login',
       { email: 'ana@subito.mx', credential: '1234' },
       false,
-    )
-  })
+    );
+  });
 
   it('returns the { accessToken, tokenType, user } response', async () => {
-    vi.mocked(api.post).mockResolvedValue(loginResponse)
+    vi.mocked(api.post).mockResolvedValue(loginResponse);
 
-    const result = await requestLogin('ana@subito.mx', '1234')
+    const result = await requestLogin('ana@subito.mx', '1234');
 
-    expect(result).toEqual(loginResponse)
-  })
+    expect(result).toEqual(loginResponse);
+  });
 
   it('propagates a rejection from the API', async () => {
-    vi.mocked(api.post).mockRejectedValue(new Error('boom'))
+    vi.mocked(api.post).mockRejectedValue(new Error('boom'));
 
-    await expect(requestLogin('ana@subito.mx', '1234')).rejects.toThrow('boom')
-  })
-})
+    await expect(requestLogin('ana@subito.mx', '1234')).rejects.toThrow('boom');
+  });
+});

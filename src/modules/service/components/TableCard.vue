@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { colors } from '@/shared/styles/colors'
-import type { Table } from '@/shared/types'
+import { colors } from '@/shared/styles/colors';
+import type { Table } from '@/shared/types';
 
-defineProps<{ table: Table }>()
+defineProps<{ table: Table }>();
 </script>
 
 <template>
@@ -55,7 +55,13 @@ defineProps<{ table: Table }>()
   font-size: 0.875rem;
 }
 
-.libre      { background: v-bind('colors.table.free.bg'); }
-.ocupada    { background: v-bind('colors.table.occupied.bg'); }
-.por_cobrar { background: v-bind('colors.table.pendingPayment.bg'); }
+.libre {
+  background: v-bind('colors.table.free.bg');
+}
+.ocupada {
+  background: v-bind('colors.table.occupied.bg');
+}
+.por_cobrar {
+  background: v-bind('colors.table.pendingPayment.bg');
+}
 </style>

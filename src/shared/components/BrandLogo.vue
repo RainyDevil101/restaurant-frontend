@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { colors } from '@/shared/styles/colors'
-import { BRAND, BRAND_TAGLINE } from '@/shared/constants/brand'
+import { colors } from '@/shared/styles/colors';
+import { BRAND, BRAND_TAGLINE } from '@/shared/constants/brand';
 
 withDefaults(
   defineProps<{
     // CSS font-size for the wordmark (e.g. '2rem', '1.25rem')
-    size?: string
+    size?: string;
     // 'brand' = teal on light surfaces · 'onColor' = white on the teal bar
-    variant?: 'brand' | 'onColor'
+    variant?: 'brand' | 'onColor';
     // Show the "Gestión de pedidos" tagline beneath the name
-    tagline?: boolean
+    tagline?: boolean;
   }>(),
   { size: '1.375rem', variant: 'brand', tagline: false },
-)
+);
 </script>
 
 <template>

@@ -1,14 +1,14 @@
-import { Role } from '@/shared/types'
+import { Role } from '@/shared/types';
 
-export { Role }
+export { Role };
 
 export const ROLE_GROUPS = {
   SERVICE: [Role.MESERO, Role.ADMIN] as Role[],
   CHECKOUT: [Role.CAJERO, Role.ADMIN] as Role[],
   ADMIN: [Role.ADMIN] as Role[],
-} as const
+} as const;
 
-export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LOGIN_LABELS = {
   credentialLabel: 'Contraseña o PIN',
@@ -16,4 +16,4 @@ export const LOGIN_LABELS = {
   errorEmailInvalid: 'Ingresa un correo electrónico válido.',
   errorInvalidCredentials: 'Credenciales incorrectas.',
   errorNetwork: 'No se pudo conectar con el servidor.',
-} as const
+} as const;
