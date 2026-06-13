@@ -6,7 +6,7 @@ import { colors } from '@/shared/styles/colors'
 import { formatCurrency } from '../helpers/formatCurrency'
 import type { PaymentRow } from '../composables/usePayments'
 
-const props = defineProps<{ payment: PaymentRow }>()
+defineProps<{ payment: PaymentRow }>()
 const emit = defineEmits<{ close: [] }>()
 
 function onKeydown(e: KeyboardEvent) {

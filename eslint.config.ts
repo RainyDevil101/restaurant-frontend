@@ -36,6 +36,10 @@ export default defineConfigWithVueTs(
       'cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}',
       'cypress/support/**/*.{js,ts,jsx,tsx}',
     ],
+    rules: {
+      // Augmenting Cypress.Chainable requires an ambient namespace declaration.
+      '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
+    },
   },
 
   {
