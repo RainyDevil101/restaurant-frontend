@@ -30,6 +30,7 @@ withDefaults(
 }
 
 .brand-logo__name {
+  font-family: 'Poppins', system-ui, sans-serif;
   font-size: v-bind(size);
   font-weight: 800;
   letter-spacing: -0.02em;
