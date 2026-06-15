@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { colors } from '@/shared/styles/colors';
 
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 const POLL_MS = 30_000;
@@ -57,9 +58,9 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #fffbeb;
-  border-bottom: 1px solid #fcd34d;
-  color: #92400e;
+  background: v-bind('colors.feedback.warningBg');
+  border-bottom: 1px solid v-bind('colors.feedback.warningBorder');
+  color: v-bind('colors.feedback.warningText');
   font-size: 0.875rem;
   position: sticky;
   top: 0;
@@ -77,7 +78,8 @@ onUnmounted(() => {
 }
 
 .hint {
-  color: #b45309;
+  color: v-bind('colors.feedback.warningText');
+  opacity: 0.8;
 }
 
 .health-banner-enter-active,
