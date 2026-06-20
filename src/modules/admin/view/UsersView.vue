@@ -15,6 +15,15 @@ import { Role, useAuthStore, type User } from '@/modules/auth/store';
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PIN_RE = /^\d{6}$/;
+const PIN_LENGTH = 6;
+
+function onPinInput(e: Event) {
+  const el = e.target as HTMLInputElement;
+  const digits = el.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
+  form.credential = digits;
+  el.value = digits;
+}
 
 const auth = useAuthStore();
 const currentUserId = computed(() => auth.user?.id ?? '');
@@ -114,6 +123,10 @@ async function save() {
   }
   if (!editingId.value && !form.credential) {
     formError.value = ADMIN_LABELS.user.credentialRequired;
+    return;
+  }
+  if (form.credential && !PIN_RE.test(form.credential)) {
+    formError.value = ADMIN_LABELS.user.credentialInvalid;
     return;
   }
   await runSave(async () => {
@@ -217,15 +230,18 @@ async function confirmDelete() {
         </select>
       </AdminFormField>
 
-      <AdminFormField label="Contraseña" for="user-credential">
+      <AdminFormField label="PIN (6 dígitos)" for="user-credential">
         <input
           id="user-credential"
           v-model="form.credential"
-          type="password"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
           class="field-input"
-          autocomplete="new-password"
+          autocomplete="off"
           :required="!editingId"
-          :placeholder="editingId ? 'Dejar en blanco para no cambiar' : ''"
+          :placeholder="editingId ? 'Dejar en blanco para no cambiar' : '6 dígitos'"
+          @input="onPinInput"
         />
       </AdminFormField>
 

@@ -55,14 +55,14 @@ describe('useLogin', () => {
       tokenType: 'Bearer',
       user: makeUser(Role.MESERO),
     });
-    const { email, credential, submit } = await withSetup();
+    const { email, pin, submit } = await withSetup();
     email.value = 'ana@subito.mx';
-    credential.value = '1234';
+    pin.value = '123456';
 
     await submit();
     await flushPromises();
 
-    expect(requestLogin).toHaveBeenCalledWith('ana@subito.mx', '1234');
+    expect(requestLogin).toHaveBeenCalledWith('ana@subito.mx', '123456');
     expect(localStorage.getItem('subito.session')).not.toBeNull();
     expect(push).toHaveBeenCalledWith(Route.SERVICE);
   });
@@ -73,9 +73,9 @@ describe('useLogin', () => {
       tokenType: 'Bearer',
       user: makeUser(Role.CAJERO),
     });
-    const { email, credential, submit } = await withSetup();
+    const { email, pin, submit } = await withSetup();
     email.value = 'carlos@subito.mx';
-    credential.value = 'secret';
+    pin.value = '234567';
 
     await submit();
     await flushPromises();
@@ -89,14 +89,36 @@ describe('useLogin', () => {
       tokenType: 'Bearer',
       user: makeUser(Role.ADMIN),
     });
-    const { email, credential, submit } = await withSetup();
+    const { email, pin, submit } = await withSetup();
     email.value = '  Admin@Subito.MX  ';
-    credential.value = 'admin';
+    pin.value = '111111';
 
     await submit();
     await flushPromises();
 
-    expect(requestLogin).toHaveBeenCalledWith('admin@subito.mx', 'admin');
+    expect(requestLogin).toHaveBeenCalledWith('admin@subito.mx', '111111');
+  });
+
+  it('pressDigit appends digits and auto-submits once the PIN is complete', async () => {
+    vi.mocked(requestLogin).mockResolvedValue({
+      accessToken: 'tok',
+      tokenType: 'Bearer',
+      user: makeUser(Role.MESERO),
+    });
+    const { email, pin, pressDigit } = await withSetup();
+    email.value = 'ana@subito.mx';
+
+    for (const d of '123456') pressDigit(d);
+    await flushPromises();
+
+    expect(pin.value).toBe('123456');
+    expect(requestLogin).toHaveBeenCalledWith('ana@subito.mx', '123456');
+  });
+
+  it('pressDigit ignores extra digits beyond the PIN length', async () => {
+    const { pin, pressDigit } = await withSetup();
+    for (const d of '12345678') pressDigit(d);
+    expect(pin.value).toBe('123456');
   });
 
   it('toggles loading during submit and resets it after', async () => {
@@ -106,9 +128,9 @@ describe('useLogin', () => {
         resolveLogin = resolve;
       }),
     );
-    const { email, credential, loading, submit } = await withSetup();
+    const { email, pin, loading, submit } = await withSetup();
     email.value = 'ana@subito.mx';
-    credential.value = '1234';
+    pin.value = '123456';
 
     const pending = submit();
     expect(loading.value).toBe(true);
@@ -120,25 +142,26 @@ describe('useLogin', () => {
     expect(loading.value).toBe(false);
   });
 
-  it('surfaces an invalid-credentials error on a 401 and does not persist a session', async () => {
+  it('surfaces an invalid-credentials error on a 401 and clears the PIN', async () => {
     vi.mocked(requestLogin).mockRejectedValue(new ApiRequestError('Unauthorized', 401, null));
-    const { email, credential, error, submit } = await withSetup();
+    const { email, pin, error, submit } = await withSetup();
     email.value = 'ana@subito.mx';
-    credential.value = 'wrong';
+    pin.value = '123456';
 
     await submit();
     await flushPromises();
 
     expect(error.value).toBe(LOGIN_LABELS.errorInvalidCredentials);
+    expect(pin.value).toBe('');
     expect(localStorage.getItem('subito.session')).toBeNull();
     expect(push).not.toHaveBeenCalled();
   });
 
   it('surfaces the server message on a non-401 ApiRequestError', async () => {
     vi.mocked(requestLogin).mockRejectedValue(new ApiRequestError('Server exploded', 500, null));
-    const { email, credential, error, submit } = await withSetup();
+    const { email, pin, error, submit } = await withSetup();
     email.value = 'ana@subito.mx';
-    credential.value = '1234';
+    pin.value = '123456';
 
     await submit();
     await flushPromises();
@@ -149,9 +172,9 @@ describe('useLogin', () => {
 
   it('surfaces a network error when the failure is not an ApiRequestError', async () => {
     vi.mocked(requestLogin).mockRejectedValue(new TypeError('Failed to fetch'));
-    const { email, credential, error, submit } = await withSetup();
+    const { email, pin, error, submit } = await withSetup();
     email.value = 'ana@subito.mx';
-    credential.value = '1234';
+    pin.value = '123456';
 
     await submit();
     await flushPromises();
@@ -169,7 +192,7 @@ describe('useLogin', () => {
     expect(requestLogin).not.toHaveBeenCalled();
   });
 
-  it('rejects submit when the credential is empty', async () => {
+  it('rejects submit when the PIN is empty', async () => {
     const { email, error, submit } = await withSetup();
     email.value = 'ana@subito.mx';
 
@@ -179,10 +202,21 @@ describe('useLogin', () => {
     expect(requestLogin).not.toHaveBeenCalled();
   });
 
+  it('rejects submit when the PIN is incomplete', async () => {
+    const { email, pin, error, submit } = await withSetup();
+    email.value = 'ana@subito.mx';
+    pin.value = '123';
+
+    await submit();
+
+    expect(error.value).toBe(LOGIN_LABELS.errorPinIncomplete);
+    expect(requestLogin).not.toHaveBeenCalled();
+  });
+
   it('rejects a malformed email without calling the API', async () => {
-    const { email, credential, error, submit } = await withSetup();
+    const { email, pin, error, submit } = await withSetup();
     email.value = 'not-an-email';
-    credential.value = '1234';
+    pin.value = '123456';
 
     await submit();
 
@@ -198,14 +232,14 @@ describe('useLogin', () => {
         tokenType: 'Bearer',
         user: makeUser(Role.MESERO),
       });
-    const { email, credential, error, submit } = await withSetup();
+    const { email, pin, error, submit } = await withSetup();
     email.value = 'ana@subito.mx';
-    credential.value = 'wrong';
+    pin.value = '123456';
     await submit();
     await flushPromises();
     expect(error.value).toBe(LOGIN_LABELS.errorInvalidCredentials);
 
-    credential.value = '1234';
+    pin.value = '123456';
     await submit();
     await flushPromises();
     expect(error.value).toBe('');

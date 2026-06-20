@@ -135,6 +135,7 @@ async function handleConfirm() {
                 type="number"
                 min="0"
                 :placeholder="billTotal.toString()"
+                @focus="($event.target as HTMLInputElement).select()"
               />
             </div>
           </div>

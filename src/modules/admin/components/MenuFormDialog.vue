@@ -78,6 +78,7 @@ function getQuantity(productId: string): number {
         step="1"
         required
         @input="emit('clamp-price')"
+        @focus="($event.target as HTMLInputElement).select()"
       />
     </AdminFormField>
     <AdminFormField :label="productsLabel" for="menu-products">

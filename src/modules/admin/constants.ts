@@ -23,7 +23,8 @@ export const ADMIN_LABELS = {
     nameRequired: 'El nombre del usuario es obligatorio.',
     emailRequired: 'El correo electrónico es obligatorio.',
     emailInvalid: 'Ingresa un correo electrónico válido.',
-    credentialRequired: 'La contraseña o PIN es obligatorio para usuarios nuevos.',
+    credentialRequired: 'El PIN es obligatorio para usuarios nuevos.',
+    credentialInvalid: 'El PIN debe ser de 6 dígitos numéricos.',
   },
   table: {
     nameRequired: 'El nombre de la mesa es obligatorio.',

@@ -10,10 +10,13 @@ export const ROLE_GROUPS = {
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export const PIN_LENGTH = 6;
+
 export const LOGIN_LABELS = {
-  credentialLabel: 'Contraseña o PIN',
-  errorFieldsRequired: 'Ingresa tu correo y credencial.',
+  pinLabel: 'PIN',
+  errorFieldsRequired: 'Ingresa tu correo y PIN.',
   errorEmailInvalid: 'Ingresa un correo electrónico válido.',
+  errorPinIncomplete: 'El PIN debe tener 6 dígitos.',
   errorInvalidCredentials: 'Credenciales incorrectas.',
   errorNetwork: 'No se pudo conectar con el servidor.',
 } as const;

@@ -13,15 +13,9 @@ const props = defineProps<{
 </template>
 
 <script lang="ts">
-// .field-input styles are intentionally NOT scoped here.
-// The <input> / <select> rendered inside the slot lives in the
-// parent view's scope, so scoped styles from this component
-// would not reach it. Making this block un-scoped turns .field-input
-// into a global utility class that every admin view can rely on.
 </script>
 
 <style>
-/* Global — see note in <script lang="ts"> above */
 .field-input {
   width: 100%;
   padding: 10px 12px;

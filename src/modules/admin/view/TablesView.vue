@@ -146,6 +146,7 @@ async function confirmDelete() {
           step="1"
           required
           @input="clampCapacity"
+          @focus="($event.target as HTMLInputElement).select()"
         />
       </AdminFormField>
     </ModalDialog>
