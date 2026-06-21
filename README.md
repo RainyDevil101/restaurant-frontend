@@ -1,70 +1,47 @@
-# restaurant-frontend
+# Subito — Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Interfaz web de **Subito**, un sistema de gestión de pedidos para restaurantes (proyecto de título) que reemplaza la toma de pedidos en papel. Tiene tres modos según el rol:
 
-## Recommended IDE Setup
+- **Mesero:** toma pedidos desde el celular (vista móvil).
+- **Cajero:** ve los pedidos en tiempo real, consolida la cuenta de cada mesa y cobra.
+- **Administrador:** configura productos, categorías, menús, mesas, áreas, usuarios e impresoras.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Esta app es solo el cliente: consume la API y el canal en tiempo real del backend (`restaurant-backend`).
 
-## Recommended Browser Setup
+## Stack
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+Vue 3 (`<script setup>`) + TypeScript + Vite + Pinia + Vue Router. PWA instalable. Tiempo real con Socket.IO.
 
-## Type Support for `.vue` Imports in TS
+## Requisitos
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+- Node `^20.19.0 || >=22.12.0`
+- pnpm
+- El backend corriendo (por defecto en `http://localhost:3000`)
 
-## Customize configuration
+## Cómo iniciar
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```bash
 pnpm install
+cp .env.example .env        # ajusta VITE_API_URL si tu backend no está en :3000
+pnpm dev                    # servidor de desarrollo en http://localhost:5173
 ```
 
-### Compile and Hot-Reload for Development
+`VITE_API_URL` apunta a la API del backend (`<origin>/api`, por defecto `http://localhost:3000/api`). La URL del WebSocket se deriva sola de esa variable. Ojo: las variables `VITE_*` se hornean en el **build**, no se leen en runtime.
 
-```sh
-pnpm dev
-```
+### Cuentas de prueba (las crea el seed del backend)
 
-### Type-Check, Compile and Minify for Production
+| Rol | Email | Credencial |
+|---|---|---|
+| Administrador | `admin@subito.cl` | `111111` |
+| Cajero | `carlos@subito.cl` | `234567` |
+| Mesero | `ana@subito.cl` | `123456` |
 
-```sh
-pnpm build
-```
+## Otros comandos
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-pnpm test:unit
-```
-
-### Run End-to-End Tests with [Cypress](https://www.cypress.io/)
-
-```sh
-pnpm test:e2e:dev
-```
-
-This runs the end-to-end tests against the Vite development server.
-It is much faster than the production build.
-
-But it's still recommended to test the production build with `test:e2e` before deploying (e.g. in CI environments):
-
-```sh
-pnpm build
-pnpm test:e2e
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
+```bash
+pnpm build          # type-check + build de producción
+pnpm preview        # previsualiza el build en http://localhost:4173
+pnpm test:unit      # tests unitarios (Vitest)
+pnpm test:e2e       # tests end-to-end (Cypress) sobre el build
+pnpm lint           # oxlint + eslint
 ```
