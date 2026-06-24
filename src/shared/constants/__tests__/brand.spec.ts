@@ -25,6 +25,7 @@ describe('brand constants', () => {
       USUARIOS: 'Usuarios',
       PAGOS: 'Pagos',
       CONFIGURACION: 'Configuración',
+      MANUAL: 'Manual',
     });
   });
 });

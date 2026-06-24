@@ -125,8 +125,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 }
 
 .modal-subtitle {
-  font-size: 0.8rem;
-  color: v-bind('colors.neutral.muted');
+  font-size: var(--font-xs);
+  color: v-bind('colors.neutral.mutedText');
   margin-top: 2px;
 }
 
@@ -135,7 +135,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
   border: none;
   font-size: 1.5rem;
   line-height: 1;
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
   padding: 0 4px;
   flex-shrink: 0;
 }
@@ -186,7 +186,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 .item-qty {
   font-size: 0.875rem;
   font-weight: 600;
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
   min-width: 24px;
   flex-shrink: 0;
 }

@@ -1,19 +1,23 @@
 <script setup lang="ts">
+import { useId } from 'vue';
+import { colors } from '@/shared/styles/colors';
+
 const props = defineProps<{
   label: string;
   for: string;
+  error?: string;
 }>();
+
+const errorId = useId();
 </script>
 
 <template>
   <div class="field">
     <label class="field-label" :for="props.for">{{ props.label }}</label>
-    <slot />
+    <slot :error-id="props.error ? errorId : undefined" :invalid="Boolean(props.error)" />
+    <p v-if="props.error" :id="errorId" class="field-error" role="alert">{{ props.error }}</p>
   </div>
 </template>
-
-<script lang="ts">
-</script>
 
 <style>
 .field-input {
@@ -24,7 +28,6 @@ const props = defineProps<{
   font-size: 0.95rem;
   color: #111827;
   font-family: inherit;
-  outline: none;
   transition: border-color 0.15s;
   background: white;
 }
@@ -45,5 +48,10 @@ const props = defineProps<{
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
+}
+
+.field-error {
+  font-size: var(--font-xs);
+  color: v-bind('colors.feedback.error');
 }
 </style>

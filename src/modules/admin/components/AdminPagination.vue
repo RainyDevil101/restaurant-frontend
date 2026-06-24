@@ -74,7 +74,6 @@ defineEmits<{
   color: #111827;
   font-family: inherit;
   background: white;
-  outline: none;
 }
 
 .page-size-select:focus {
@@ -94,8 +93,8 @@ defineEmits<{
 }
 
 .page-btn {
-  width: 34px;
-  height: 34px;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,7 +102,7 @@ defineEmits<{
   color: #374151;
   border: none;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
 }
 
 .page-btn:hover:not(:disabled) {

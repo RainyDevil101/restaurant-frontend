@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Category } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
+import { colors } from '@/shared/styles/colors';
 import type { OrderEntry } from '../composables/useOrder';
 import { categoryColor, categoryName } from '../helpers/categoryColor';
 
@@ -81,8 +82,8 @@ const emit = defineEmits<{ add: []; remove: [] }>();
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.78rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .category-dot {
@@ -106,6 +107,8 @@ const emit = defineEmits<{ add: []; remove: [] }>();
 .qty-btn {
   width: 32px;
   height: 32px;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border-radius: 8px;
   border: 1.5px solid #e0e0e0;
   background: white;

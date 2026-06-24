@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Product } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
+import { colors } from '@/shared/styles/colors';
 
 const props = defineProps<{ product: Product }>();
 const emit = defineEmits<{ add: [] }>();
@@ -41,7 +42,7 @@ function handleAdd() {
 }
 
 .product-row.disabled .product-name {
-  color: #b0b0b0;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .product-name {
@@ -58,6 +59,8 @@ function handleAdd() {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border-radius: 8px;
   border: 1.5px solid #e0e0e0;
   background: white;

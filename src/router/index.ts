@@ -6,6 +6,7 @@ import { authRoutes } from '@/modules/auth/route';
 import { serviceRoutes } from '@/modules/service/route';
 import { checkoutRoutes } from '@/modules/checkout/route';
 import { adminRoutes } from '@/modules/admin/route';
+import { manualRoutes } from '@/modules/manual/route';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -21,6 +22,7 @@ const router = createRouter({
     ...serviceRoutes,
     ...checkoutRoutes,
     ...adminRoutes,
+    ...manualRoutes,
     { path: '/:pathMatch(.*)*', redirect: Route.LOGIN },
   ],
 });

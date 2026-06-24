@@ -228,12 +228,12 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
 }
 
 .no-cat-hint {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: #b45309;
 }
 
 .inline-step-label {
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -264,7 +264,7 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   white-space: nowrap;
   transition: background 0.15s;
@@ -281,7 +281,7 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
 }
 
 .inline-error {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: #dc2626;
   margin-top: 2px;
   margin-bottom: 8px;

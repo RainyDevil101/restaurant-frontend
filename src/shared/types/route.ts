@@ -13,4 +13,6 @@ export enum Route {
   ADMIN_USERS = '/admin/users',
   ADMIN_PAYMENTS = '/admin/payments',
   ADMIN_SETTINGS = '/admin/settings',
+
+  MANUAL = '/manual',
 }

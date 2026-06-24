@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, useId } from 'vue';
+import { colors } from '@/shared/styles/colors';
 
 defineProps<{ title: string; saving?: boolean; error?: string }>();
 const emit = defineEmits<{ close: []; submit: [] }>();
 
 const modalEl = ref<HTMLElement | null>(null);
+const titleId = useId();
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -48,10 +50,16 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
-    <div class="modal-overlay" role="dialog" aria-modal="true" @click.self="emit('close')">
+    <div
+      class="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="titleId"
+      @click.self="emit('close')"
+    >
       <div ref="modalEl" class="modal">
         <div class="modal-header">
-          <h2 class="modal-title">{{ title }}</h2>
+          <h2 :id="titleId" class="modal-title">{{ title }}</h2>
           <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">
             ×
           </button>
@@ -113,12 +121,16 @@ onBeforeUnmount(() => {
 }
 
 .close-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   background: none;
   border: none;
   font-size: 1.5rem;
   line-height: 1;
-  color: #9ca3af;
-  padding: 0 4px;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .close-x:hover {

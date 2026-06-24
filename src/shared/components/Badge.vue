@@ -3,6 +3,8 @@ export type BadgeTone = 'gray' | 'blue' | 'green' | 'amber' | 'red' | 'purple' |
 </script>
 
 <script setup lang="ts">
+import { colors } from '@/shared/styles/colors';
+
 withDefaults(
   defineProps<{
     tone?: BadgeTone;
@@ -20,7 +22,7 @@ withDefaults(
 <style scoped>
 .badge {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 20px;
@@ -43,8 +45,8 @@ withDefaults(
 }
 
 .badge--amber {
-  background: #fef3cd;
-  color: #92690a;
+  background: v-bind('colors.badge.amber.bg');
+  color: v-bind('colors.badge.amber.text');
 }
 
 .badge--red {

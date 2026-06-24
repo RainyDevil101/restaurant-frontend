@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { colors } from '@/shared/styles/colors';
 
 const props = defineProps<{ orderId: string; saving?: boolean; error?: string }>();
 const emit = defineEmits<{
@@ -129,7 +130,7 @@ function onSubmit() {
   border: none;
   font-size: 1.5rem;
   line-height: 1;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
   padding: 0 4px;
 }
 
@@ -156,7 +157,7 @@ function onSubmit() {
 }
 
 .field-label {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #374151;
 }
@@ -171,7 +172,6 @@ function onSubmit() {
 }
 
 .input:focus {
-  outline: none;
   border-color: var(--color-primary);
 }
 

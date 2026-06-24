@@ -216,11 +216,12 @@ async function confirmDelete() {
 
 .action-btn {
   padding: 5px 12px;
+  min-height: 2.75rem;
   background: #f3f4f6;
   color: #374151;
   border: none;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: var(--font-xs);
   font-weight: 600;
 }
 
@@ -259,7 +260,7 @@ async function confirmDelete() {
 }
 
 .notice-hint {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: #b45309;
 }
 
@@ -275,7 +276,7 @@ async function confirmDelete() {
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -292,7 +293,7 @@ async function confirmDelete() {
 }
 
 .inline-error {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: #dc2626;
   margin-top: 4px;
 }

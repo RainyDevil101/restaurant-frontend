@@ -86,7 +86,7 @@ const { tables, loading, error } = useTables();
 .state-msg {
   padding: 2rem 0;
   text-align: center;
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
   font-size: 0.9rem;
 }
 </style>
