@@ -2,6 +2,7 @@
 import Badge from '@/shared/components/Badge.vue';
 import type { ApiOrder } from '@/shared/api/orders';
 import { ORDER_STATUS } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
 
 defineProps<{
@@ -69,7 +70,7 @@ function itemCount(order: ApiOrder): number {
 .header {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #888;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .error {
@@ -135,8 +136,8 @@ function itemCount(order: ApiOrder): number {
 }
 
 .count {
-  font-size: 0.8125rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .deliver-btn {

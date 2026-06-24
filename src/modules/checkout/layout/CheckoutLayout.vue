@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store';
 import { Role, Route } from '@/shared/types';
 import BrandLogo from '@/shared/components/BrandLogo.vue';
+import { colors } from '@/shared/styles/colors';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -39,6 +40,21 @@ function logout() {
           <span class="live-dot" aria-hidden="true" />
           <span>En vivo</span>
         </div>
+        <button class="help-btn" aria-label="Abrir manual" @click="router.push(Route.MANUAL)">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            width="16"
+            height="16"
+            aria-hidden="true"
+          >
+            <path
+              d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"
+            />
+          </svg>
+          <span>Manual</span>
+        </button>
         <div class="user-info">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +74,7 @@ function logout() {
       </div>
     </header>
 
-    <main class="content">
+    <main id="main" tabindex="-1" class="content">
       <RouterView />
     </main>
   </div>
@@ -92,7 +108,7 @@ function logout() {
 
 .brand-section {
   font-size: 1rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .header-right {
@@ -144,7 +160,7 @@ function logout() {
   border: 1.5px solid #e5e7eb;
   border-radius: 6px;
   padding: 5px 10px;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #6b7280;
   transition:
@@ -157,12 +173,34 @@ function logout() {
   color: #374151;
 }
 
+.help-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 2.75rem;
+  background: none;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: v-bind('colors.neutral.mutedText');
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.help-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
 .logout-btn {
   background: none;
   border: 1.5px solid #fecaca;
   border-radius: 6px;
   padding: 5px 12px;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #dc2626;
   transition: background 0.12s;

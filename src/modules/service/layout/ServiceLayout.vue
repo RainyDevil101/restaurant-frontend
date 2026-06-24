@@ -54,11 +54,25 @@ function logout() {
           </svg>
         </div>
         <span class="user-name">{{ auth.user?.name }}</span>
+        <button class="help-btn" aria-label="Abrir manual" @click="router.push(Route.MANUAL)">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            width="22"
+            height="22"
+            aria-hidden="true"
+          >
+            <path
+              d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"
+            />
+          </svg>
+        </button>
         <button class="logout-btn" aria-label="Cerrar sesión" @click="logout">Salir</button>
       </div>
     </header>
 
-    <main class="content">
+    <main id="main" tabindex="-1" class="content">
       <RouterView />
     </main>
   </div>
@@ -127,6 +141,22 @@ function logout() {
 .user-name {
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  background: none;
+  border: none;
+  color: white;
+  border-radius: 6px;
+}
+
+.help-btn:active {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .logout-btn {

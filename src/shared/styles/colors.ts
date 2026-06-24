@@ -10,6 +10,7 @@ export const colors = {
     textStrong: '#111827',
     textMedium: '#374151',
     secondary: '#6B7280',
+    mutedText: '#6B7280',
     muted: '#9CA3AF',
     border: '#E5E7EB',
     borderSubtle: '#F3F4F6',
@@ -42,6 +43,10 @@ export const colors = {
   area: {
     comedor: { text: '#475569', bg: '#F1F5F9' },
     bar: { text: '#7E22CE', bg: '#F3E8FF' },
+  },
+
+  badge: {
+    amber: { text: '#7A560A', bg: '#FEF3CD' },
   },
 
   category: {

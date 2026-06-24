@@ -27,4 +27,5 @@ export const ROUTE_TITLES = {
   USUARIOS: 'Usuarios',
   PAGOS: 'Pagos',
   CONFIGURACION: 'Configuración',
+  MANUAL: 'Manual',
 } as const;

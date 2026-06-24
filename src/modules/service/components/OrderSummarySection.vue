@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Category } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
 import type { OrderEntry } from '../composables/useOrder';
 import OrderItemRow from './OrderItemRow.vue';
 
@@ -59,14 +60,14 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #888;
+  color: v-bind('colors.neutral.mutedText');
   font-size: 0.875rem;
 }
 
 .item-count {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #888;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .order-items {

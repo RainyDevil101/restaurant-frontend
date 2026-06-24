@@ -21,6 +21,7 @@ const navItems = [
   { label: 'Usuarios', to: Route.ADMIN_USERS },
   { label: 'Pagos', to: Route.ADMIN_PAYMENTS },
   { label: 'Configuraciones', to: Route.ADMIN_SETTINGS },
+  { label: 'Manual', to: Route.MANUAL },
 ];
 </script>
 
@@ -67,7 +68,7 @@ const navItems = [
     </aside>
 
     <!-- Content area -->
-    <main class="content">
+    <main id="main" tabindex="-1" class="content">
       <RouterView />
     </main>
   </div>
@@ -137,6 +138,7 @@ const navItems = [
 .mode-btn {
   width: 100%;
   padding: 10px;
+  min-height: 2.75rem;
   background: white;
   border: 1.5px solid #e5e7eb;
   border-radius: 8px;
@@ -163,6 +165,7 @@ const navItems = [
 .logout-btn {
   width: 100%;
   padding: 10px;
+  min-height: 2.75rem;
   background: white;
   border: 1.5px solid #fecaca;
   border-radius: 8px;

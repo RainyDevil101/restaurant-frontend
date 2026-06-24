@@ -175,7 +175,7 @@ const columns = computed<Column<PaymentRow>[]>(() => [
 }
 
 .change-na {
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .detail-btn {
@@ -183,7 +183,8 @@ const columns = computed<Column<PaymentRow>[]>(() => [
   border: 1.5px solid v-bind('colors.neutral.border');
   border-radius: 8px;
   padding: 5px 12px;
-  font-size: 0.8rem;
+  min-height: 2.75rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: v-bind('colors.neutral.textMedium');
   transition:

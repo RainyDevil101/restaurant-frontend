@@ -173,7 +173,7 @@ async function confirmDelete() {
 }
 
 .status-inactive {
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .row-actions {
@@ -184,11 +184,12 @@ async function confirmDelete() {
 
 .action-btn {
   padding: 5px 12px;
+  min-height: 2.75rem;
   background: v-bind('colors.neutral.borderSubtle');
   color: v-bind('colors.neutral.textMedium');
   border: none;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   cursor: pointer;
 }

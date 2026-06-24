@@ -4,6 +4,7 @@ import type { Product, Category, Menu } from '@/shared/types';
 import CategoryTabs from './CategoryTabs.vue';
 import ProductRow from './ProductRow.vue';
 import ComboRow from './ComboRow.vue';
+import { colors } from '@/shared/styles/colors';
 
 const props = defineProps<{
   products: Product[];
@@ -114,21 +115,20 @@ const filteredProducts = computed(() =>
 
 .search-icon {
   flex-shrink: 0;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .search-input {
   flex: 1;
   background: none;
   border: none;
-  outline: none;
   font-size: 0.9rem;
   color: #1a1a1a;
   font-family: inherit;
 }
 
 .search-input::placeholder {
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .divider {
@@ -145,7 +145,7 @@ const filteredProducts = computed(() =>
 .empty-msg {
   padding: 1.5rem 0;
   text-align: center;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
   font-size: 0.9rem;
 }
 

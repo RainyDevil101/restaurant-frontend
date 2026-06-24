@@ -9,6 +9,7 @@ import { cancelOrder } from '@/shared/api/orders';
 import { ApiRequestError } from '@/shared/api/client';
 import { Route, ORDER_STATUS } from '@/shared/types';
 import type { OrderStatus } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
 
 const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' | 'red'> = {
   pendiente: 'amber',
@@ -290,7 +291,7 @@ function goToPayment() {
 
 .meta {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .status-chips {
@@ -318,7 +319,7 @@ function goToPayment() {
 
 .state-msg {
   font-size: 0.9rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .state-msg.error {
@@ -373,7 +374,7 @@ function goToPayment() {
 .empty-orders {
   padding: 1rem 0;
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .order-list {
@@ -399,7 +400,7 @@ function goToPayment() {
 }
 
 .order-id {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 700;
   color: #6b7280;
   font-variant-numeric: tabular-nums;
@@ -421,7 +422,7 @@ function goToPayment() {
 }
 
 .item-qty {
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
   font-weight: 600;
   min-width: 24px;
 }
@@ -433,7 +434,7 @@ function goToPayment() {
 
 .item-price {
   color: #6b7280;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   white-space: nowrap;
 }
 
@@ -447,8 +448,8 @@ function goToPayment() {
 }
 
 .order-time {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: var(--font-xs);
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .order-subtotal {
@@ -468,7 +469,7 @@ function goToPayment() {
   background: none;
   border: 1px solid #fecaca;
   color: #dc2626;
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   padding: 5px 12px;
   border-radius: 8px;
@@ -547,7 +548,7 @@ function goToPayment() {
 }
 
 .pending-warning {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: #92690a;
   background: #fef9ec;
   border: 1px solid #fde68a;

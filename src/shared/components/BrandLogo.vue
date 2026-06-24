@@ -45,6 +45,6 @@ withDefaults(
 .brand-logo__tagline {
   margin-top: 4px;
   font-size: 0.9rem;
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
 }
 </style>

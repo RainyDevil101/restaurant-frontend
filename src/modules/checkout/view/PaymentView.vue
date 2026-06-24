@@ -5,6 +5,7 @@ import { usePayment } from '../composables/usePayment';
 import { formatCurrency } from '../helpers/formatCurrency';
 import Badge from '@/shared/components/Badge.vue';
 import { PAYMENT_METHOD } from '@/shared/types';
+import { colors } from '@/shared/styles/colors';
 
 const router = useRouter();
 const {
@@ -371,7 +372,7 @@ async function handleConfirm() {
   padding: 0 12px;
   font-size: 1rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
   border-right: 1.5px solid #e5e7eb;
   background: #f9fafb;
 }
@@ -380,7 +381,6 @@ async function handleConfirm() {
   flex: 1;
   padding: 12px 14px;
   border: none;
-  outline: none;
   font-size: 1.1rem;
   font-weight: 600;
   color: #111827;
@@ -402,7 +402,7 @@ async function handleConfirm() {
   background: #f9fafb;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .change-row.positive {
@@ -427,7 +427,7 @@ async function handleConfirm() {
   gap: 0.75rem;
   padding: 1.5rem 1rem;
   text-align: center;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .card-instructions p {

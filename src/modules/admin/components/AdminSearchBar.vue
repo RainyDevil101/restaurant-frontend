@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { colors } from '@/shared/styles/colors';
+
 defineProps<{
   modelValue: string;
   placeholder?: string;
@@ -46,20 +48,19 @@ defineEmits<{
 
 .search-icon {
   flex-shrink: 0;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .search-input {
   flex: 1;
   background: none;
   border: none;
-  outline: none;
   font-size: 0.875rem;
   color: #1a1a1a;
   font-family: inherit;
 }
 
 .search-input::placeholder {
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 </style>

@@ -29,6 +29,7 @@ import {
 import AdminSearchBar from '@/modules/admin/components/AdminSearchBar.vue';
 import AdminPagination from '@/modules/admin/components/AdminPagination.vue';
 import { PAGE_SIZE_OPTIONS } from '@/modules/admin/constants';
+import { colors } from '@/shared/styles/colors';
 
 const props = withDefaults(
   defineProps<{
@@ -163,6 +164,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
             <th
               v-for="column in columns"
               :key="column.key"
+              scope="col"
               :class="{ 'col-right': column.align === 'right' }"
             >
               <button
@@ -251,7 +253,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #6b7280;
 }
@@ -265,11 +267,11 @@ const isEmpty = computed(() => table.totalItems.value === 0);
   padding: 6px 10px;
   border: 1.5px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: var(--font-xs);
   color: #111827;
   font-family: inherit;
   background: white;
-  outline: none;
+  min-height: 2.5rem;
 }
 
 .filter-control:focus {
@@ -280,7 +282,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
   background: none;
   border: none;
   color: var(--color-primary);
-  font-size: 0.82rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   cursor: pointer;
   padding: 4px 6px;
@@ -298,7 +300,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
 thead th {
   padding: 10px 12px;
   text-align: left;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -314,7 +316,7 @@ thead th {
   border: none;
   padding: 0;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -331,7 +333,7 @@ thead th {
 }
 
 .sort-indicator {
-  font-size: 0.7rem;
+  font-size: var(--font-xs);
   color: var(--color-primary);
   min-width: 0.7rem;
 }
@@ -365,7 +367,7 @@ thead th {
 
 .empty-row {
   text-align: center;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
   padding: 2.5rem 0;
 }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Menu, Product } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
+import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
 
 const props = defineProps<{ menu: Menu; products: Product[] }>();
@@ -74,8 +75,8 @@ const memberNames = props.menu.items
 }
 
 .combo-members {
-  font-size: 0.78rem;
-  color: #888;
+  font-size: var(--font-xs);
+  color: v-bind('colors.neutral.mutedText');
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -89,8 +90,8 @@ const memberNames = props.menu.items
 
 .add-btn {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border-radius: 8px;
   border: 1.5px solid #e0e0e0;
   background: white;

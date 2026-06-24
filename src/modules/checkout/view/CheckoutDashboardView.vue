@@ -12,6 +12,7 @@ import { usePrinterConnection } from '@/shared/printing/usePrinterConnection';
 import { printerErrorMessage } from '@/shared/printing';
 import { toast } from '@/shared/toast';
 import { ApiRequestError } from '@/shared/api/client';
+import { colors } from '@/shared/styles/colors';
 
 const tableStatusTone: Record<TableStatus, 'gray' | 'blue' | 'amber' | 'green'> = {
   libre: 'green',
@@ -261,7 +262,7 @@ async function onPrintPrecheck() {
 .state-msg {
   padding: 1.25rem;
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .table-row {
@@ -306,7 +307,7 @@ async function onPrintPrecheck() {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: var(--color-primary);
   font-weight: 500;
 }
@@ -355,7 +356,7 @@ async function onPrintPrecheck() {
 
 .bill-meta {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 .bill-items {
@@ -469,6 +470,6 @@ async function onPrintPrecheck() {
 
 .empty-state p {
   font-size: 0.9rem;
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 </style>

@@ -229,6 +229,6 @@ function getQuantity(productId: string): number {
 .picker-empty {
   padding: 1rem 12px;
   font-size: 0.85rem;
-  color: v-bind('colors.neutral.muted');
+  color: v-bind('colors.neutral.mutedText');
 }
 </style>

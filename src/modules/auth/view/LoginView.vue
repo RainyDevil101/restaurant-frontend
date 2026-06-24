@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useLogin } from '../composables/useLogin';
 import BrandLogo from '@/shared/components/BrandLogo.vue';
+import { colors } from '@/shared/styles/colors';
 
 const { email, pin, pinLength, pinLabel, error, loading, pressDigit, backspace, submit } =
   useLogin();
@@ -91,12 +92,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
             <button type="button" class="key" :disabled="loading" @click="pressDigit('0')">
               0
             </button>
-            <button
-              type="submit"
-              class="key key-primary"
-              :disabled="loading"
-              aria-label="Ingresar"
-            >
+            <button type="submit" class="key key-primary" :disabled="loading" aria-label="Ingresar">
               ↵
             </button>
           </div>
@@ -166,7 +162,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
   font-size: 0.975rem;
   color: #111827;
   font-family: inherit;
-  outline: none;
   transition: border-color 0.15s;
   background: white;
 }
@@ -176,7 +171,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 }
 
 .field-input::placeholder {
-  color: #9ca3af;
+  color: v-bind('colors.neutral.mutedText');
 }
 
 /* PIN dots */
