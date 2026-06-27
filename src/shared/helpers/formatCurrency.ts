@@ -1,6 +1,8 @@
-const formatter = new Intl.NumberFormat('es-CL', {
+import { LOCALE, CURRENCY } from '@/shared/constants/locale';
+
+const formatter = new Intl.NumberFormat(LOCALE, {
   style: 'currency',
-  currency: 'CLP',
+  currency: CURRENCY,
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 });

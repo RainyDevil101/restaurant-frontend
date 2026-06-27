@@ -7,8 +7,10 @@ import CancelOrderDialog from '../components/CancelOrderDialog.vue';
 import Badge from '@/shared/components/Badge.vue';
 import { cancelOrder } from '@/shared/api/orders';
 import { ApiRequestError } from '@/shared/api/client';
-import { Route, ORDER_STATUS } from '@/shared/types';
+import { Route, ORDER_STATUS, ITEM_KIND } from '@/shared/types';
 import type { OrderStatus } from '@/shared/types';
+import { CHECKOUT_MESSAGES } from '../domain';
+import { LOCALE } from '@/shared/constants/locale';
 import { colors } from '@/shared/styles/colors';
 
 const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' | 'red'> = {
@@ -74,7 +76,7 @@ async function confirmCancel(payload: {
     closeCancelDialog();
   } catch (err) {
     cancelError.value =
-      err instanceof ApiRequestError ? err.message : 'No se pudo cancelar el pedido.';
+      err instanceof ApiRequestError ? err.message : CHECKOUT_MESSAGES.CANCEL_ORDER_ERROR;
   } finally {
     cancelSaving.value = false;
   }
@@ -162,7 +164,7 @@ function goToPayment() {
               </ul>
               <div class="order-footer">
                 <span class="order-time">{{
-                  new Date(order.createdAt).toLocaleTimeString('es-MX', {
+                  new Date(order.createdAt).toLocaleTimeString(LOCALE, {
                     hour: '2-digit',
                     minute: '2-digit',
                   })
@@ -191,7 +193,7 @@ function goToPayment() {
               <div v-for="line in billLines" :key="line.productId" class="bill-line">
                 <div class="line-left">
                   <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-                  <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
+                  <Badge v-if="line.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
                 </div>
                 <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
               </div>

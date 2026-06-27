@@ -1,27 +1,15 @@
-import { ref, onMounted } from 'vue';
-import { listTables } from '@/shared/api/venue';
-import { ApiRequestError } from '@/shared/api/client';
+import { computed } from 'vue';
+import { useTablesStore } from '@/shared/stores/venueStores';
+import { useTtlFreshness } from '@/shared/stores/useTtlFreshness';
 import type { Table } from '@/shared/types';
 
 export function useTables() {
-  const tables = ref<Table[]>([]);
-  const loading = ref(false);
-  const error = ref('');
+  const tablesStore = useTablesStore();
+  const { invalidateAndRefresh } = useTtlFreshness([tablesStore]);
 
-  async function load() {
-    loading.value = true;
-    error.value = '';
-    try {
-      tables.value = await listTables();
-    } catch (err) {
-      error.value =
-        err instanceof ApiRequestError ? err.message : 'No se pudieron cargar las mesas.';
-    } finally {
-      loading.value = false;
-    }
-  }
+  const tables = computed<Table[]>(() => tablesStore.items);
+  const loading = computed(() => tablesStore.loading);
+  const error = computed(() => tablesStore.error ?? '');
 
-  onMounted(load);
-
-  return { tables, loading, error, reload: load };
+  return { tables, loading, error, reload: () => invalidateAndRefresh(tablesStore) };
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Category } from '@/shared/types';
 import { colors } from '@/shared/styles/colors';
-import type { OrderEntry } from '../composables/useOrder';
+import { ORDER_ENTRY_KIND, type OrderEntry } from '../domain';
 import OrderItemRow from './OrderItemRow.vue';
 
 defineProps<{
@@ -39,7 +39,7 @@ const emit = defineEmits<{
   <div class="order-items">
     <OrderItemRow
       v-for="entry in entries"
-      :key="entry.kind === 'combo' ? entry.menu.id : entry.product.id"
+      :key="entry.kind === ORDER_ENTRY_KIND.COMBO ? entry.menu.id : entry.product.id"
       :entry="entry"
       :categories="categories"
       @add="emit('add', entry)"

@@ -7,6 +7,7 @@ import {
 } from '@/shared/api/settings';
 import { ApiRequestError } from '@/shared/api/client';
 import { toast } from '@/shared/toast';
+import { ADMIN_MESSAGES } from '../domain';
 
 export function useReceiptSettings() {
   const settings = ref<ReceiptSettings | null>(null);
@@ -20,9 +21,7 @@ export function useReceiptSettings() {
       settings.value = await getReceiptSettings();
     } catch (err) {
       error.value =
-        err instanceof ApiRequestError
-          ? err.message
-          : 'No se pudieron cargar los datos del comprobante.';
+        err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.LOAD_RECEIPT_ERROR;
     } finally {
       loading.value = false;
     }
@@ -31,10 +30,10 @@ export function useReceiptSettings() {
   async function save(input: UpdateReceiptInput) {
     try {
       settings.value = await updateReceiptSettings(input);
-      toast.success('Datos del comprobante guardados');
+      toast.success(ADMIN_MESSAGES.RECEIPT_SAVED);
     } catch (err) {
       const message =
-        err instanceof ApiRequestError ? err.message : 'No se pudieron guardar los datos.';
+        err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.SAVE_RECEIPT_ERROR;
       toast.error(message);
       throw err;
     }

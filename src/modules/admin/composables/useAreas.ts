@@ -6,20 +6,16 @@ import {
   type AreaInput,
 } from '@/shared/api/venue';
 import { useAreasStore } from '@/shared/stores/venueStores';
-import { useCategoriesStore } from '@/shared/stores/catalogStores';
+import { useCategoriesStore, CATALOG_RESOURCE } from '@/shared/stores/catalogStores';
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness';
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness';
-import type { Area } from '@/shared/types';
-
-export interface AreaRow extends Area {
-  categoryCount: number;
-}
+import type { AreaRow } from '../domain';
 
 export function useAreas() {
   const areasStore = useAreasStore();
   const categoriesStore = useCategoriesStore();
   const { invalidateAndRefresh } = useTtlFreshness([areasStore]);
-  useCatalogFreshness(['categories']);
+  useCatalogFreshness([CATALOG_RESOURCE.CATEGORIES]);
 
   const loading = computed(() => areasStore.loading || categoriesStore.loading);
   const error = computed(() => areasStore.error ?? categoriesStore.error ?? '');

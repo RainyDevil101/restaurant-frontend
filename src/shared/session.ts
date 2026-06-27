@@ -1,6 +1,5 @@
 import type { User } from '@/modules/auth/store';
-
-const SESSION_KEY = 'subito.session';
+import { SESSION_STORAGE_KEY as SESSION_KEY } from '@/shared/constants/storage';
 
 export interface PersistedSession {
   token: string;

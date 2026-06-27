@@ -6,22 +6,26 @@ import {
   type CategoryInput,
 } from '@/shared/api/catalog';
 import { createArea as apiCreateArea } from '@/shared/api/venue';
-import { useCategoriesStore, useProductsStore } from '@/shared/stores/catalogStores';
+import {
+  useCategoriesStore,
+  useProductsStore,
+  CATALOG_RESOURCE,
+} from '@/shared/stores/catalogStores';
 import { useAreasStore } from '@/shared/stores/venueStores';
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness';
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness';
-import type { Area, Category } from '@/shared/types';
-
-export interface CategoryRow extends Category {
-  productCount: number;
-  areaName: string;
-}
+import type { Area } from '@/shared/types';
+import { EMPTY_VALUE } from '@/shared/constants/display';
+import type { CategoryRow } from '../domain';
 
 export function useCategories() {
   const categoriesStore = useCategoriesStore();
   const productsStore = useProductsStore();
   const areasStore = useAreasStore();
-  const { invalidateAndRefresh } = useCatalogFreshness(['categories', 'products']);
+  const { invalidateAndRefresh } = useCatalogFreshness([
+    CATALOG_RESOURCE.CATEGORIES,
+    CATALOG_RESOURCE.PRODUCTS,
+  ]);
   const { invalidateAndRefresh: refreshAreas } = useTtlFreshness([areasStore]);
 
   const loading = computed(
@@ -37,7 +41,9 @@ export function useCategories() {
       ...category,
       productCount: productsStore.items.filter((product) => product.categoryId === category.id)
         .length,
-      areaName: category.areaId ? (areasStore.byId(category.areaId)?.name ?? '—') : '—',
+      areaName: category.areaId
+        ? (areasStore.byId(category.areaId)?.name ?? EMPTY_VALUE)
+        : EMPTY_VALUE,
     })),
   );
 
@@ -49,17 +55,17 @@ export function useCategories() {
 
   async function createCategory(input: CategoryInput) {
     await apiCreateCategory(input);
-    await invalidateAndRefresh('categories');
+    await invalidateAndRefresh(CATALOG_RESOURCE.CATEGORIES);
   }
 
   async function updateCategory(id: string, input: Partial<CategoryInput>) {
     await apiUpdateCategory(id, input);
-    await invalidateAndRefresh('categories');
+    await invalidateAndRefresh(CATALOG_RESOURCE.CATEGORIES);
   }
 
   async function removeCategory(id: string) {
     await apiDeleteCategory(id);
-    await invalidateAndRefresh('categories');
+    await invalidateAndRefresh(CATALOG_RESOURCE.CATEGORIES);
   }
 
   return {
@@ -67,7 +73,7 @@ export function useCategories() {
     areas,
     loading,
     error,
-    reload: () => invalidateAndRefresh('categories', 'products'),
+    reload: () => invalidateAndRefresh(CATALOG_RESOURCE.CATEGORIES, CATALOG_RESOURCE.PRODUCTS),
     createArea,
     createCategory,
     updateCategory,

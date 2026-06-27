@@ -1,22 +1,34 @@
 <script setup lang="ts">
-defineProps<{ disabled: boolean; submitting: boolean }>();
+import { formatCurrency } from '../helpers/formatCurrency';
+
+defineProps<{
+  disabled: boolean;
+  submitting: boolean;
+  totalItems: number;
+  total: number;
+}>();
 defineEmits<{ submit: [] }>();
 </script>
 
 <template>
   <div class="bottom-bar">
     <button class="submit-btn" :disabled="disabled" @click="$emit('submit')">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="20"
-        height="20"
-        aria-hidden="true"
-      >
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-      </svg>
-      {{ submitting ? 'Enviando…' : 'Enviar a caja' }}
+      <span class="submit-main">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          width="20"
+          height="20"
+          aria-hidden="true"
+        >
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+        </svg>
+        <span>{{ submitting ? 'Enviando…' : 'Enviar a caja' }}</span>
+      </span>
+      <span v-if="totalItems > 0 && !submitting" class="submit-summary">
+        {{ totalItems }} {{ totalItems === 1 ? 'ítem' : 'ítems' }} · {{ formatCurrency(total) }}
+      </span>
     </button>
   </div>
 </template>
@@ -36,7 +48,7 @@ defineEmits<{ submit: [] }>();
 
 .submit-btn {
   width: 100%;
-  padding: 14px;
+  padding: 14px 18px;
   background: var(--color-primary);
   color: white;
   border: none;
@@ -45,9 +57,21 @@ defineEmits<{ submit: [] }>();
   font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   transition: background 0.15s;
+}
+
+.submit-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-summary {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .submit-btn:active {

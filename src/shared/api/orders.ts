@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { OrderStatus } from '@/shared/types';
+import type { OrderStatus, ItemKind } from '@/shared/types';
 
 export interface ApiOrderItem {
   itemId: string;
@@ -9,7 +9,7 @@ export interface ApiOrderItem {
   unitPrice: number;
   subtotal: number;
   notes?: string;
-  kind?: 'product' | 'combo';
+  kind?: ItemKind;
 }
 
 export interface ApiOrder {

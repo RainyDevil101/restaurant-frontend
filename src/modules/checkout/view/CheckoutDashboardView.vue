@@ -4,7 +4,8 @@ import { useRouter } from 'vue-router';
 import { useCheckoutDashboard } from '../composables/useCheckoutDashboard';
 import { formatCurrency } from '../helpers/formatCurrency';
 import Badge from '@/shared/components/Badge.vue';
-import type { TableStatus } from '@/shared/types';
+import { ITEM_KIND, type TableStatus } from '@/shared/types';
+import { CHECKOUT_MESSAGES } from '../domain';
 import { getComandasByTable } from '@/shared/api/orders';
 import { getPrecheck } from '@/shared/api/billing';
 import { listPrinters } from '@/shared/api/settings';
@@ -52,21 +53,21 @@ async function defaultPaperWidth(): Promise<number | null> {
 async function onPrintComanda() {
   if (!selectedTableId.value) return;
   if (!isConnected.value) {
-    toast.error('Conecta la impresora primero en Configuraciones');
+    toast.error(CHECKOUT_MESSAGES.PRINTER_NOT_CONNECTED);
     return;
   }
   printing.value = true;
   try {
     const width = await defaultPaperWidth();
     if (width === null) {
-      toast.error('Configura una impresora en Ajustes antes de imprimir');
+      toast.error(CHECKOUT_MESSAGES.PRINTER_NOT_CONFIGURED);
       return;
     }
     const comandas = await getComandasByTable(selectedTableId.value, width);
     for (const comanda of comandas) {
       await printBase64(comanda.escposBase64);
     }
-    toast.success(`Comanda impresa · ${comandas.length} área${comandas.length !== 1 ? 's' : ''}`);
+    toast.success(CHECKOUT_MESSAGES.comandaPrinted(comandas.length));
   } catch (err) {
     const msg = err instanceof ApiRequestError ? err.message : printerErrorMessage(err);
     toast.error(msg);
@@ -78,19 +79,19 @@ async function onPrintComanda() {
 async function onPrintPrecheck() {
   if (!selectedTableId.value) return;
   if (!isConnected.value) {
-    toast.error('Conecta la impresora primero en Configuraciones');
+    toast.error(CHECKOUT_MESSAGES.PRINTER_NOT_CONNECTED);
     return;
   }
   printing.value = true;
   try {
     const width = await defaultPaperWidth();
     if (width === null) {
-      toast.error('Configura una impresora en Ajustes antes de imprimir');
+      toast.error(CHECKOUT_MESSAGES.PRINTER_NOT_CONFIGURED);
       return;
     }
     const precheck = await getPrecheck(selectedTableId.value, width);
     await printBase64(precheck.escposBase64);
-    toast.success('Precuenta impresa');
+    toast.success(CHECKOUT_MESSAGES.PRECHECK_PRINTED);
   } catch (err) {
     const msg = err instanceof ApiRequestError ? err.message : printerErrorMessage(err);
     toast.error(msg);
@@ -149,7 +150,7 @@ async function onPrintPrecheck() {
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
+              <Badge v-if="line.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>

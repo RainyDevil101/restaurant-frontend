@@ -4,7 +4,8 @@ import { Route } from '@/shared/types';
 import { usePayment } from '../composables/usePayment';
 import { formatCurrency } from '../helpers/formatCurrency';
 import Badge from '@/shared/components/Badge.vue';
-import { PAYMENT_METHOD } from '@/shared/types';
+import { PAYMENT_METHOD, ITEM_KIND } from '@/shared/types';
+import { EMPTY_VALUE } from '@/shared/constants/display';
 import { colors } from '@/shared/styles/colors';
 
 const router = useRouter();
@@ -66,7 +67,7 @@ async function handleConfirm() {
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <Badge v-if="line.kind === 'combo'" tone="teal">Combo</Badge>
+              <Badge v-if="line.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>
@@ -150,7 +151,7 @@ async function handleConfirm() {
           >
             <span>Cambio</span>
             <span class="change-amount">
-              {{ change !== null ? formatCurrency(change) : '—' }}
+              {{ change !== null ? formatCurrency(change) : EMPTY_VALUE }}
             </span>
           </div>
         </template>

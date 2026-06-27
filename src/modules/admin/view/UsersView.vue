@@ -13,14 +13,11 @@ import Badge from '@/shared/components/Badge.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import { Role, useAuthStore, type User } from '@/modules/auth/store';
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PIN_RE = /^\d{6}$/;
-const PIN_LENGTH = 6;
+import { EMAIL_RE, PIN_RE, PIN_LENGTH, NON_DIGIT_RE } from '@/shared/constants/validation';
 
 function onPinInput(e: Event) {
   const el = e.target as HTMLInputElement;
-  const digits = el.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
+  const digits = el.value.replace(NON_DIGIT_RE, '').slice(0, PIN_LENGTH);
   form.credential = digits;
   el.value = digits;
 }

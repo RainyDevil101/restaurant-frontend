@@ -5,15 +5,7 @@ import { listOrdersByTable, type ApiOrder } from '@/shared/api/orders';
 import { ApiRequestError } from '@/shared/api/client';
 import { ORDER_STATUS } from '@/shared/types';
 import type { Table } from '@/shared/types';
-
-export interface BillingLine {
-  productId: string;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  kind?: 'product' | 'combo';
-}
+import { CHECKOUT_MESSAGES, type BillLine } from '../domain';
 
 export function useBilling() {
   const route = useRoute();
@@ -39,7 +31,8 @@ export function useBilling() {
       table.value = tableList.find((t) => t.id === tableId.value) ?? null;
       orders.value = orderList;
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo cargar la cuenta.';
+      error.value =
+        err instanceof ApiRequestError ? err.message : CHECKOUT_MESSAGES.LOAD_BILL_ERROR;
     } finally {
       loading.value = false;
     }
@@ -51,8 +44,8 @@ export function useBilling() {
     orders.value.filter((o) => o.status !== ORDER_STATUS.CANCELLED && !o.paid),
   );
 
-  const billLines = computed((): BillingLine[] => {
-    const map = new Map<string, BillingLine>();
+  const billLines = computed((): BillLine[] => {
+    const map = new Map<string, BillLine>();
     for (const order of activeOrders.value) {
       for (const item of order.items) {
         const existing = map.get(item.productId);

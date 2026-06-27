@@ -3,31 +3,12 @@ import type { Socket } from 'socket.io-client';
 import { listTables } from '@/shared/api/venue';
 import { listOrders, type ApiOrder } from '@/shared/api/orders';
 import { connectOrdersSocket } from '@/shared/api/socket';
+import { ORDERS_SOCKET_EVENT } from '@/shared/api/socketEvents';
 import { ApiRequestError } from '@/shared/api/client';
 import { ORDER_STATUS } from '@/shared/types';
 import type { Table } from '@/shared/types';
 import { toast } from '@/shared/toast';
-
-export interface TableSummary {
-  table: Table;
-  total: number;
-  hasNewOrder: boolean;
-}
-
-export interface BillLine {
-  productId: string;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-  subtotal: number;
-  kind?: 'product' | 'combo';
-}
-
-const SOCKET_EVENT = {
-  JOIN_CHECKOUT: 'joinCheckout',
-  ORDER_CREATED: 'orderCreated',
-  ORDER_STATUS_CHANGED: 'orderStatusChanged',
-} as const;
+import { CHECKOUT_MESSAGES, type TableSummary, type BillLine } from '../domain';
 
 export function useCheckoutDashboard() {
   const selectedTableId = ref<string | null>(null);
@@ -50,7 +31,8 @@ export function useCheckoutDashboard() {
       tables.value = tableList;
       orders.value = orderList;
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo cargar el tablero.';
+      error.value =
+        err instanceof ApiRequestError ? err.message : CHECKOUT_MESSAGES.LOAD_DASHBOARD_ERROR;
     } finally {
       loading.value = false;
     }
@@ -72,14 +54,14 @@ export function useCheckoutDashboard() {
   onMounted(async () => {
     await load();
     socket = connectOrdersSocket();
-    socket.emit(SOCKET_EVENT.JOIN_CHECKOUT);
-    socket.on(SOCKET_EVENT.ORDER_CREATED, (order: ApiOrder) => {
+    socket.emit(ORDERS_SOCKET_EVENT.JOIN_CHECKOUT);
+    socket.on(ORDERS_SOCKET_EVENT.ORDER_CREATED, (order: ApiOrder) => {
       upsertOrder(order);
       refreshTables();
       const tableName = tables.value.find((t) => t.id === order.tableId)?.name ?? 'Mesa';
-      toast.info(`Nuevo pedido · ${tableName}`);
+      toast.info(CHECKOUT_MESSAGES.newOrder(tableName));
     });
-    socket.on(SOCKET_EVENT.ORDER_STATUS_CHANGED, (order: ApiOrder) => {
+    socket.on(ORDERS_SOCKET_EVENT.ORDER_STATUS_CHANGED, (order: ApiOrder) => {
       upsertOrder(order);
       refreshTables();
     });
@@ -87,8 +69,8 @@ export function useCheckoutDashboard() {
 
   onUnmounted(() => {
     if (socket) {
-      socket.off(SOCKET_EVENT.ORDER_CREATED);
-      socket.off(SOCKET_EVENT.ORDER_STATUS_CHANGED);
+      socket.off(ORDERS_SOCKET_EVENT.ORDER_CREATED);
+      socket.off(ORDERS_SOCKET_EVENT.ORDER_STATUS_CHANGED);
       socket.disconnect();
       socket = null;
     }

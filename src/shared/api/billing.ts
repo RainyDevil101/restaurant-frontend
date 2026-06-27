@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Bill, PaymentMethod } from '@/shared/types';
+import type { Bill, PaymentMethod, ItemKind } from '@/shared/types';
 
 export interface ProcessPaymentInput {
   method: PaymentMethod;
@@ -12,7 +12,7 @@ export interface ApiPaymentItem {
   quantity: number;
   unitPrice: number;
   subtotal: number;
-  kind?: 'product' | 'combo';
+  kind?: ItemKind;
 }
 
 export interface ApiPayment {

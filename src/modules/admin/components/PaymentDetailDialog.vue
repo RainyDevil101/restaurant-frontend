@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue';
 import Badge from '@/shared/components/Badge.vue';
-import { PAYMENT_METHOD } from '@/shared/types';
+import { PAYMENT_METHOD, ITEM_KIND } from '@/shared/types';
+import { LOCALE } from '@/shared/constants/locale';
 import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
-import type { PaymentRow } from '../composables/usePayments';
+import type { PaymentRow } from '../domain';
 
 defineProps<{ payment: PaymentRow }>();
 const emit = defineEmits<{ close: [] }>();
@@ -27,7 +28,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
             <h2 class="modal-title">{{ payment.tableName }}</h2>
             <p class="modal-subtitle">
               {{
-                new Date(payment.paidAt).toLocaleString('es-MX', {
+                new Date(payment.paidAt).toLocaleString(LOCALE, {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',
@@ -49,7 +50,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
               <div class="item-left">
                 <span class="item-qty">{{ item.quantity }}×</span>
                 <span class="item-name">{{ item.productName }}</span>
-                <Badge v-if="item.kind === 'combo'" tone="teal">Combo</Badge>
+                <Badge v-if="item.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
               </div>
               <span class="item-subtotal">{{ formatCurrency(item.subtotal) }}</span>
             </div>

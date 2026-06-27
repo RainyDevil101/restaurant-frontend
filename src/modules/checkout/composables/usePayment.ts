@@ -5,16 +5,9 @@ import { listOrdersByTable } from '@/shared/api/orders';
 import { consolidateBill, payBill } from '@/shared/api/billing';
 import { ApiRequestError } from '@/shared/api/client';
 import { ORDER_STATUS, PAYMENT_METHOD, TABLE_STATUS } from '@/shared/types';
-import type { PaymentMethod, Table } from '@/shared/types';
+import type { PaymentMethod, Table, ItemKind } from '@/shared/types';
 import { toast } from '@/shared/toast';
-
-interface PaymentBillLine {
-  productId: string;
-  productName: string;
-  quantity: number;
-  subtotal: number;
-  kind?: 'product' | 'combo';
-}
+import { CHECKOUT_MESSAGES, type PaymentBillLine } from '../domain';
 
 export function usePayment() {
   const route = useRoute();
@@ -38,7 +31,8 @@ export function usePayment() {
       table.value = tables.find((t) => t.id === tableId.value) ?? null;
       lines.value = buildLines(orders);
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo cargar la cuenta.';
+      error.value =
+        err instanceof ApiRequestError ? err.message : CHECKOUT_MESSAGES.LOAD_BILL_ERROR;
     } finally {
       loading.value = false;
     }
@@ -53,7 +47,7 @@ export function usePayment() {
         productName: string;
         quantity: number;
         subtotal: number;
-        kind?: 'product' | 'combo';
+        kind?: ItemKind;
       }[];
     }[],
   ): PaymentBillLine[] {
@@ -112,9 +106,9 @@ export function usePayment() {
           ? cashReceived.value
           : billTotal.value;
       await payBill(tableId.value, { method: method.value, amount });
-      toast.success('Pago registrado correctamente');
+      toast.success(CHECKOUT_MESSAGES.PAYMENT_SUCCESS);
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo registrar el pago.';
+      error.value = err instanceof ApiRequestError ? err.message : CHECKOUT_MESSAGES.PAYMENT_ERROR;
       throw err;
     } finally {
       processing.value = false;

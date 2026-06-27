@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
 import { colors } from '@/shared/styles/colors';
-import { useCategories, type CategoryRow } from '../composables/useCategories';
+import { useCategories } from '../composables/useCategories';
+import type { CategoryRow } from '../domain';
 import { useAdminDialog } from '../composables/useAdminDialog';
 import { useAdminConfirm } from '../composables/useAdminConfirm';
 import { useInlineAreaCreate } from '../composables/useInlineAreaCreate';

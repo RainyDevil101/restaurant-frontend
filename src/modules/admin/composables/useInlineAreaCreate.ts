@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { ApiRequestError } from '@/shared/api/client';
+import { ADMIN_MESSAGES } from '../domain';
 
 export function useInlineAreaCreate(
   createFn: (input: { name: string }) => Promise<{ id: string }>,
@@ -19,7 +20,7 @@ export function useInlineAreaCreate(
       inputName.value = '';
       opts?.onCreated?.(created.id);
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo crear el área.';
+      error.value = err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.CREATE_AREA_ERROR;
     } finally {
       creating.value = false;
     }

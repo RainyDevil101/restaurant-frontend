@@ -3,6 +3,7 @@ import { listOrdersByTable, updateOrderStatus, type ApiOrder } from '@/shared/ap
 import { ApiRequestError } from '@/shared/api/client';
 import { ORDER_STATUS } from '@/shared/types';
 import { toast } from '@/shared/toast';
+import { SERVICE_MESSAGES } from '../domain';
 
 export function useTableOrders(tableId: () => string) {
   const orders = ref<ApiOrder[]>([]);
@@ -26,7 +27,7 @@ export function useTableOrders(tableId: () => string) {
       orders.value = await listOrdersByTable(id);
     } catch (err) {
       error.value =
-        err instanceof ApiRequestError ? err.message : 'No se pudieron cargar los pedidos.';
+        err instanceof ApiRequestError ? err.message : SERVICE_MESSAGES.LOAD_ORDERS_ERROR;
     } finally {
       loading.value = false;
     }
@@ -41,13 +42,11 @@ export function useTableOrders(tableId: () => string) {
     );
     try {
       await updateOrderStatus(orderId, ORDER_STATUS.DELIVERED);
-      toast.success('Pedido marcado como entregado');
+      toast.success(SERVICE_MESSAGES.ORDER_DELIVERED);
     } catch (err) {
       orders.value = previous;
       error.value =
-        err instanceof ApiRequestError
-          ? err.message
-          : 'No se pudo marcar el pedido como entregado.';
+        err instanceof ApiRequestError ? err.message : SERVICE_MESSAGES.ORDER_DELIVER_ERROR;
     } finally {
       deliveringId.value = null;
     }
