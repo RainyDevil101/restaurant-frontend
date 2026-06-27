@@ -1,3 +1,5 @@
+import type { ItemKind } from './kind';
+
 export type PaymentMethod = 'efectivo' | 'tarjeta';
 
 export const PAYMENT_METHOD = {
@@ -11,7 +13,7 @@ export interface BillItem {
   quantity: number;
   unitPrice: number;
   subtotal: number;
-  kind?: 'product' | 'combo';
+  kind?: ItemKind;
 }
 
 export interface Bill {

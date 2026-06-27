@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { ApiRequestError } from '@/shared/api/client';
+import { ADMIN_MESSAGES } from '../domain';
 
 export function useInlineCategoryCreate(
   createFn: (input: { name: string; areaId: string }) => Promise<{ id: string }>,
@@ -14,7 +15,7 @@ export function useInlineCategoryCreate(
     const trimmed = inputName.value.trim();
     if (!trimmed) return;
     if (!inputAreaId.value) {
-      error.value = 'Selecciona un área.';
+      error.value = ADMIN_MESSAGES.SELECT_AREA;
       return;
     }
     creating.value = true;
@@ -25,7 +26,7 @@ export function useInlineCategoryCreate(
       inputAreaId.value = '';
       opts?.onCreated?.(created.id);
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo crear.';
+      error.value = err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.CREATE_ERROR;
     } finally {
       creating.value = false;
     }

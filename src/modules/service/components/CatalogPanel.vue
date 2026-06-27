@@ -12,11 +12,15 @@ const props = defineProps<{
   combos: Menu[];
   loading: boolean;
   error: string;
+  getQuantity: (id: string) => number;
 }>();
 
 const emit = defineEmits<{
   'add-product': [product: Product];
+  'remove-product': [product: Product];
   'add-combo': [menu: Menu];
+  'remove-combo': [menu: Menu];
+  retry: [];
 }>();
 
 const searchQuery = defineModel<string>('searchQuery', { required: true });
@@ -35,7 +39,6 @@ const filteredProducts = computed(() =>
 </script>
 
 <template>
-  <!-- Search -->
   <div class="search-wrap">
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -50,30 +53,64 @@ const filteredProducts = computed(() =>
         d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
       />
     </svg>
-    <input v-model="searchQuery" class="search-input" placeholder="Buscar producto..." />
+    <input
+      v-model="searchQuery"
+      class="search-input"
+      type="text"
+      inputmode="search"
+      enterkeyhint="search"
+      autocapitalize="off"
+      autocorrect="off"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="Buscar producto"
+      placeholder="Buscar producto..."
+    />
+    <button
+      v-if="searchQuery"
+      type="button"
+      class="clear-btn"
+      aria-label="Limpiar búsqueda"
+      @click="searchQuery = ''"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        width="18"
+        height="18"
+        aria-hidden="true"
+      >
+        <path
+          d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+        />
+      </svg>
+    </button>
   </div>
 
-  <!-- Category chips -->
   <CategoryTabs v-model="selectedCategoryId" :categories="categories" />
 
   <hr class="divider" />
 
-  <!-- Product list -->
   <div class="product-list">
     <p v-if="loading" class="empty-msg">Cargando…</p>
-    <p v-else-if="error" class="empty-msg">{{ error }}</p>
+    <div v-else-if="error" class="error-state">
+      <p class="error-msg">{{ error }}</p>
+      <button type="button" class="retry-btn" @click="emit('retry')">Reintentar</button>
+    </div>
     <template v-else>
       <ProductRow
         v-for="product in filteredProducts"
         :key="product.id"
         :product="product"
+        :quantity="getQuantity(product.id)"
         @add="emit('add-product', product)"
+        @remove="emit('remove-product', product)"
       />
       <p v-if="filteredProducts.length === 0" class="empty-msg">Sin resultados.</p>
     </template>
   </div>
 
-  <!-- Combos section -->
   <template v-if="!loading && !error && combos.length > 0">
     <hr class="divider" />
     <div class="combos-header">
@@ -97,7 +134,9 @@ const filteredProducts = computed(() =>
         :key="menu.id"
         :menu="menu"
         :products="products"
+        :quantity="getQuantity(menu.id)"
         @add="emit('add-combo', menu)"
+        @remove="emit('remove-combo', menu)"
       />
     </div>
   </template>
@@ -120,6 +159,7 @@ const filteredProducts = computed(() =>
 
 .search-input {
   flex: 1;
+  min-width: 0;
   background: none;
   border: none;
   font-size: 0.9rem;
@@ -129,6 +169,23 @@ const filteredProducts = computed(() =>
 
 .search-input::placeholder {
   color: v-bind('colors.neutral.mutedText');
+}
+
+.clear-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: none;
+  color: v-bind('colors.neutral.mutedText');
+  border-radius: 50%;
+}
+
+.clear-btn:active {
+  background: #e5e7eb;
 }
 
 .divider {
@@ -147,6 +204,35 @@ const filteredProducts = computed(() =>
   text-align: center;
   color: v-bind('colors.neutral.mutedText');
   font-size: 0.9rem;
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+}
+
+.error-msg {
+  text-align: center;
+  color: v-bind('colors.feedback.error');
+  font-size: 0.9rem;
+}
+
+.retry-btn {
+  min-height: 2.75rem;
+  padding: 0 1.5rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-primary);
+  background: white;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.retry-btn:active {
+  background: v-bind('colors.brand.soft');
 }
 
 .combos-header {

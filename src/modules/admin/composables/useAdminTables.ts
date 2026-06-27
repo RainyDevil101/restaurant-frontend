@@ -7,9 +7,7 @@ import {
 } from '@/shared/api/venue';
 import { useTablesStore } from '@/shared/stores/venueStores';
 import { useTtlFreshness } from '@/shared/stores/useTtlFreshness';
-import type { Table } from '@/shared/types';
-
-export type TableRow = Table;
+import type { TableRow } from '../domain';
 
 export function useAdminTables() {
   const tablesStore = useTablesStore();

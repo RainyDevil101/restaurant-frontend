@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import { ApiRequestError } from '@/shared/api/client';
 import { toast } from '@/shared/toast';
+import { ADMIN_MESSAGES } from '../domain';
 
 export function useAdminDialog() {
   const dialogOpen = ref(false);
@@ -30,9 +31,9 @@ export function useAdminDialog() {
     try {
       await fn();
       dialogOpen.value = false;
-      toast.success('Guardado correctamente');
+      toast.success(ADMIN_MESSAGES.SAVE_SUCCESS);
     } catch (err) {
-      formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.';
+      formError.value = err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.SAVE_ERROR;
     } finally {
       saving.value = false;
     }

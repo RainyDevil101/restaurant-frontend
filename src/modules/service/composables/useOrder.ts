@@ -1,65 +1,43 @@
-import { ref, computed, onMounted } from 'vue';
-import { listProducts, listCategories, listMenus } from '@/shared/api/catalog';
+import { ref, computed } from 'vue';
 import { createOrder, type OrderItemInput } from '@/shared/api/orders';
-import { updateTableStatus, listTables } from '@/shared/api/venue';
+import { updateTableStatus } from '@/shared/api/venue';
 import { ApiRequestError } from '@/shared/api/client';
 import { TABLE_STATUS } from '@/shared/types';
 import type { Product, Category, Menu } from '@/shared/types';
+import { useProductsStore, useCategoriesStore, useMenusStore } from '@/shared/stores/catalogStores';
+import { useTablesStore } from '@/shared/stores/venueStores';
+import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness';
 import { toast } from '@/shared/toast';
-
-export interface ProductEntry {
-  kind: 'product';
-  product: Product;
-  quantity: number;
-}
-
-export interface ComboEntry {
-  kind: 'combo';
-  menu: Menu;
-  quantity: number;
-}
-
-export type OrderEntry = ProductEntry | ComboEntry;
+import { ORDER_ENTRY_KIND, SERVICE_MESSAGES, type OrderEntry } from '../domain';
 
 function entryId(entry: OrderEntry): string {
-  return entry.kind === 'combo' ? entry.menu.id : entry.product.id;
+  return entry.kind === ORDER_ENTRY_KIND.COMBO ? entry.menu.id : entry.product.id;
 }
 
 function entryPrice(entry: OrderEntry): number {
-  return entry.kind === 'combo' ? entry.menu.price : entry.product.price;
+  return entry.kind === ORDER_ENTRY_KIND.COMBO ? entry.menu.price : entry.product.price;
 }
 
 export function useOrder() {
+  const productsStore = useProductsStore();
+  const categoriesStore = useCategoriesStore();
+  const menusStore = useMenusStore();
+  const tablesStore = useTablesStore();
+  const { invalidateAndRefresh } = useCatalogFreshness();
+
   const entries = ref<OrderEntry[]>([]);
-  const products = ref<Product[]>([]);
-  const categories = ref<Category[]>([]);
-  const menus = ref<Menu[]>([]);
-  const loading = ref(false);
-  const error = ref('');
   const submitting = ref(false);
 
-  async function load() {
-    loading.value = true;
-    error.value = '';
-    try {
-      const [prods, cats, mens] = await Promise.all([
-        listProducts(),
-        listCategories(),
-        listMenus(),
-      ]);
-      products.value = prods;
-      categories.value = cats;
-      menus.value = mens;
-    } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo cargar el menú.';
-    } finally {
-      loading.value = false;
-    }
-  }
+  const products = computed<Product[]>(() => productsStore.items);
+  const categories = computed<Category[]>(() => categoriesStore.items);
+  const combos = computed<Menu[]>(() => menusStore.items.filter((m) => m.active));
 
-  onMounted(load);
-
-  const combos = computed(() => menus.value.filter((m) => m.active));
+  const loading = computed(
+    () => productsStore.loading || categoriesStore.loading || menusStore.loading,
+  );
+  const error = computed(
+    () => productsStore.error ?? categoriesStore.error ?? menusStore.error ?? '',
+  );
 
   const totalItems = computed(() => entries.value.reduce((sum, e) => sum + e.quantity, 0));
 
@@ -72,20 +50,24 @@ export function useOrder() {
   }
 
   function addProduct(product: Product) {
-    const entry = entries.value.find((e) => e.kind === 'product' && e.product.id === product.id);
+    const entry = entries.value.find(
+      (e) => e.kind === ORDER_ENTRY_KIND.PRODUCT && e.product.id === product.id,
+    );
     if (entry) {
       entry.quantity++;
     } else {
-      entries.value.push({ kind: 'product', product, quantity: 1 });
+      entries.value.push({ kind: ORDER_ENTRY_KIND.PRODUCT, product, quantity: 1 });
     }
   }
 
   function addCombo(menu: Menu) {
-    const entry = entries.value.find((e) => e.kind === 'combo' && e.menu.id === menu.id);
+    const entry = entries.value.find(
+      (e) => e.kind === ORDER_ENTRY_KIND.COMBO && e.menu.id === menu.id,
+    );
     if (entry) {
       entry.quantity++;
     } else {
-      entries.value.push({ kind: 'combo', menu, quantity: 1 });
+      entries.value.push({ kind: ORDER_ENTRY_KIND.COMBO, menu, quantity: 1 });
     }
   }
 
@@ -105,27 +87,30 @@ export function useOrder() {
     entries.value = [];
   }
 
-  async function submit(tableId: string) {
-    if (entries.value.length === 0) return;
+  async function submit(tableId: string): Promise<boolean> {
+    if (entries.value.length === 0) return false;
     submitting.value = true;
-    error.value = '';
     try {
       const items: OrderItemInput[] = entries.value.map((e) =>
-        e.kind === 'combo'
+        e.kind === ORDER_ENTRY_KIND.COMBO
           ? { menuId: e.menu.id, quantity: e.quantity }
           : { productId: e.product.id, quantity: e.quantity },
       );
       await createOrder({ tableId, items });
-      const tables = await listTables();
-      const table = tables.find((t) => t.id === tableId);
+      await tablesStore.ensureLoaded();
+      const table = tablesStore.byId(tableId);
       if (table && table.status === TABLE_STATUS.FREE) {
         await updateTableStatus(tableId, TABLE_STATUS.OCCUPIED);
+        tablesStore.invalidate();
       }
       clear();
-      toast.success('Pedido enviado a caja');
+      toast.success(SERVICE_MESSAGES.ORDER_SENT);
+      return true;
     } catch (err) {
-      error.value = err instanceof ApiRequestError ? err.message : 'No se pudo enviar el pedido.';
-      throw err;
+      const message =
+        err instanceof ApiRequestError ? err.message : SERVICE_MESSAGES.ORDER_SUBMIT_ERROR;
+      toast.error(message);
+      return false;
     } finally {
       submitting.value = false;
     }
@@ -146,5 +131,6 @@ export function useOrder() {
     addCombo,
     remove,
     submit,
+    reload: () => invalidateAndRefresh(),
   };
 }

@@ -6,8 +6,10 @@ import Badge from '@/shared/components/Badge.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import PaymentDetailDialog from '../components/PaymentDetailDialog.vue';
 import { PAYMENT_METHOD } from '@/shared/types';
+import { LOCALE } from '@/shared/constants/locale';
+import { EMPTY_VALUE } from '@/shared/constants/display';
 import { colors } from '@/shared/styles/colors';
-import type { PaymentRow } from '../composables/usePayments';
+import type { PaymentRow } from '../domain';
 
 const { payments, loading, error, reload } = usePayments();
 
@@ -94,13 +96,13 @@ const columns = computed<Column<PaymentRow>[]>(() => [
 
       <template #cell-change="{ row }">
         <span :class="row.method === PAYMENT_METHOD.CASH ? 'change-value' : 'change-na'">
-          {{ row.method === PAYMENT_METHOD.CASH ? formatCurrency(row.change) : '—' }}
+          {{ row.method === PAYMENT_METHOD.CASH ? formatCurrency(row.change) : EMPTY_VALUE }}
         </span>
       </template>
 
       <template #cell-paidAt="{ row }">
         {{
-          new Date(row.paidAt).toLocaleString('es-MX', {
+          new Date(row.paidAt).toLocaleString(LOCALE, {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',

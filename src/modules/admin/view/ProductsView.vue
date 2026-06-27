@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { colors } from '@/shared/styles/colors';
-import { useProducts, type ProductRow } from '../composables/useProducts';
+import { useProducts } from '../composables/useProducts';
+import type { ProductRow } from '../domain';
 import { useProductForm } from '../composables/useProductForm';
 import { useAvailabilityToggle } from '../composables/useAvailabilityToggle';
 import { useAdminConfirm } from '../composables/useAdminConfirm';

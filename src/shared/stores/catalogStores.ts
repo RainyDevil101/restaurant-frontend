@@ -1,21 +1,33 @@
 import { defineStore } from 'pinia';
 import { listProducts, listCategories, listMenus } from '@/shared/api/catalog';
+import type { CatalogStampDto } from '@/shared/api/catalog';
 import { createResourceStore } from './createResourceStore';
+import { STORE_MESSAGES } from './messages';
 
-export const useProductsStore = defineStore('products', () =>
+export type CatalogResourceKey = keyof CatalogStampDto;
+
+export const CATALOG_RESOURCE = {
+  PRODUCTS: 'products',
+  CATEGORIES: 'categories',
+  MENUS: 'menus',
+} as const satisfies Record<string, CatalogResourceKey>;
+
+export const CATALOG_RESOURCE_KEYS: readonly CatalogResourceKey[] = Object.values(CATALOG_RESOURCE);
+
+export const useProductsStore = defineStore(CATALOG_RESOURCE.PRODUCTS, () =>
   createResourceStore(listProducts, {
-    errorMessage: 'No se pudieron cargar los productos.',
+    errorMessage: STORE_MESSAGES.LOAD_PRODUCTS_ERROR,
   }),
 );
 
-export const useCategoriesStore = defineStore('categories', () =>
+export const useCategoriesStore = defineStore(CATALOG_RESOURCE.CATEGORIES, () =>
   createResourceStore(listCategories, {
-    errorMessage: 'No se pudieron cargar las categorías.',
+    errorMessage: STORE_MESSAGES.LOAD_CATEGORIES_ERROR,
   }),
 );
 
-export const useMenusStore = defineStore('menus', () =>
+export const useMenusStore = defineStore(CATALOG_RESOURCE.MENUS, () =>
   createResourceStore(listMenus, {
-    errorMessage: 'No se pudieron cargar los menús.',
+    errorMessage: STORE_MESSAGES.LOAD_MENUS_ERROR,
   }),
 );

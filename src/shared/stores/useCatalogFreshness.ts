@@ -1,9 +1,14 @@
 import { onMounted, onBeforeUnmount } from 'vue';
 import { getCatalogStamp, type ResourceStamp, type CatalogStampDto } from '@/shared/api/catalog';
 import { DEFAULT_TTL_MS } from './createResourceStore';
-import { useProductsStore, useCategoriesStore, useMenusStore } from './catalogStores';
-
-type CatalogResourceKey = keyof CatalogStampDto;
+import {
+  useProductsStore,
+  useCategoriesStore,
+  useMenusStore,
+  CATALOG_RESOURCE,
+  CATALOG_RESOURCE_KEYS,
+  type CatalogResourceKey,
+} from './catalogStores';
 
 interface FreshnessHandle {
   isStale: boolean;
@@ -19,12 +24,12 @@ function stampChanged(previous: ResourceStamp | undefined, next: ResourceStamp):
 }
 
 export function useCatalogFreshness(
-  resources: CatalogResourceKey[] = ['products', 'categories', 'menus'],
+  resources: readonly CatalogResourceKey[] = CATALOG_RESOURCE_KEYS,
 ) {
   const stores: Record<CatalogResourceKey, FreshnessHandle> = {
-    products: useProductsStore(),
-    categories: useCategoriesStore(),
-    menus: useMenusStore(),
+    [CATALOG_RESOURCE.PRODUCTS]: useProductsStore(),
+    [CATALOG_RESOURCE.CATEGORIES]: useCategoriesStore(),
+    [CATALOG_RESOURCE.MENUS]: useMenusStore(),
   };
 
   let cachedStamp: Partial<CatalogStampDto> = {};

@@ -6,18 +6,18 @@ import {
   toggleMenuActive as apiToggleActive,
   type MenuInput,
 } from '@/shared/api/catalog';
-import { useMenusStore, useProductsStore } from '@/shared/stores/catalogStores';
+import { useMenusStore, useProductsStore, CATALOG_RESOURCE } from '@/shared/stores/catalogStores';
 import { useCatalogFreshness } from '@/shared/stores/useCatalogFreshness';
-import type { Menu, Product } from '@/shared/types';
-
-export interface MenuRow extends Menu {
-  productCount: number;
-}
+import type { Product } from '@/shared/types';
+import type { MenuRow } from '../domain';
 
 export function useMenus() {
   const menusStore = useMenusStore();
   const productsStore = useProductsStore();
-  const { invalidateAndRefresh } = useCatalogFreshness(['menus', 'products']);
+  const { invalidateAndRefresh } = useCatalogFreshness([
+    CATALOG_RESOURCE.MENUS,
+    CATALOG_RESOURCE.PRODUCTS,
+  ]);
 
   const loading = computed(() => menusStore.loading || productsStore.loading);
   const error = computed(() => menusStore.error ?? productsStore.error ?? '');
@@ -29,22 +29,22 @@ export function useMenus() {
 
   async function createMenu(input: MenuInput) {
     await apiCreateMenu(input);
-    await invalidateAndRefresh('menus');
+    await invalidateAndRefresh(CATALOG_RESOURCE.MENUS);
   }
 
   async function updateMenu(id: string, input: Partial<MenuInput>) {
     await apiUpdateMenu(id, input);
-    await invalidateAndRefresh('menus');
+    await invalidateAndRefresh(CATALOG_RESOURCE.MENUS);
   }
 
   async function removeMenu(id: string) {
     await apiDeleteMenu(id);
-    await invalidateAndRefresh('menus');
+    await invalidateAndRefresh(CATALOG_RESOURCE.MENUS);
   }
 
   async function toggleActive(id: string) {
     await apiToggleActive(id);
-    await invalidateAndRefresh('menus');
+    await invalidateAndRefresh(CATALOG_RESOURCE.MENUS);
   }
 
   return {
@@ -52,7 +52,7 @@ export function useMenus() {
     products,
     loading,
     error,
-    reload: () => invalidateAndRefresh('menus', 'products'),
+    reload: () => invalidateAndRefresh(CATALOG_RESOURCE.MENUS, CATALOG_RESOURCE.PRODUCTS),
     createMenu,
     updateMenu,
     removeMenu,

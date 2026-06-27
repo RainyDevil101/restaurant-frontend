@@ -2,7 +2,7 @@
 import type { Category } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
 import { colors } from '@/shared/styles/colors';
-import type { OrderEntry } from '../composables/useOrder';
+import { ORDER_ENTRY_KIND, type OrderEntry } from '../domain';
 import { categoryColor, categoryName } from '../helpers/categoryColor';
 
 defineProps<{ entry: OrderEntry; categories: Category[] }>();
@@ -13,9 +13,11 @@ const emit = defineEmits<{ add: []; remove: [] }>();
   <div class="order-item-row">
     <div class="item-name-wrap">
       <span class="item-name">{{
-        entry.kind === 'combo' ? entry.menu.name : entry.product.name
+        entry.kind === ORDER_ENTRY_KIND.COMBO ? entry.menu.name : entry.product.name
       }}</span>
-      <Badge v-if="entry.kind === 'combo'" tone="teal" class="combo-tag">Combo</Badge>
+      <Badge v-if="entry.kind === ORDER_ENTRY_KIND.COMBO" tone="teal" class="combo-tag"
+        >Combo</Badge
+      >
       <span v-else class="category-tag">
         <span
           class="category-dot"

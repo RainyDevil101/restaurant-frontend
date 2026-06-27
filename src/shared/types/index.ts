@@ -1,6 +1,9 @@
 export { Role } from './role';
 export { Route } from './route';
 
+export type { ItemKind } from './kind';
+export { ITEM_KIND } from './kind';
+
 export type { Area, Table, TableStatus } from './table';
 export { TABLE_STATUS } from './table';
 

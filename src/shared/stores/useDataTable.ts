@@ -1,4 +1,5 @@
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
+import { LOCALE } from '@/shared/constants/locale';
 
 export type SortDir = 'asc' | 'desc';
 
@@ -40,7 +41,7 @@ export interface DataTable<T> {
 
 function compareValues(a: string | number, b: string | number): number {
   if (typeof a === 'number' && typeof b === 'number') return a - b;
-  return String(a).localeCompare(String(b), 'es', { sensitivity: 'base' });
+  return String(a).localeCompare(String(b), LOCALE, { sensitivity: 'base' });
 }
 
 export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): DataTable<T> {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { colors } from '@/shared/styles/colors';
-import { useMenus, type MenuRow } from '../composables/useMenus';
+import { useMenus } from '../composables/useMenus';
+import type { MenuRow } from '../domain';
 import { useMenuForm } from '../composables/useMenuForm';
 import { useAdminConfirm } from '../composables/useAdminConfirm';
 import { useAvailabilityToggle } from '../composables/useAvailabilityToggle';

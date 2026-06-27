@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
 import { colors } from '@/shared/styles/colors';
-import { useAdminTables, type TableRow } from '../composables/useAdminTables';
+import { useAdminTables } from '../composables/useAdminTables';
+import type { TableRow } from '../domain';
 import { useAdminDialog } from '../composables/useAdminDialog';
 import { useAdminConfirm } from '../composables/useAdminConfirm';
 import AdminPageHeader from '../components/AdminPageHeader.vue';

@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { useTables } from '../composables/useTables';
+import { useFloorActivity } from '../composables/useFloorActivity';
 import TableCard from '../components/TableCard.vue';
 import { colors } from '@/shared/styles/colors';
 
-const { tables, loading, error } = useTables();
+const { tables, loading, error, reload } = useTables();
+const { activityByTable, reload: reloadActivity } = useFloorActivity();
+
+function retry() {
+  void reload();
+  void reloadActivity();
+}
 </script>
 
 <template>
@@ -23,12 +30,20 @@ const { tables, loading, error } = useTables();
       </div>
     </div>
 
-    <p v-if="loading" class="state-msg">Cargando…</p>
-    <p v-else-if="error" class="state-msg">{{ error }}</p>
+    <p v-if="loading && tables.length === 0" class="state-msg">Cargando…</p>
+    <div v-else-if="error" class="error-state">
+      <p class="state-msg">{{ error }}</p>
+      <button type="button" class="retry-btn" @click="retry">Reintentar</button>
+    </div>
     <p v-else-if="tables.length === 0" class="state-msg">No hay mesas registradas.</p>
 
     <div v-else class="table-grid">
-      <TableCard v-for="table in tables" :key="table.id" :table="table" />
+      <TableCard
+        v-for="table in tables"
+        :key="table.id"
+        :table="table"
+        :activity="activityByTable.get(table.id)"
+      />
     </div>
   </div>
 </template>
@@ -44,6 +59,7 @@ const { tables, loading, error } = useTables();
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  flex-wrap: wrap;
 }
 
 .legend-item {
@@ -81,6 +97,29 @@ const { tables, loading, error } = useTables();
   .table-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+}
+
+.retry-btn {
+  min-height: 2.75rem;
+  padding: 0 1.5rem;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-primary);
+  background: white;
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.retry-btn:active {
+  background: v-bind('colors.brand.soft');
 }
 
 .state-msg {

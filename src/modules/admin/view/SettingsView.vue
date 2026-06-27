@@ -13,6 +13,7 @@ import ConfirmDialog from '../components/ConfirmDialog.vue';
 import Badge from '@/shared/components/Badge.vue';
 import { ApiRequestError } from '@/shared/api/client';
 import type { Printer, PrinterConnection, PaperWidth } from '@/shared/api/settings';
+import { ADMIN_MESSAGES } from '../domain';
 
 const { printingSupported, usbSupported, bluetoothSupported } = usePrinterSupport();
 const { printers, loading, error, createPrinter, updatePrinter, removePrinter, setDefault } =
@@ -35,17 +36,17 @@ const defaultColumns = computed(() => {
 });
 
 async function connectUsb() {
-  if (await connect('usb')) toast.success(`Impresora conectada · ${deviceName.value}`);
+  if (await connect('usb')) toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
 }
 
 async function connectBluetooth() {
-  if (await connect('bluetooth')) toast.success(`Impresora conectada · ${deviceName.value}`);
+  if (await connect('bluetooth')) toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
 }
 
 async function testPrint() {
   try {
     await printTest(defaultColumns.value);
-    toast.success('Prueba enviada a la impresora');
+    toast.success(ADMIN_MESSAGES.TEST_PRINT_SENT);
   } catch (err) {
     toast.error(printerErrorMessage(err));
   }
@@ -90,7 +91,7 @@ function closeDialog() {
 async function savePrinter() {
   const trimmedName = form.name.trim();
   if (!trimmedName) {
-    formError.value = 'El nombre es obligatorio.';
+    formError.value = ADMIN_MESSAGES.PRINTER_NAME_REQUIRED;
     return;
   }
   saving.value = true;
@@ -113,7 +114,7 @@ async function savePrinter() {
     }
     dialogOpen.value = false;
   } catch (err) {
-    formError.value = err instanceof ApiRequestError ? err.message : 'No se pudo guardar.';
+    formError.value = err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.SAVE_ERROR;
   } finally {
     saving.value = false;
   }
@@ -144,7 +145,7 @@ async function confirmDelete() {
     confirmOpen.value = false;
     deletingId.value = null;
   } catch (err) {
-    deleteError.value = err instanceof ApiRequestError ? err.message : 'No se pudo eliminar.';
+    deleteError.value = err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.DELETE_ERROR;
   } finally {
     deleting.value = false;
   }

@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia';
 import { listUsers } from '@/shared/api/users';
 import { createResourceStore } from './createResourceStore';
+import { STORE_MESSAGES } from './messages';
 
-export const useUsersStore = defineStore('users', () =>
-  createResourceStore(listUsers, {
-    errorMessage: 'No se pudieron cargar los usuarios.',
-  }),
+export const USERS_RESOURCE = 'users';
+
+export const useUsersStore = defineStore(USERS_RESOURCE, () =>
+  createResourceStore(listUsers, { errorMessage: STORE_MESSAGES.LOAD_USERS_ERROR }),
 );

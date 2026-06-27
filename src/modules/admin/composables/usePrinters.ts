@@ -10,6 +10,7 @@ import {
 } from '@/shared/api/settings';
 import { ApiRequestError } from '@/shared/api/client';
 import { toast } from '@/shared/toast';
+import { ADMIN_MESSAGES } from '../domain';
 
 export function usePrinters() {
   const printers = ref<Printer[]>([]);
@@ -23,7 +24,7 @@ export function usePrinters() {
       printers.value = await listPrinters();
     } catch (err) {
       error.value =
-        err instanceof ApiRequestError ? err.message : 'No se pudieron cargar las impresoras.';
+        err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.LOAD_PRINTERS_ERROR;
     } finally {
       loading.value = false;
     }
@@ -33,10 +34,10 @@ export function usePrinters() {
     try {
       await apiCreatePrinter(input);
       await load();
-      toast.success('Impresora creada');
+      toast.success(ADMIN_MESSAGES.PRINTER_CREATED);
     } catch (err) {
       const message =
-        err instanceof ApiRequestError ? err.message : 'No se pudo crear la impresora.';
+        err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.CREATE_PRINTER_ERROR;
       toast.error(message);
       throw err;
     }
@@ -46,10 +47,10 @@ export function usePrinters() {
     try {
       await apiUpdatePrinter(id, input);
       await load();
-      toast.success('Impresora actualizada');
+      toast.success(ADMIN_MESSAGES.PRINTER_UPDATED);
     } catch (err) {
       const message =
-        err instanceof ApiRequestError ? err.message : 'No se pudo actualizar la impresora.';
+        err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.UPDATE_PRINTER_ERROR;
       toast.error(message);
       throw err;
     }
@@ -59,10 +60,10 @@ export function usePrinters() {
     try {
       await apiDeletePrinter(id);
       await load();
-      toast.success('Impresora eliminada');
+      toast.success(ADMIN_MESSAGES.PRINTER_DELETED);
     } catch (err) {
       const message =
-        err instanceof ApiRequestError ? err.message : 'No se pudo eliminar la impresora.';
+        err instanceof ApiRequestError ? err.message : ADMIN_MESSAGES.DELETE_PRINTER_ERROR;
       toast.error(message);
       throw err;
     }

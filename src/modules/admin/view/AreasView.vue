@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import { useAreas, type AreaRow } from '../composables/useAreas';
+import { useAreas } from '../composables/useAreas';
+import type { AreaRow } from '../domain';
 import { useAdminDialog } from '../composables/useAdminDialog';
 import { useAdminConfirm } from '../composables/useAdminConfirm';
 import AdminPageHeader from '../components/AdminPageHeader.vue';

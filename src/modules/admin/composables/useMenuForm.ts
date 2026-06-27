@@ -1,10 +1,9 @@
-// Extracted from: MenusView.vue — Application layer: form state + validation for menu create/edit
 import { reactive } from 'vue';
 import { useAdminDialog } from './useAdminDialog';
 import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants';
 import type { MenuInput } from '@/shared/api/catalog';
 import type { MenuItem } from '@/shared/types';
-import type { MenuRow } from './useMenus';
+import type { MenuRow } from '../domain';
 
 interface MenuFormDeps {
   createMenu: (input: MenuInput) => Promise<void>;

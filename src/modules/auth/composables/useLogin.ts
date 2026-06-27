@@ -19,7 +19,6 @@ export function useLogin() {
   function pressDigit(digit: string) {
     if (loading.value || pin.value.length >= PIN_LENGTH) return;
     pin.value += digit;
-    // Auto-submit once the PIN is complete for the fastest possible login.
     if (pin.value.length === PIN_LENGTH) void submit();
   }
 
