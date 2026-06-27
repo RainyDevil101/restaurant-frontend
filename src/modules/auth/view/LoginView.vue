@@ -9,7 +9,6 @@ const { email, pin, pinLength, pinLabel, error, loading, pressDigit, backspace, 
 
 const digitKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-// Physical keyboard support (fast for desktop admin/checkout).
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement | null;
   const typingEmail = target?.tagName === 'INPUT';
