@@ -120,12 +120,8 @@ onBeforeRouteLeave((_to, _from, next) => {
 });
 
 async function handleSubmit() {
-  try {
-    await submit(tableId.value);
-    router.push(Route.SERVICE);
-  } catch {
-    return;
-  }
+  const ok = await submit(tableId.value);
+  if (ok) router.push(Route.SERVICE);
 }
 </script>
 

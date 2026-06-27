@@ -93,7 +93,7 @@ export function usePayment() {
     return cashReceived.value !== null && cashReceived.value >= billTotal.value;
   });
 
-  async function confirmPayment() {
+  async function confirmPayment(): Promise<boolean> {
     processing.value = true;
     error.value = '';
     try {
@@ -107,9 +107,10 @@ export function usePayment() {
           : billTotal.value;
       await payBill(tableId.value, { method: method.value, amount });
       toast.success(CHECKOUT_MESSAGES.PAYMENT_SUCCESS);
+      return true;
     } catch (err) {
       error.value = err instanceof ApiRequestError ? err.message : CHECKOUT_MESSAGES.PAYMENT_ERROR;
-      throw err;
+      return false;
     } finally {
       processing.value = false;
     }

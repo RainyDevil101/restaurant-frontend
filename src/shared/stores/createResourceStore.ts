@@ -1,5 +1,6 @@
 import { ref, computed, type Ref, type ComputedRef } from 'vue';
 import { ApiRequestError } from '@/shared/api/client';
+import { STORE_MESSAGES } from './messages';
 
 export const DEFAULT_TTL_MS = 5 * 60 * 1000;
 
@@ -30,7 +31,7 @@ export function createResourceStore<T extends ResourceEntity>(
   options: ResourceStoreOptions = {},
 ): ResourceStore<T> {
   const ttlMs = options.ttlMs ?? DEFAULT_TTL_MS;
-  const fallbackMessage = options.errorMessage ?? 'No se pudieron cargar los datos.';
+  const fallbackMessage = options.errorMessage ?? STORE_MESSAGES.LOAD_DEFAULT_ERROR;
 
   const items = ref<T[]>([]) as Ref<T[]>;
   const loading = ref(false);

@@ -28,12 +28,8 @@ function goBack() {
 }
 
 async function handleConfirm() {
-  try {
-    await confirmPayment();
-    router.push(Route.CHECKOUT);
-  } catch {
-    // error surfaced via the composable's error ref
-  }
+  const ok = await confirmPayment();
+  if (ok) router.push(Route.CHECKOUT);
 }
 </script>
 

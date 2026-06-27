@@ -17,7 +17,6 @@ export const serviceRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    // Standalone — manages its own full-screen dark layout
     path: `${Route.SERVICE}/table/:id`,
     component: () => import('../view/OrderView.vue'),
     meta: { roles: ROLE_GROUPS.SERVICE, title: ROUTE_TITLES.TOMAR_PEDIDO },

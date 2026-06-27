@@ -87,8 +87,8 @@ export function useOrder() {
     entries.value = [];
   }
 
-  async function submit(tableId: string) {
-    if (entries.value.length === 0) return;
+  async function submit(tableId: string): Promise<boolean> {
+    if (entries.value.length === 0) return false;
     submitting.value = true;
     try {
       const items: OrderItemInput[] = entries.value.map((e) =>
@@ -105,11 +105,12 @@ export function useOrder() {
       }
       clear();
       toast.success(SERVICE_MESSAGES.ORDER_SENT);
+      return true;
     } catch (err) {
       const message =
         err instanceof ApiRequestError ? err.message : SERVICE_MESSAGES.ORDER_SUBMIT_ERROR;
       toast.error(message);
-      throw err;
+      return false;
     } finally {
       submitting.value = false;
     }
