@@ -1,4 +1,5 @@
 import { api } from './client';
+import type { ComandaDto } from './orders';
 import type { Bill, PaymentMethod, ItemKind } from '@/shared/types';
 
 export interface ProcessPaymentInput {
@@ -52,5 +53,17 @@ export interface PrecheckDto {
 export function getPrecheck(tableId: string, width = 80): Promise<PrecheckDto> {
   return api.get<PrecheckDto>(
     `/billing/table/${encodeURIComponent(tableId)}/precheck?width=${width}`,
+  );
+}
+
+export function getPaymentReceipt(paymentId: string, width = 80): Promise<PrecheckDto> {
+  return api.get<PrecheckDto>(
+    `/billing/payments/${encodeURIComponent(paymentId)}/receipt?width=${width}`,
+  );
+}
+
+export function getPaymentComanda(paymentId: string, width = 80): Promise<ComandaDto[]> {
+  return api.get<ComandaDto[]>(
+    `/billing/payments/${encodeURIComponent(paymentId)}/comanda?width=${width}`,
   );
 }

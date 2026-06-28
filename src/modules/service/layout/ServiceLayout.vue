@@ -87,30 +87,33 @@ function logout() {
 
 .header {
   background: var(--color-primary);
-  padding: 0.875rem 1.25rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   color: white;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .menu-btn {
   background: none;
   border: none;
   color: white;
-  padding: 4px 8px;
-  display: flex;
+  padding: 0.375rem 0.5rem;
+  min-height: 2.5rem;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .menu-btn:active {
@@ -124,23 +127,30 @@ function logout() {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  margin-left: auto;
+  min-width: 0;
 }
 
 .avatar {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: white;
   color: v-bind('colors.brand.primary');
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .user-name {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .help-btn {
@@ -153,6 +163,7 @@ function logout() {
   border: none;
   color: white;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .help-btn:active {
@@ -163,10 +174,12 @@ function logout() {
   background: rgba(255, 255, 255, 0.15);
   border: none;
   color: white;
-  padding: 8px 12px;
+  padding: 0.5rem 0.875rem;
+  min-height: 2.75rem;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .logout-btn:active {
@@ -176,5 +189,11 @@ function logout() {
 .content {
   flex: 1;
   padding: 1.25rem;
+}
+
+@media (max-width: 400px) {
+  .back-label {
+    display: none;
+  }
 }
 </style>
