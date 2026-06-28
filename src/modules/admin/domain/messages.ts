@@ -21,5 +21,9 @@ export const ADMIN_MESSAGES = {
   SAVE_RECEIPT_ERROR: 'No se pudieron guardar los datos.',
   PRINTER_NAME_REQUIRED: 'El nombre es obligatorio.',
   TEST_PRINT_SENT: 'Prueba enviada a la impresora',
+  PRINTER_NOT_CONNECTED: 'Conecta la impresora primero en Configuraciones',
+  PRINTER_NOT_CONFIGURED: 'Configura una impresora en Ajustes antes de imprimir',
+  RECEIPT_PRINTED: 'Recibo impreso',
   printerConnected: (name: string) => `Impresora conectada · ${name}`,
+  comandaPrinted: (count: number) => `Comanda impresa · ${count} área${count !== 1 ? 's' : ''}`,
 } as const;
