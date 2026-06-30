@@ -1,4 +1,7 @@
 import { api } from './client';
+import { ENDPOINTS } from './endpoints';
+import { buildQuery } from './query';
+import { DEFAULT_PAPER_WIDTH } from '@/shared/types';
 import type { ComandaDto } from './orders';
 import type { Bill, PaymentMethod, ItemKind } from '@/shared/types';
 
@@ -29,19 +32,19 @@ export interface ApiPayment {
 }
 
 export function getBill(tableId: string): Promise<Bill> {
-  return api.get<Bill>(`/billing/table/${tableId}`);
+  return api.get<Bill>(ENDPOINTS.billing.table(tableId));
 }
 
 export function consolidateBill(tableId: string): Promise<Bill> {
-  return api.post<Bill>(`/billing/table/${tableId}/consolidate`);
+  return api.post<Bill>(ENDPOINTS.billing.consolidate(tableId));
 }
 
 export function payBill(tableId: string, input: ProcessPaymentInput): Promise<ApiPayment> {
-  return api.post<ApiPayment>(`/billing/table/${tableId}/payment`, input);
+  return api.post<ApiPayment>(ENDPOINTS.billing.payment(tableId), input);
 }
 
 export function listPayments(): Promise<ApiPayment[]> {
-  return api.get<ApiPayment[]>('/billing/payments');
+  return api.get<ApiPayment[]>(ENDPOINTS.billing.payments);
 }
 
 export interface PrecheckDto {
@@ -50,20 +53,27 @@ export interface PrecheckDto {
   paperWidth: number;
 }
 
-export function getPrecheck(tableId: string, width = 80): Promise<PrecheckDto> {
+export function getPrecheck(
+  tableId: string,
+  width: number = DEFAULT_PAPER_WIDTH,
+): Promise<PrecheckDto> {
+  return api.get<PrecheckDto>(`${ENDPOINTS.billing.precheck(tableId)}${buildQuery({ width })}`);
+}
+
+export function getPaymentReceipt(
+  paymentId: string,
+  width: number = DEFAULT_PAPER_WIDTH,
+): Promise<PrecheckDto> {
   return api.get<PrecheckDto>(
-    `/billing/table/${encodeURIComponent(tableId)}/precheck?width=${width}`,
+    `${ENDPOINTS.billing.paymentReceipt(paymentId)}${buildQuery({ width })}`,
   );
 }
 
-export function getPaymentReceipt(paymentId: string, width = 80): Promise<PrecheckDto> {
-  return api.get<PrecheckDto>(
-    `/billing/payments/${encodeURIComponent(paymentId)}/receipt?width=${width}`,
-  );
-}
-
-export function getPaymentComanda(paymentId: string, width = 80): Promise<ComandaDto[]> {
+export function getPaymentComanda(
+  paymentId: string,
+  width: number = DEFAULT_PAPER_WIDTH,
+): Promise<ComandaDto[]> {
   return api.get<ComandaDto[]>(
-    `/billing/payments/${encodeURIComponent(paymentId)}/comanda?width=${width}`,
+    `${ENDPOINTS.billing.paymentComanda(paymentId)}${buildQuery({ width })}`,
   );
 }

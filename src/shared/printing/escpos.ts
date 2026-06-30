@@ -1,6 +1,11 @@
+import { BRAND } from '@/shared/constants/brand';
+
 const ESC = 0x1b;
 const GS = 0x1d;
 const LF = 0x0a;
+
+const TEST_TICKET_SUBTITLE = 'Prueba de impresion';
+const testTicketWidthLine = (columns: number) => `Ancho: ${columns} columnas`;
 
 export function base64ToBytes(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -25,12 +30,12 @@ export function testTicket(columns: number): Uint8Array {
   bytes.push(ESC, 0x40);
   bytes.push(ESC, 0x61, 0x01);
   bytes.push(ESC, 0x45, 0x01);
-  write('SUBITO');
+  write(BRAND.toUpperCase());
   bytes.push(LF);
   bytes.push(ESC, 0x45, 0x00);
-  write('Prueba de impresion');
+  write(TEST_TICKET_SUBTITLE);
   bytes.push(LF);
-  write(`Ancho: ${columns} columnas`);
+  write(testTicketWidthLine(columns));
   bytes.push(LF);
   write('-'.repeat(columns));
   bytes.push(LF, LF, LF, LF);

@@ -9,25 +9,13 @@ import { cancelOrder } from '@/shared/api/orders';
 import { ApiRequestError } from '@/shared/api/client';
 import { Route, ORDER_STATUS, ITEM_KIND } from '@/shared/types';
 import type { OrderStatus } from '@/shared/types';
-import { CHECKOUT_MESSAGES } from '../domain';
+import { CHECKOUT_MESSAGES, CHECKOUT_LABELS } from '../domain';
+import { ORDER_STATUS_LABEL, ITEM_KIND_LABEL } from '@/shared/constants/labels';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
 import { LOCALE } from '@/shared/constants/locale';
 import { colors } from '@/shared/styles/colors';
-
-const orderStatusTone: Record<OrderStatus, 'gray' | 'blue' | 'green' | 'amber' | 'red'> = {
-  pendiente: 'amber',
-  en_proceso: 'blue',
-  listo: 'green',
-  entregado: 'gray',
-  cancelado: 'red',
-};
-
-const orderStatusLabel: Record<OrderStatus, string> = {
-  pendiente: 'Pendiente',
-  en_proceso: 'En proceso',
-  listo: 'Listo',
-  entregado: 'Entregado',
-  cancelado: 'Cancelado',
-};
+import { ArrowLeftIcon, CreditCardIcon } from '@/modules/shared/components/icons';
 
 const router = useRouter();
 const {
@@ -87,7 +75,7 @@ function goBack() {
 }
 
 function goToPayment() {
-  router.push(`/checkout/table/${table.value?.id}/payment`);
+  router.push(`${Route.CHECKOUT}/table/${table.value?.id}/payment`);
 }
 </script>
 
@@ -96,35 +84,28 @@ function goToPayment() {
     <!-- Header -->
     <div class="page-header">
       <button class="back-btn" @click="goBack">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="20"
-          height="20"
-          aria-hidden="true"
-        >
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-        </svg>
-        <span>Caja</span>
+        <ArrowLeftIcon :size="20" />
+        <span>{{ ROUTE_TITLES.CAJA }}</span>
       </button>
       <div class="header-title">
-        <h1 class="page-title">{{ table?.name ?? 'Mesa' }}</h1>
-        <span v-if="table" class="meta">{{ table.capacity }} pers.</span>
+        <h1 class="page-title">{{ table?.name ?? CHECKOUT_LABELS.common.tableFallback }}</h1>
+        <span v-if="table" class="meta">{{
+          CHECKOUT_LABELS.billing.capacity(table.capacity)
+        }}</span>
       </div>
 
       <div v-if="!loading && activeOrders.length > 0" class="status-chips">
         <Badge v-if="ordersByStatus.pending > 0" tone="amber">
-          {{ ordersByStatus.pending }} pendiente{{ ordersByStatus.pending > 1 ? 's' : '' }}
+          {{ CHECKOUT_LABELS.billing.pendingChip(ordersByStatus.pending) }}
         </Badge>
         <Badge v-if="ordersByStatus.inProgress > 0" tone="blue">
-          {{ ordersByStatus.inProgress }} en proceso
+          {{ CHECKOUT_LABELS.billing.inProgressChip(ordersByStatus.inProgress) }}
         </Badge>
         <Badge v-if="ordersByStatus.ready > 0" tone="green">
-          {{ ordersByStatus.ready }} listo{{ ordersByStatus.ready > 1 ? 's' : '' }}
+          {{ CHECKOUT_LABELS.billing.readyChip(ordersByStatus.ready) }}
         </Badge>
         <Badge v-if="ordersByStatus.delivered > 0" tone="gray">
-          {{ ordersByStatus.delivered }} entregado{{ ordersByStatus.delivered > 1 ? 's' : '' }}
+          {{ CHECKOUT_LABELS.billing.deliveredChip(ordersByStatus.delivered) }}
         </Badge>
       </div>
     </div>
@@ -132,7 +113,7 @@ function goToPayment() {
     <!-- Scrollable body -->
     <div class="scroll-body">
       <div v-if="loading" class="state-block">
-        <p class="state-msg">Cargando…</p>
+        <p class="state-msg">{{ UI_LABELS.loading }}</p>
       </div>
       <div v-else-if="error" class="state-block">
         <p class="state-msg error">{{ error }}</p>
@@ -141,18 +122,18 @@ function goToPayment() {
       <div v-else class="content-grid">
         <!-- Left: orders -->
         <div class="card">
-          <h2 class="card-title">Pedidos</h2>
+          <h2 class="card-title">{{ CHECKOUT_LABELS.billing.ordersTitle }}</h2>
 
           <div v-if="activeOrders.length === 0" class="empty-orders">
-            <p>Sin pedidos registrados para esta mesa.</p>
+            <p>{{ CHECKOUT_LABELS.billing.noOrders }}</p>
           </div>
 
           <ul v-else class="order-list">
             <li v-for="order in activeOrders" :key="order.id" class="order-card">
               <div class="order-header">
                 <span class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</span>
-                <Badge :tone="orderStatusTone[order.status]">
-                  {{ orderStatusLabel[order.status] }}
+                <Badge :tone="ORDER_STATUS_LABEL[order.status].tone">
+                  {{ ORDER_STATUS_LABEL[order.status].label }}
                 </Badge>
               </div>
               <ul class="order-items">
@@ -173,7 +154,7 @@ function goToPayment() {
               </div>
               <div v-if="canCancel(order.status, order.paid)" class="order-actions">
                 <button type="button" class="cancel-order-btn" @click="openCancelDialog(order.id)">
-                  Cancelar pedido
+                  {{ CHECKOUT_LABELS.common.cancelOrder }}
                 </button>
               </div>
             </li>
@@ -182,10 +163,10 @@ function goToPayment() {
 
         <!-- Right: bill summary -->
         <div class="card bill-card">
-          <h2 class="card-title">Cuenta consolidada</h2>
+          <h2 class="card-title">{{ CHECKOUT_LABELS.billing.consolidatedBill }}</h2>
 
           <div v-if="billLines.length === 0" class="empty-orders">
-            <p>Sin ítems en cuenta.</p>
+            <p>{{ CHECKOUT_LABELS.billing.noItems }}</p>
           </div>
 
           <template v-else>
@@ -193,14 +174,19 @@ function goToPayment() {
               <div v-for="line in billLines" :key="line.productId" class="bill-line">
                 <div class="line-left">
                   <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-                  <Badge v-if="line.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
+                  <Badge
+                    v-if="line.kind === ITEM_KIND.COMBO"
+                    :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone"
+                  >
+                    {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+                  </Badge>
                 </div>
                 <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
               </div>
             </div>
 
             <div class="bill-total-row">
-              <span class="total-label">Total</span>
+              <span class="total-label">{{ CHECKOUT_LABELS.common.total }}</span>
               <span class="total-amount">{{ formatCurrency(billTotal) }}</span>
             </div>
           </template>
@@ -211,22 +197,11 @@ function goToPayment() {
     <!-- Pay bar — always visible at the bottom -->
     <div v-if="!loading && !error" class="pay-bar">
       <p v-if="hasPendingOrders" class="pending-warning">
-        Hay pedidos sin entregar. Confirma antes de cobrar.
+        {{ CHECKOUT_LABELS.billing.pendingWarning }}
       </p>
       <button class="pay-btn" :disabled="billLines.length === 0" @click="goToPayment">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="20"
-          height="20"
-          aria-hidden="true"
-        >
-          <path
-            d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
-          />
-        </svg>
-        Proceder al cobro · {{ formatCurrency(billTotal) }}
+        <CreditCardIcon :size="20" />
+        {{ CHECKOUT_LABELS.billing.proceedToPayment(formatCurrency(billTotal)) }}
       </button>
     </div>
 

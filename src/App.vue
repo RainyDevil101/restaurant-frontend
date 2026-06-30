@@ -3,6 +3,7 @@ import 'vue-sonner/style.css';
 import { Toaster } from 'vue-sonner';
 import { colors } from '@/shared/styles/colors';
 import HealthBanner from '@/shared/components/HealthBanner.vue';
+import { SKIP_LINK } from '@/shared/constants/ui';
 
 const toastStyle = {
   '--border-radius': '12px',
@@ -22,7 +23,7 @@ const toastStyle = {
 </script>
 
 <template>
-  <a href="#main" class="skip-link">Saltar al contenido</a>
+  <a :href="SKIP_LINK.target" class="skip-link">{{ SKIP_LINK.label }}</a>
   <HealthBanner />
   <RouterView />
   <Toaster position="top-right" rich-colors :expand="false" :duration="4000" :style="toastStyle" />

@@ -1,8 +1,25 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
+import type { Component } from 'vue';
 import { useRouter } from 'vue-router';
+import {
+  ArrowLeftIcon,
+  UserIcon,
+  CurrencyDollarIcon,
+  GearIcon,
+  ListBulletIcon,
+  GridIcon,
+  LightbulbIcon,
+  WrenchIcon,
+  QuestionMarkCircleIcon,
+  BookOpenIcon,
+} from '@/modules/shared/components/icons';
 import { useAuthStore } from '@/modules/auth/store';
-import { Role } from '@/shared/types';
+import { Role, TABLE_STATUS } from '@/shared/types';
+import { TABLE_STATUS_LABEL } from '@/shared/constants/labels';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { PIN_LENGTH } from '@/shared/constants/validation';
+import { MANUAL_SECTION, MANUAL_LABELS } from '../constants';
 import { colors } from '@/shared/styles/colors';
 
 type Step = { title: string; detail: string };
@@ -18,41 +35,27 @@ type Guide = {
   showTables: boolean;
 };
 
-const ICONS = {
-  back: 'M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z',
-  mesero:
-    'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
-  caja: 'M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z',
-  admin:
-    'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z',
-  pasos: 'M7 5h14v2H7zm0 6h14v2H7zm0 6h14v2H7zM3 5h2v2H3zm0 6h2v2H3zm0 6h2v2H3z',
-  mesas:
-    'M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z',
-  tips: 'M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z',
-  troubles:
-    'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z',
-  faq: 'M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z',
-  glosario:
-    'M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z',
-} as const;
-
 const ROLE_ORDER: Role[] = [Role.MESERO, Role.CAJERO, Role.ADMIN];
 
-const ROLE_META: Record<Role, { label: string; icon: string }> = {
-  [Role.MESERO]: { label: 'Mesero', icon: ICONS.mesero },
-  [Role.CAJERO]: { label: 'Caja', icon: ICONS.caja },
-  [Role.ADMIN]: { label: 'Admin', icon: ICONS.admin },
+const ROLE_META: Record<Role, { label: string; icon: Component }> = {
+  [Role.MESERO]: { label: 'Mesero', icon: UserIcon },
+  [Role.CAJERO]: { label: 'Caja', icon: CurrencyDollarIcon },
+  [Role.ADMIN]: { label: 'Admin', icon: GearIcon },
 };
 
 const TABLE_STATUSES = [
   {
-    label: 'Libre',
+    label: TABLE_STATUS_LABEL[TABLE_STATUS.FREE].label,
     tone: colors.table.free,
     detail: 'La mesa está vacía y lista para un nuevo pedido.',
   },
-  { label: 'Ocupada', tone: colors.table.occupied, detail: 'Ya tiene un pedido en curso.' },
   {
-    label: 'Por cobrar',
+    label: TABLE_STATUS_LABEL[TABLE_STATUS.OCCUPIED].label,
+    tone: colors.table.occupied,
+    detail: 'Ya tiene un pedido en curso.',
+  },
+  {
+    label: TABLE_STATUS_LABEL[TABLE_STATUS.PENDING_PAYMENT].label,
     tone: colors.table.pendingPayment,
     detail: 'La caja la está cobrando; se libera al confirmar el pago.',
   },
@@ -87,7 +90,7 @@ const GUIDES: Record<Role, Guide> = {
     steps: [
       {
         title: 'Inicia sesión',
-        detail: 'Ingresa tu correo y tu PIN de 4 dígitos en la pantalla de inicio.',
+        detail: `Ingresa tu correo y tu PIN de ${PIN_LENGTH} dígitos en la pantalla de inicio.`,
       },
       {
         title: 'Elige una mesa',
@@ -277,12 +280,12 @@ const GUIDES: Record<Role, Guide> = {
 };
 
 const SECTIONS = [
-  { id: 'pasos', label: 'Paso a paso', icon: ICONS.pasos },
-  { id: 'mesas', label: 'Estados de las mesas', icon: ICONS.mesas, tablesOnly: true },
-  { id: 'tips', label: 'Bueno saber', icon: ICONS.tips },
-  { id: 'problemas', label: '¿Qué hago si…?', icon: ICONS.troubles },
-  { id: 'faq', label: 'Preguntas frecuentes', icon: ICONS.faq },
-  { id: 'glosario', label: 'Glosario', icon: ICONS.glosario },
+  MANUAL_SECTION.STEPS,
+  { ...MANUAL_SECTION.TABLES, tablesOnly: true },
+  MANUAL_SECTION.TIPS,
+  MANUAL_SECTION.PROBLEMS,
+  MANUAL_SECTION.FAQ,
+  MANUAL_SECTION.GLOSSARY,
 ] as const;
 
 const router = useRouter();
@@ -332,16 +335,14 @@ function goBack() {
   <div class="manual-page">
     <header class="manual-topbar">
       <div class="topbar-row">
-        <button class="back-btn" aria-label="Volver" @click="goBack">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-            <path :d="ICONS.back" />
-          </svg>
-          <span>Volver</span>
+        <button class="back-btn" :aria-label="UI_LABELS.back" @click="goBack">
+          <ArrowLeftIcon :size="20" />
+          <span>{{ UI_LABELS.back }}</span>
         </button>
-        <h1 class="manual-title">Manual de uso</h1>
+        <h1 class="manual-title">{{ MANUAL_LABELS.title }}</h1>
       </div>
 
-      <div class="role-tabs" role="tablist" aria-label="Elige una guía">
+      <div class="role-tabs" role="tablist" :aria-label="MANUAL_LABELS.chooseGuideAria">
         <button
           v-for="role in ROLE_ORDER"
           :key="role"
@@ -361,17 +362,15 @@ function goBack() {
           @click="selectRole(role)"
           @keydown="onTabKeydown($event, role)"
         >
-          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
-            <path :d="ROLE_META[role].icon" />
-          </svg>
+          <component :is="ROLE_META[role].icon" :size="18" />
           {{ ROLE_META[role].label }}
         </button>
       </div>
     </header>
 
-    <main id="main" tabindex="-1" class="manual-body" aria-label="Manual de uso">
-      <nav class="toc" aria-label="En esta página">
-        <p class="toc-title">En esta página</p>
+    <main id="main" tabindex="-1" class="manual-body" :aria-label="MANUAL_LABELS.title">
+      <nav class="toc" :aria-label="MANUAL_LABELS.tocTitle">
+        <p class="toc-title">{{ MANUAL_LABELS.tocTitle }}</p>
         <a
           v-for="section in visibleSections"
           :key="section.id"
@@ -391,9 +390,7 @@ function goBack() {
       >
         <section class="hero">
           <div class="hero-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="30" height="30">
-              <path :d="ROLE_META[activeRole].icon" />
-            </svg>
+            <component :is="ROLE_META[activeRole].icon" :size="30" />
           </div>
           <div>
             <h2 class="hero-title">{{ activeGuide.subtitle }}</h2>
@@ -401,12 +398,10 @@ function goBack() {
           </div>
         </section>
 
-        <section id="pasos" class="block">
+        <section :id="MANUAL_SECTION.STEPS.id" class="block">
           <h3 class="block-title">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path :d="ICONS.pasos" />
-            </svg>
-            Paso a paso
+            <ListBulletIcon :size="20" />
+            {{ MANUAL_SECTION.STEPS.label }}
           </h3>
           <ol class="steps">
             <li v-for="(step, index) in activeGuide.steps" :key="step.title" class="step">
@@ -419,12 +414,10 @@ function goBack() {
           </ol>
         </section>
 
-        <section v-if="activeGuide.showTables" id="mesas" class="block">
+        <section v-if="activeGuide.showTables" :id="MANUAL_SECTION.TABLES.id" class="block">
           <h3 class="block-title">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path :d="ICONS.mesas" />
-            </svg>
-            Estados de las mesas
+            <GridIcon :size="20" />
+            {{ MANUAL_SECTION.TABLES.label }}
           </h3>
           <div class="status-grid">
             <div v-for="status in TABLE_STATUSES" :key="status.label" class="status-card">
@@ -439,24 +432,20 @@ function goBack() {
           </div>
         </section>
 
-        <section id="tips" class="block">
+        <section :id="MANUAL_SECTION.TIPS.id" class="block">
           <h3 class="block-title">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path :d="ICONS.tips" />
-            </svg>
-            Bueno saber
+            <LightbulbIcon :size="20" />
+            {{ MANUAL_SECTION.TIPS.label }}
           </h3>
           <ul class="tips">
             <li v-for="tip in activeGuide.tips" :key="tip" class="tip">{{ tip }}</li>
           </ul>
         </section>
 
-        <section id="problemas" class="block">
+        <section :id="MANUAL_SECTION.PROBLEMS.id" class="block">
           <h3 class="block-title">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path :d="ICONS.troubles" />
-            </svg>
-            ¿Qué hago si…?
+            <WrenchIcon :size="20" />
+            {{ MANUAL_SECTION.PROBLEMS.label }}
           </h3>
           <div class="cards">
             <div v-for="item in activeGuide.troubles" :key="item.problem" class="card">
@@ -466,12 +455,10 @@ function goBack() {
           </div>
         </section>
 
-        <section id="faq" class="block">
+        <section :id="MANUAL_SECTION.FAQ.id" class="block">
           <h3 class="block-title">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path :d="ICONS.faq" />
-            </svg>
-            Preguntas frecuentes
+            <QuestionMarkCircleIcon :size="20" />
+            {{ MANUAL_SECTION.FAQ.label }}
           </h3>
           <div class="cards">
             <div v-for="item in activeGuide.faqs" :key="item.question" class="card">
@@ -481,12 +468,10 @@ function goBack() {
           </div>
         </section>
 
-        <section id="glosario" class="block">
+        <section :id="MANUAL_SECTION.GLOSSARY.id" class="block">
           <h3 class="block-title">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
-              <path :d="ICONS.glosario" />
-            </svg>
-            Glosario
+            <BookOpenIcon :size="20" />
+            {{ MANUAL_SECTION.GLOSSARY.label }}
           </h3>
           <dl class="glossary">
             <div v-for="entry in GLOSSARY" :key="entry.term" class="glossary-row">

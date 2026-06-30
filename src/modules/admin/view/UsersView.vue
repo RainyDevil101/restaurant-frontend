@@ -14,6 +14,9 @@ import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import { Role, useAuthStore, type User } from '@/modules/auth/store';
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
 import { EMAIL_RE, PIN_RE, PIN_LENGTH, NON_DIGIT_RE } from '@/shared/constants/validation';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { EMPTY_VALUE } from '@/shared/constants/display';
 
 function onPinInput(e: Event) {
   const el = e.target as HTMLInputElement;
@@ -38,11 +41,11 @@ function canDeleteUser(row: User): boolean {
 }
 
 const columns = computed<Column<User>[]>(() => [
-  { key: 'name', label: 'Usuario', sortable: true },
-  { key: 'email', label: 'Correo', sortable: true },
+  { key: 'name', label: ADMIN_LABELS.fields.user, sortable: true },
+  { key: 'email', label: ADMIN_LABELS.fields.email, sortable: true },
   {
     key: 'role',
-    label: 'Rol',
+    label: ADMIN_LABELS.fields.role,
     sortable: true,
     filter: {
       type: 'select',
@@ -51,19 +54,19 @@ const columns = computed<Column<User>[]>(() => [
   },
   {
     key: 'active',
-    label: 'Estado',
+    label: ADMIN_LABELS.fields.status,
     align: 'right',
     sortable: true,
     accessor: (user) => String(user.active),
     filter: {
       type: 'select',
       options: [
-        { value: 'true', label: 'Activo' },
-        { value: 'false', label: 'Inactivo' },
+        { value: 'true', label: ADMIN_LABELS.status.active },
+        { value: 'false', label: ADMIN_LABELS.status.inactive },
       ],
     },
   },
-  { key: 'actions', label: 'Acciones', align: 'right' },
+  { key: 'actions', label: ADMIN_LABELS.fields.actions, align: 'right' },
 ]);
 
 const form = reactive({
@@ -154,7 +157,11 @@ async function confirmDelete() {
 
 <template>
   <div class="users-view">
-    <AdminPageHeader title="Usuarios" new-label="Nuevo usuario" @create="openCreate" />
+    <AdminPageHeader
+      :title="ROUTE_TITLES.USUARIOS"
+      :new-label="ADMIN_LABELS.user.newLabel"
+      @create="openCreate"
+    />
 
     <DataTable
       :items="users"
@@ -164,11 +171,11 @@ async function confirmDelete() {
       :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
       default-sort="name"
-      search-placeholder="Buscar usuario..."
+      :search-placeholder="ADMIN_LABELS.user.searchPlaceholder"
     >
       <template #cell-name="{ row }">
         <span class="col-name">{{ row.name }}</span>
-        <Badge v-if="row.isOwner" tone="amber">Dueño</Badge>
+        <Badge v-if="row.isOwner" tone="amber">{{ ADMIN_LABELS.user.ownerBadge }}</Badge>
       </template>
 
       <template #cell-email="{ row }">
@@ -181,34 +188,38 @@ async function confirmDelete() {
 
       <template #cell-active="{ row }">
         <Badge :tone="row.active ? 'green' : 'gray'">{{
-          row.active ? 'Activo' : 'Inactivo'
+          row.active ? ADMIN_LABELS.status.active : ADMIN_LABELS.status.inactive
         }}</Badge>
       </template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button v-if="canEditUser(row)" class="action-btn" @click="openEdit(row)">Editar</button>
-          <button v-if="canDeleteUser(row)" class="action-btn danger" @click="openDelete(row.id)">
-            Eliminar
+          <button v-if="canEditUser(row)" class="action-btn" @click="openEdit(row)">
+            {{ UI_LABELS.edit }}
           </button>
-          <span v-if="!canEditUser(row) && !canDeleteUser(row)" class="col-muted">—</span>
+          <button v-if="canDeleteUser(row)" class="action-btn danger" @click="openDelete(row.id)">
+            {{ UI_LABELS.remove }}
+          </button>
+          <span v-if="!canEditUser(row) && !canDeleteUser(row)" class="col-muted">{{
+            EMPTY_VALUE
+          }}</span>
         </div>
       </template>
     </DataTable>
 
     <ModalDialog
       v-if="dialogOpen"
-      :title="editingId ? 'Editar usuario' : 'Nuevo usuario'"
+      :title="editingId ? ADMIN_LABELS.user.editTitle : ADMIN_LABELS.user.newLabel"
       :saving="saving"
       :error="formError"
       @close="dialogOpen = false"
       @submit="save"
     >
-      <AdminFormField label="Nombre" for="user-name">
+      <AdminFormField :label="ADMIN_LABELS.fields.name" for="user-name">
         <input id="user-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
 
-      <AdminFormField label="Correo" for="user-email">
+      <AdminFormField :label="ADMIN_LABELS.fields.email" for="user-email">
         <input
           id="user-email"
           v-model="form.email"
@@ -219,7 +230,7 @@ async function confirmDelete() {
         />
       </AdminFormField>
 
-      <AdminFormField label="Rol" for="user-role">
+      <AdminFormField :label="ADMIN_LABELS.fields.role" for="user-role">
         <select id="user-role" v-model="form.role" class="field-input">
           <option v-for="role in roleOptions" :key="role" :value="role">
             {{ roleLabel(role).label }}
@@ -227,31 +238,35 @@ async function confirmDelete() {
         </select>
       </AdminFormField>
 
-      <AdminFormField label="PIN (6 dígitos)" for="user-credential">
+      <AdminFormField :label="ADMIN_LABELS.user.pinFieldLabel(PIN_LENGTH)" for="user-credential">
         <input
           id="user-credential"
           v-model="form.credential"
           type="text"
           inputmode="numeric"
-          maxlength="6"
+          :maxlength="PIN_LENGTH"
           class="field-input"
           autocomplete="off"
           :required="!editingId"
-          :placeholder="editingId ? 'Dejar en blanco para no cambiar' : '6 dígitos'"
+          :placeholder="
+            editingId
+              ? ADMIN_LABELS.user.pinKeepPlaceholder
+              : ADMIN_LABELS.user.pinDigitsPlaceholder(PIN_LENGTH)
+          "
           @input="onPinInput"
         />
       </AdminFormField>
 
       <label v-if="editingId && editingId !== currentUserId" class="check-field">
         <input v-model="form.active" type="checkbox" />
-        <span>Activo</span>
+        <span>{{ ADMIN_LABELS.status.active }}</span>
       </label>
     </ModalDialog>
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar usuario"
-      message="¿Seguro que deseas eliminar este usuario? Quedará desactivado y no podrá iniciar sesión."
+      :title="ADMIN_LABELS.user.deleteTitle"
+      :message="ADMIN_LABELS.user.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

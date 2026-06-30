@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Category } from '@/shared/types';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 withDefaults(
   defineProps<{
@@ -25,7 +26,7 @@ const emit = defineEmits<{
       :aria-selected="modelValue === null"
       @click="emit('update:modelValue', null)"
     >
-      Todos
+      {{ UI_LABELS.all }}
     </button>
     <button
       v-for="cat in categories"

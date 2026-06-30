@@ -1,11 +1,28 @@
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue';
 import { LOCALE } from '@/shared/constants/locale';
 
-export type SortDir = 'asc' | 'desc';
+export const SORT_DIR = {
+  ASC: 'asc',
+  DESC: 'desc',
+} as const;
+
+export type SortDir = (typeof SORT_DIR)[keyof typeof SORT_DIR];
 
 export type SortAccessor<T> = (item: T) => string | number;
 
-export type ColumnFilterMatch = 'includes' | 'equals';
+export const FILTER_MATCH = {
+  INCLUDES: 'includes',
+  EQUALS: 'equals',
+} as const;
+
+export type ColumnFilterMatch = (typeof FILTER_MATCH)[keyof typeof FILTER_MATCH];
+
+export const COLUMN_FILTER_TYPE = {
+  TEXT: 'text',
+  SELECT: 'select',
+} as const;
+
+export type ColumnFilterType = (typeof COLUMN_FILTER_TYPE)[keyof typeof COLUMN_FILTER_TYPE];
 
 export interface ColumnFilter<T> {
   key: string;
@@ -46,7 +63,7 @@ function compareValues(a: string | number, b: string | number): number {
 
 export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): DataTable<T> {
   const sortBy = ref(opts.sortBy);
-  const sortDir = ref<SortDir>(opts.sortDir ?? 'asc');
+  const sortDir = ref<SortDir>(opts.sortDir ?? SORT_DIR.ASC);
   const page = ref(1);
   const pageSize = ref(opts.pageSize);
   const search = ref(opts.search ?? '');
@@ -68,7 +85,7 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
     for (const columnFilter of columnFilters) {
       const value = filters.value[columnFilter.key];
       if (!value) continue;
-      if (columnFilter.match === 'equals') {
+      if (columnFilter.match === FILTER_MATCH.EQUALS) {
         result = result.filter((item) => columnFilter.accessor(item) === value);
       } else {
         const needle = value.toLowerCase();
@@ -83,7 +100,7 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
   const sorted = computed(() => {
     const accessor = opts.sortAccessors[sortBy.value];
     if (!accessor) return filtered.value;
-    const direction = sortDir.value === 'asc' ? 1 : -1;
+    const direction = sortDir.value === SORT_DIR.ASC ? 1 : -1;
     return [...filtered.value].sort((a, b) => compareValues(accessor(a), accessor(b)) * direction);
   });
 
@@ -104,10 +121,10 @@ export function useDataTable<T>(source: Ref<T[]>, opts: DataTableOptions<T>): Da
 
   function toggleSort(field: string): void {
     if (sortBy.value === field) {
-      sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+      sortDir.value = sortDir.value === SORT_DIR.ASC ? SORT_DIR.DESC : SORT_DIR.ASC;
     } else {
       sortBy.value = field;
-      sortDir.value = 'asc';
+      sortDir.value = SORT_DIR.ASC;
     }
   }
 

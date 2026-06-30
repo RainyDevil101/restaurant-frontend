@@ -6,46 +6,49 @@ import Badge from '@/shared/components/Badge.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import PaymentDetailDialog from '../components/PaymentDetailDialog.vue';
 import { PAYMENT_METHOD } from '@/shared/types';
+import { PAYMENT_METHOD_LABEL } from '@/shared/constants/labels';
 import { LOCALE } from '@/shared/constants/locale';
 import { EMPTY_VALUE } from '@/shared/constants/display';
 import { colors } from '@/shared/styles/colors';
+import { ADMIN_LABELS } from '../constants';
 import type { PaymentRow } from '../domain';
+import { ArrowPathIcon } from '@/modules/shared/components/icons';
 
 const { payments, loading, error, reload } = usePayments();
 
 const selectedPayment = ref<PaymentRow | null>(null);
 
 const columns = computed<Column<PaymentRow>[]>(() => [
-  { key: 'tableName', label: 'Mesa', sortable: true },
+  { key: 'tableName', label: ADMIN_LABELS.fields.table, sortable: true },
   {
     key: 'method',
-    label: 'Método',
+    label: ADMIN_LABELS.fields.method,
     sortable: true,
     filter: {
       type: 'select',
       options: [
-        { value: PAYMENT_METHOD.CASH, label: 'Efectivo' },
-        { value: PAYMENT_METHOD.CARD, label: 'Tarjeta' },
+        { value: PAYMENT_METHOD.CASH, label: PAYMENT_METHOD_LABEL[PAYMENT_METHOD.CASH].label },
+        { value: PAYMENT_METHOD.CARD, label: PAYMENT_METHOD_LABEL[PAYMENT_METHOD.CARD].label },
       ],
     },
   },
   {
     key: 'amount',
-    label: 'Total cobrado',
+    label: ADMIN_LABELS.fields.totalCharged,
     align: 'right',
     sortable: true,
     accessor: (row) => row.amount,
   },
   {
     key: 'change',
-    label: 'Cambio',
+    label: ADMIN_LABELS.fields.change,
     align: 'right',
     sortable: true,
     accessor: (row) => (row.method === PAYMENT_METHOD.CASH ? row.change : -1),
   },
   {
     key: 'paidAt',
-    label: 'Fecha y hora',
+    label: ADMIN_LABELS.fields.dateTime,
     sortable: true,
     accessor: (row) => row.paidAt,
   },
@@ -56,21 +59,10 @@ const columns = computed<Column<PaymentRow>[]>(() => [
 <template>
   <div class="payments-view">
     <div class="page-header">
-      <h1 class="page-title">Historial de pagos</h1>
+      <h1 class="page-title">{{ ADMIN_LABELS.payments.title }}</h1>
       <button class="reload-btn" :disabled="loading" @click="reload">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="16"
-          height="16"
-          aria-hidden="true"
-        >
-          <path
-            d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-          />
-        </svg>
-        Actualizar
+        <ArrowPathIcon :size="16" />
+        {{ ADMIN_LABELS.payments.refresh }}
       </button>
     </div>
 
@@ -81,12 +73,12 @@ const columns = computed<Column<PaymentRow>[]>(() => [
       :error="error"
       default-sort="paidAt"
       default-sort-dir="desc"
-      search-placeholder="Buscar por mesa…"
-      empty-text="Sin pagos registrados"
+      :search-placeholder="ADMIN_LABELS.payments.searchPlaceholder"
+      :empty-text="ADMIN_LABELS.payments.emptyText"
     >
       <template #cell-method="{ row }">
-        <Badge :tone="row.method === PAYMENT_METHOD.CASH ? 'green' : 'blue'">
-          {{ row.method === PAYMENT_METHOD.CASH ? 'Efectivo' : 'Tarjeta' }}
+        <Badge :tone="PAYMENT_METHOD_LABEL[row.method].tone">
+          {{ PAYMENT_METHOD_LABEL[row.method].label }}
         </Badge>
       </template>
 
@@ -114,7 +106,7 @@ const columns = computed<Column<PaymentRow>[]>(() => [
 
       <template #cell-actions="{ row }">
         <button class="detail-btn" type="button" @click="selectedPayment = row">
-          Ver desglose
+          {{ ADMIN_LABELS.payments.viewBreakdown }}
         </button>
       </template>
     </DataTable>

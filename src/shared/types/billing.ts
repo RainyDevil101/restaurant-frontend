@@ -1,11 +1,11 @@
 import type { ItemKind } from './kind';
 
-export type PaymentMethod = 'efectivo' | 'tarjeta';
-
 export const PAYMENT_METHOD = {
-  CASH: 'efectivo' as PaymentMethod,
-  CARD: 'tarjeta' as PaymentMethod,
+  CASH: 'efectivo',
+  CARD: 'tarjeta',
 } as const;
+
+export type PaymentMethod = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD];
 
 export interface BillItem {
   productId: string;

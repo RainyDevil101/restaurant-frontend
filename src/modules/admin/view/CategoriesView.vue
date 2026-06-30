@@ -12,6 +12,8 @@ import ModalDialog from '../components/ModalDialog.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 const {
   categories,
@@ -32,18 +34,18 @@ const inlineArea = useInlineAreaCreate(createArea, {
 const inlineAreaInput = inlineArea.inputName;
 
 const columns = computed<Column<CategoryRow>[]>(() => [
-  { key: 'name', label: 'Categoría', sortable: true },
+  { key: 'name', label: ADMIN_LABELS.fields.category, sortable: true },
   {
     key: 'areaName',
-    label: 'Área',
+    label: ADMIN_LABELS.fields.area,
     sortable: true,
     filter: {
       type: 'select',
       options: areas.value.map((area) => ({ value: area.name, label: area.name })),
     },
   },
-  { key: 'productCount', label: 'Productos', sortable: true, align: 'right' },
-  { key: 'actions', label: 'Acciones', align: 'right' },
+  { key: 'productCount', label: ROUTE_TITLES.PRODUCTOS, sortable: true, align: 'right' },
+  { key: 'actions', label: ADMIN_LABELS.fields.actions, align: 'right' },
 ]);
 
 const form = reactive({ name: '', areaId: '' });
@@ -95,7 +97,11 @@ async function confirmDelete() {
 
 <template>
   <div class="categories-view">
-    <AdminPageHeader title="Categorías" new-label="Nueva categoría" @create="openCreate" />
+    <AdminPageHeader
+      :title="ROUTE_TITLES.CATEGORIAS"
+      :new-label="ADMIN_LABELS.category.newLabel"
+      @create="openCreate"
+    />
 
     <DataTable
       :items="categories"
@@ -105,7 +111,7 @@ async function confirmDelete() {
       :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
       default-sort="name"
-      search-placeholder="Buscar categoría..."
+      :search-placeholder="ADMIN_LABELS.category.searchPlaceholder"
     >
       <template #cell-name="{ row }">
         <span class="category-name">{{ row.name }}</span>
@@ -115,18 +121,20 @@ async function confirmDelete() {
         <span class="col-muted">{{ row.areaName }}</span>
       </template>
 
-      <template #cell-productCount="{ row }">{{ row.productCount }} productos</template>
+      <template #cell-productCount="{ row }">{{
+        ADMIN_LABELS.counts.products(row.productCount)
+      }}</template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button class="action-btn" @click="openEdit(row)">Editar</button>
+          <button class="action-btn" @click="openEdit(row)">{{ UI_LABELS.edit }}</button>
           <button
             class="action-btn danger"
             :disabled="row.productCount > 0"
             :title="row.productCount > 0 ? ADMIN_LABELS.category.deleteBlockedTitle : undefined"
             @click="openDelete(row.id)"
           >
-            Eliminar
+            {{ UI_LABELS.remove }}
           </button>
         </div>
       </template>
@@ -134,31 +142,30 @@ async function confirmDelete() {
 
     <ModalDialog
       v-if="dialogOpen"
-      :title="editingId ? 'Editar categoría' : 'Nueva categoría'"
+      :title="editingId ? ADMIN_LABELS.category.editTitle : ADMIN_LABELS.category.newLabel"
       :saving="saving"
       :error="formError"
       @close="dialogOpen = false"
       @submit="save"
     >
-      <AdminFormField label="Nombre" for="cat-name">
+      <AdminFormField :label="ADMIN_LABELS.fields.name" for="cat-name">
         <input id="cat-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
       <AdminFormField
-        label="Área"
+        :label="ADMIN_LABELS.fields.area"
         :for="areas.length === 0 && !editingId ? 'inline-area-input' : 'cat-area'"
       >
-        <!-- No areas: inline area creation -->
         <template v-if="areas.length === 0 && !editingId">
           <div class="no-area-notice" role="alert">
-            <span class="notice-title">No hay áreas disponibles.</span>
-            <span class="notice-hint">Crea un área para poder asignarla a la categoría.</span>
+            <span class="notice-title">{{ ADMIN_LABELS.area.noAreasNotice }}</span>
+            <span class="notice-hint">{{ ADMIN_LABELS.area.noAreasHint }}</span>
           </div>
           <div class="inline-form">
             <input
               id="inline-area-input"
               v-model="inlineAreaInput"
               class="field-input"
-              placeholder="Nombre del área..."
+              :placeholder="ADMIN_LABELS.area.namePlaceholder"
               :disabled="inlineArea.creating.value"
             />
             <button
@@ -167,14 +174,17 @@ async function confirmDelete() {
               :disabled="inlineArea.creating.value || !inlineAreaInput.trim()"
               @click="inlineArea.submit()"
             >
-              {{ inlineArea.creating.value ? 'Creando...' : '+ Crear área' }}
+              {{
+                inlineArea.creating.value
+                  ? ADMIN_LABELS.product.creating
+                  : ADMIN_LABELS.area.createButton
+              }}
             </button>
           </div>
           <p v-if="inlineArea.error.value" class="inline-error">{{ inlineArea.error.value }}</p>
         </template>
-        <!-- Normal: area select -->
         <select v-else id="cat-area" v-model="form.areaId" class="field-input" required>
-          <option value="" disabled>Seleccione un área</option>
+          <option value="" disabled>{{ ADMIN_LABELS.area.selectPlaceholder }}</option>
           <option v-for="a in areas" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
       </AdminFormField>
@@ -182,8 +192,8 @@ async function confirmDelete() {
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar categoría"
-      message="¿Seguro que deseas eliminar esta categoría? Esta acción no se puede deshacer."
+      :title="ADMIN_LABELS.category.deleteTitle"
+      :message="ADMIN_LABELS.category.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

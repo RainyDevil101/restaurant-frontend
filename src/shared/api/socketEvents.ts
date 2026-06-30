@@ -8,3 +8,5 @@ export const ORDERS_SOCKET_EVENT = {
 } as const;
 
 export type OrdersSocketEvent = (typeof ORDERS_SOCKET_EVENT)[keyof typeof ORDERS_SOCKET_EVENT];
+
+export const SOCKET_TRANSPORTS = ['websocket'] as const;

@@ -1,10 +1,10 @@
-export type TableStatus = 'libre' | 'ocupada' | 'por_cobrar';
-
 export const TABLE_STATUS = {
-  FREE: 'libre' as TableStatus,
-  OCCUPIED: 'ocupada' as TableStatus,
-  PENDING_PAYMENT: 'por_cobrar' as TableStatus,
+  FREE: 'libre',
+  OCCUPIED: 'ocupada',
+  PENDING_PAYMENT: 'por_cobrar',
 } as const;
+
+export type TableStatus = (typeof TABLE_STATUS)[keyof typeof TABLE_STATUS];
 
 export interface Area {
   id: string;

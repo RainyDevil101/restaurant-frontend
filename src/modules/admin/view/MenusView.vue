@@ -10,7 +10,9 @@ import AdminPageHeader from '../components/AdminPageHeader.vue';
 import MenuFormDialog from '../components/MenuFormDialog.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
-import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
+import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 const { menus, products, loading, error, createMenu, updateMenu, removeMenu, toggleActive } =
   useMenus();
@@ -35,24 +37,24 @@ const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete 
 const { actionError, toggle } = useAvailabilityToggle(toggleActive);
 
 const columns: Column<MenuRow>[] = [
-  { key: 'name', label: 'Menú', sortable: true },
-  { key: 'productCount', label: 'Productos', sortable: true, align: 'right' },
-  { key: 'price', label: 'Precio', sortable: true, align: 'right' },
+  { key: 'name', label: ADMIN_LABELS.fields.menu, sortable: true },
+  { key: 'productCount', label: ROUTE_TITLES.PRODUCTOS, sortable: true, align: 'right' },
+  { key: 'price', label: ADMIN_LABELS.fields.price, sortable: true, align: 'right' },
   {
     key: 'active',
-    label: 'Estado',
+    label: ADMIN_LABELS.fields.status,
     align: 'right',
     sortable: true,
     accessor: (menu) => String(menu.active),
     filter: {
       type: 'select',
       options: [
-        { value: 'true', label: 'Activo' },
-        { value: 'false', label: 'Inactivo' },
+        { value: 'true', label: ADMIN_LABELS.status.active },
+        { value: 'false', label: ADMIN_LABELS.status.inactive },
       ],
     },
   },
-  { key: 'actions', label: 'Acciones', align: 'right' },
+  { key: 'actions', label: ADMIN_LABELS.fields.actions, align: 'right' },
 ];
 
 function patchForm(patch: Partial<typeof form>) {
@@ -66,7 +68,11 @@ async function confirmDelete() {
 
 <template>
   <div class="menus-view">
-    <AdminPageHeader title="Menús" new-label="Nuevo menú" @create="openCreate" />
+    <AdminPageHeader
+      :title="ROUTE_TITLES.MENUS"
+      :new-label="ADMIN_LABELS.menu.newLabel"
+      @create="openCreate"
+    />
 
     <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
 
@@ -78,13 +84,15 @@ async function confirmDelete() {
       :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
       default-sort="name"
-      search-placeholder="Buscar menú..."
+      :search-placeholder="ADMIN_LABELS.menu.searchPlaceholder"
     >
       <template #cell-name="{ row }">
         <span class="menu-name">{{ row.name }}</span>
       </template>
 
-      <template #cell-productCount="{ row }">{{ row.productCount }} productos</template>
+      <template #cell-productCount="{ row }">{{
+        ADMIN_LABELS.counts.products(row.productCount)
+      }}</template>
 
       <template #cell-price="{ row }">{{ formatCurrency(row.price) }}</template>
 
@@ -95,14 +103,16 @@ async function confirmDelete() {
           :class="row.active ? 'status-active' : 'status-inactive'"
           @click="toggle(row.id)"
         >
-          {{ row.active ? 'Activo' : 'Inactivo' }}
+          {{ row.active ? ADMIN_LABELS.status.active : ADMIN_LABELS.status.inactive }}
         </button>
       </template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button class="action-btn" @click="openEdit(row)">Editar</button>
-          <button class="action-btn danger" @click="openDelete(row.id)">Eliminar</button>
+          <button class="action-btn" @click="openEdit(row)">{{ UI_LABELS.edit }}</button>
+          <button class="action-btn danger" @click="openDelete(row.id)">
+            {{ UI_LABELS.remove }}
+          </button>
         </div>
       </template>
     </DataTable>
@@ -124,8 +134,8 @@ async function confirmDelete() {
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar menú"
-      message="¿Seguro que deseas eliminar este menú? Esta acción no se puede deshacer."
+      :title="ADMIN_LABELS.menu.deleteTitle"
+      :message="ADMIN_LABELS.menu.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

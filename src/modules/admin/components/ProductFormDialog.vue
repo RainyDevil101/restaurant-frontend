@@ -90,19 +90,19 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
 <template>
   <ModalDialog
     v-if="props.open"
-    :title="props.editingId ? 'Editar producto' : 'Nuevo producto'"
+    :title="props.editingId ? ADMIN_LABELS.product.editTitle : ADMIN_LABELS.product.newLabel"
     :saving="props.saving"
     :error="props.error"
     @close="emit('close')"
     @submit="emit('submit')"
   >
-    <AdminFormField label="Nombre" for="prod-name">
+    <AdminFormField :label="ADMIN_LABELS.fields.name" for="prod-name">
       <input id="prod-name" v-model="formName" class="field-input" required />
     </AdminFormField>
-    <AdminFormField label="Descripción" for="prod-desc">
+    <AdminFormField :label="ADMIN_LABELS.fields.description" for="prod-desc">
       <input id="prod-desc" v-model="formDescription" class="field-input" />
     </AdminFormField>
-    <AdminFormField label="Precio" for="prod-price">
+    <AdminFormField :label="ADMIN_LABELS.fields.price" for="prod-price">
       <input
         id="prod-price"
         v-model.number="formPrice"
@@ -117,7 +117,10 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
       />
     </AdminFormField>
 
-    <AdminFormField :label="'Categoría'" :for="showInline ? 'inline-cat-input' : 'prod-cat'">
+    <AdminFormField
+      :label="ADMIN_LABELS.fields.category"
+      :for="showInline ? 'inline-cat-input' : 'prod-cat'"
+    >
       <!-- No categories: cascaded inline creation -->
       <template v-if="showInline">
         <div class="no-cat-notice" role="alert">
@@ -125,20 +128,20 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
           <span class="no-cat-hint">
             {{
               needsArea
-                ? 'Primero crea un área, luego una categoría.'
-                : 'Crea una categoría para poder agregar productos.'
+                ? ADMIN_LABELS.product.createAreaThenCategoryHint
+                : ADMIN_LABELS.product.noCategoriesHint
             }}
           </span>
         </div>
 
         <!-- Step 1: create area (only when no areas exist) -->
         <template v-if="needsArea">
-          <p class="inline-step-label">1. Nueva área</p>
+          <p class="inline-step-label">{{ ADMIN_LABELS.product.stepNewArea }}</p>
           <div class="inline-form">
             <input
               v-model="inlineAreaInputName"
               class="field-input inline-main-input"
-              placeholder="Nombre del área..."
+              :placeholder="ADMIN_LABELS.area.namePlaceholder"
               :disabled="props.inlineArea.creating.value"
             />
             <button
@@ -149,7 +152,11 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
               "
               @click="props.inlineArea.submit()"
             >
-              {{ props.inlineArea.creating.value ? 'Creando...' : '+ Crear área' }}
+              {{
+                props.inlineArea.creating.value
+                  ? ADMIN_LABELS.product.creating
+                  : ADMIN_LABELS.area.createButton
+              }}
             </button>
           </div>
           <p v-if="props.inlineArea.error.value" class="inline-error">
@@ -159,8 +166,10 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
 
         <!-- Step 2: create category (once areas exist) -->
         <template v-if="canCreateCat">
-          <p v-if="!needsArea" class="inline-step-label">Nueva categoría</p>
-          <p v-else class="inline-step-label">2. Nueva categoría</p>
+          <p v-if="!needsArea" class="inline-step-label">
+            {{ ADMIN_LABELS.product.stepNewCategory }}
+          </p>
+          <p v-else class="inline-step-label">{{ ADMIN_LABELS.product.stepNewCategoryNumbered }}</p>
           <div class="inline-form">
             <input
               id="inline-cat-input"
@@ -174,7 +183,7 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
               class="field-input inline-area-select"
               :disabled="props.inlineCat.creating.value"
             >
-              <option value="" disabled>Área</option>
+              <option value="" disabled>{{ ADMIN_LABELS.fields.area }}</option>
               <option v-for="a in props.areas" :key="a.id" :value="a.id">{{ a.name }}</option>
             </select>
             <button
@@ -189,7 +198,7 @@ const canCreateCat = computed(() => showInline.value && props.areas.length > 0);
             >
               {{
                 props.inlineCat.creating.value
-                  ? 'Creando...'
+                  ? ADMIN_LABELS.product.creating
                   : ADMIN_LABELS.product.createCategoryLabel
               }}
             </button>

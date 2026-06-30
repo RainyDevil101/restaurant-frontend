@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, useId } from 'vue';
 import { colors } from '@/shared/styles/colors';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 defineProps<{ title: string; saving?: boolean; error?: string }>();
 const emit = defineEmits<{ close: []; submit: [] }>();
@@ -60,7 +61,12 @@ onBeforeUnmount(() => {
       <div ref="modalEl" class="modal">
         <div class="modal-header">
           <h2 :id="titleId" class="modal-title">{{ title }}</h2>
-          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">
+          <button
+            type="button"
+            class="close-x"
+            :aria-label="UI_LABELS.close"
+            @click="emit('close')"
+          >
             ×
           </button>
         </div>
@@ -73,9 +79,11 @@ onBeforeUnmount(() => {
           <p v-if="error" class="modal-error" role="alert">{{ error }}</p>
 
           <div class="modal-footer">
-            <button type="button" class="btn-cancel" @click="emit('close')">Cancelar</button>
+            <button type="button" class="btn-cancel" @click="emit('close')">
+              {{ UI_LABELS.cancel }}
+            </button>
             <button type="submit" class="btn-save" :disabled="saving">
-              {{ saving ? 'Guardando…' : 'Guardar' }}
+              {{ saving ? UI_LABELS.saving : UI_LABELS.save }}
             </button>
           </div>
         </form>

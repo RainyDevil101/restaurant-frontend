@@ -17,17 +17,20 @@ import {
   PRODUCTS_PER_PAGE,
   PAGE_SIZE_OPTIONS,
 } from '../constants';
+import { TABLE_STATUS_LABEL } from '@/shared/constants/labels';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 const { tables, loading, error, createTable, updateTable, removeTable } = useAdminTables();
 
-const STATUS_MAP = ADMIN_LABELS.table.statusLabels;
+const STATUS_MAP = TABLE_STATUS_LABEL;
 
 const columns = computed<Column<TableRow>[]>(() => [
-  { key: 'name', label: 'Mesa', sortable: true },
-  { key: 'capacity', label: 'Capacidad', sortable: true, align: 'right' },
+  { key: 'name', label: ADMIN_LABELS.fields.table, sortable: true },
+  { key: 'capacity', label: ADMIN_LABELS.fields.capacity, sortable: true, align: 'right' },
   {
     key: 'status',
-    label: 'Estado',
+    label: ADMIN_LABELS.fields.status,
     align: 'right',
     sortable: true,
     filter: {
@@ -35,7 +38,7 @@ const columns = computed<Column<TableRow>[]>(() => [
       options: Object.entries(STATUS_MAP).map(([value, meta]) => ({ value, label: meta.label })),
     },
   },
-  { key: 'actions', label: 'Acciones', align: 'right' },
+  { key: 'actions', label: ADMIN_LABELS.fields.actions, align: 'right' },
 ]);
 
 const form = reactive({ name: '', capacity: 2 });
@@ -93,7 +96,11 @@ async function confirmDelete() {
 
 <template>
   <div class="tables-view">
-    <AdminPageHeader title="Mesas" new-label="Nueva mesa" @create="openCreate" />
+    <AdminPageHeader
+      :title="ROUTE_TITLES.MESAS"
+      :new-label="ADMIN_LABELS.table.newLabel"
+      @create="openCreate"
+    />
 
     <DataTable
       :items="tables"
@@ -103,13 +110,13 @@ async function confirmDelete() {
       :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
       default-sort="name"
-      search-placeholder="Buscar mesa..."
+      :search-placeholder="ADMIN_LABELS.table.searchPlaceholder"
     >
       <template #cell-name="{ row }">
         <span class="table-name">{{ row.name }}</span>
       </template>
 
-      <template #cell-capacity="{ row }">{{ row.capacity }} pers.</template>
+      <template #cell-capacity="{ row }">{{ ADMIN_LABELS.counts.persons(row.capacity) }}</template>
 
       <template #cell-status="{ row }">
         <Badge :tone="STATUS_MAP[row.status]?.tone ?? 'gray'">{{
@@ -119,24 +126,26 @@ async function confirmDelete() {
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button class="action-btn" @click="openEdit(row)">Editar</button>
-          <button class="action-btn danger" @click="openDelete(row.id)">Eliminar</button>
+          <button class="action-btn" @click="openEdit(row)">{{ UI_LABELS.edit }}</button>
+          <button class="action-btn danger" @click="openDelete(row.id)">
+            {{ UI_LABELS.remove }}
+          </button>
         </div>
       </template>
     </DataTable>
 
     <ModalDialog
       v-if="dialogOpen"
-      :title="editingId ? 'Editar mesa' : 'Nueva mesa'"
+      :title="editingId ? ADMIN_LABELS.table.editTitle : ADMIN_LABELS.table.newLabel"
       :saving="saving"
       :error="formError"
       @close="dialogOpen = false"
       @submit="save"
     >
-      <AdminFormField label="Nombre" for="table-name">
+      <AdminFormField :label="ADMIN_LABELS.fields.name" for="table-name">
         <input id="table-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
-      <AdminFormField label="Capacidad" for="table-cap">
+      <AdminFormField :label="ADMIN_LABELS.fields.capacity" for="table-cap">
         <input
           id="table-cap"
           v-model.number="form.capacity"
@@ -154,8 +163,8 @@ async function confirmDelete() {
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar mesa"
-      message="¿Seguro que deseas eliminar esta mesa? Esta acción no se puede deshacer."
+      :title="ADMIN_LABELS.table.deleteTitle"
+      :message="ADMIN_LABELS.table.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

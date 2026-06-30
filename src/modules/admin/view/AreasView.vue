@@ -10,13 +10,15 @@ import ModalDialog from '../components/ModalDialog.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 const { areas, loading, error, createArea, updateArea, removeArea } = useAreas();
 
 const columns = computed<Column<AreaRow>[]>(() => [
-  { key: 'name', label: 'Área', sortable: true },
-  { key: 'categoryCount', label: 'Categorías', sortable: true, align: 'right' },
-  { key: 'actions', label: 'Acciones', align: 'right' },
+  { key: 'name', label: ADMIN_LABELS.fields.area, sortable: true },
+  { key: 'categoryCount', label: ROUTE_TITLES.CATEGORIAS, sortable: true, align: 'right' },
+  { key: 'actions', label: ADMIN_LABELS.fields.actions, align: 'right' },
 ]);
 
 const form = reactive({ name: '' });
@@ -61,7 +63,11 @@ async function confirmDelete() {
 
 <template>
   <div class="areas-view">
-    <AdminPageHeader title="Áreas" new-label="Nueva área" @create="openCreate" />
+    <AdminPageHeader
+      :title="ROUTE_TITLES.AREAS"
+      :new-label="ADMIN_LABELS.area.newLabel"
+      @create="openCreate"
+    />
 
     <DataTable
       :items="areas"
@@ -71,25 +77,27 @@ async function confirmDelete() {
       :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
       default-sort="name"
-      search-placeholder="Buscar área..."
-      empty-text="Sin áreas registradas"
+      :search-placeholder="ADMIN_LABELS.area.searchPlaceholder"
+      :empty-text="ADMIN_LABELS.area.emptyText"
     >
       <template #cell-name="{ row }">
         <span class="area-name">{{ row.name }}</span>
       </template>
 
-      <template #cell-categoryCount="{ row }">{{ row.categoryCount }} categorías</template>
+      <template #cell-categoryCount="{ row }">{{
+        ADMIN_LABELS.counts.categories(row.categoryCount)
+      }}</template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button class="action-btn" @click="openEdit(row)">Editar</button>
+          <button class="action-btn" @click="openEdit(row)">{{ UI_LABELS.edit }}</button>
           <button
             class="action-btn danger"
             :disabled="row.categoryCount > 0"
             :title="row.categoryCount > 0 ? ADMIN_LABELS.area.deleteBlockedTitle : undefined"
             @click="openDelete(row.id)"
           >
-            Eliminar
+            {{ UI_LABELS.remove }}
           </button>
         </div>
       </template>
@@ -97,21 +105,21 @@ async function confirmDelete() {
 
     <ModalDialog
       v-if="dialogOpen"
-      :title="editingId ? 'Editar área' : 'Nueva área'"
+      :title="editingId ? ADMIN_LABELS.area.editTitle : ADMIN_LABELS.area.newLabel"
       :saving="saving"
       :error="formError"
       @close="dialogOpen = false"
       @submit="save"
     >
-      <AdminFormField label="Nombre" for="area-name">
+      <AdminFormField :label="ADMIN_LABELS.fields.name" for="area-name">
         <input id="area-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
     </ModalDialog>
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar área"
-      message="¿Seguro que deseas eliminar esta área? Esta acción no se puede deshacer."
+      :title="ADMIN_LABELS.area.deleteTitle"
+      :message="ADMIN_LABELS.area.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

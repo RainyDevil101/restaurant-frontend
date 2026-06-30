@@ -1,7 +1,14 @@
 import { getToken, clearSession } from '@/shared/session';
 import { Route } from '@/shared/types';
-
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { API_BASE_URL } from './config';
+import {
+  HTTP_METHOD,
+  HTTP_HEADER,
+  CONTENT_TYPE_JSON,
+  AUTH_SCHEME,
+  HTTP_STATUS,
+  type HttpMethod,
+} from './http';
 
 export interface ApiErrorBody {
   statusCode: number;
@@ -22,7 +29,7 @@ export class ApiRequestError extends Error {
 }
 
 interface RequestOptions {
-  method?: string;
+  method?: HttpMethod;
   body?: unknown;
   auth?: boolean;
   keepSessionOnUnauthorized?: boolean;
@@ -34,28 +41,33 @@ function messageFrom(body: ApiErrorBody | null, status: number): string {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = true, keepSessionOnUnauthorized = false } = options;
+  const {
+    method = HTTP_METHOD.GET,
+    body,
+    auth = true,
+    keepSessionOnUnauthorized = false,
+  } = options;
   const headers: Record<string, string> = {};
 
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (body !== undefined) headers[HTTP_HEADER.CONTENT_TYPE] = CONTENT_TYPE_JSON;
   if (auth) {
     const token = getToken();
-    if (token) headers.Authorization = `Bearer ${token}`;
+    if (token) headers[HTTP_HEADER.AUTHORIZATION] = `${AUTH_SCHEME} ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
-  if (response.status === 204) return undefined as T;
+  if (response.status === HTTP_STATUS.NO_CONTENT) return undefined as T;
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
     const errorBody = data as ApiErrorBody | null;
-    if (response.status === 401 && auth && !keepSessionOnUnauthorized) {
+    if (response.status === HTTP_STATUS.UNAUTHORIZED && auth && !keepSessionOnUnauthorized) {
       clearSession();
       if (window.location.pathname !== Route.LOGIN) window.location.assign(Route.LOGIN);
     }
@@ -66,14 +78,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 }
 
 export const api = {
-  get: <T>(path: string, auth = true) => request<T>(path, { method: 'GET', auth }),
+  get: <T>(path: string, auth = true) => request<T>(path, { method: HTTP_METHOD.GET, auth }),
   post: <T>(path: string, body?: unknown, auth = true) =>
-    request<T>(path, { method: 'POST', body, auth }),
+    request<T>(path, { method: HTTP_METHOD.POST, body, auth }),
   postKeepingSession: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'POST', body, auth: true, keepSessionOnUnauthorized: true }),
+    request<T>(path, {
+      method: HTTP_METHOD.POST,
+      body,
+      auth: true,
+      keepSessionOnUnauthorized: true,
+    }),
   patch: <T>(path: string, body?: unknown, auth = true) =>
-    request<T>(path, { method: 'PATCH', body, auth }),
+    request<T>(path, { method: HTTP_METHOD.PATCH, body, auth }),
   put: <T>(path: string, body?: unknown, auth = true) =>
-    request<T>(path, { method: 'PUT', body, auth }),
-  delete: <T>(path: string, auth = true) => request<T>(path, { method: 'DELETE', auth }),
+    request<T>(path, { method: HTTP_METHOD.PUT, body, auth }),
+  delete: <T>(path: string, auth = true) => request<T>(path, { method: HTTP_METHOD.DELETE, auth }),
 };

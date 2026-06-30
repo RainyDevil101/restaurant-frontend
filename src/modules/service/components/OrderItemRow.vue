@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { Category } from '@/shared/types';
+import { ITEM_KIND, type Category } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
+import { ITEM_KIND_LABEL } from '@/shared/constants/labels';
 import { colors } from '@/shared/styles/colors';
-import { ORDER_ENTRY_KIND, type OrderEntry } from '../domain';
+import { ORDER_ENTRY_KIND, SERVICE_LABELS, type OrderEntry } from '../domain';
 import { categoryColor, categoryName } from '../helpers/categoryColor';
+import { PlusIcon, MinusIcon } from '@/modules/shared/components/icons';
 
 defineProps<{ entry: OrderEntry; categories: Category[] }>();
 const emit = defineEmits<{ add: []; remove: [] }>();
@@ -15,9 +17,13 @@ const emit = defineEmits<{ add: []; remove: [] }>();
       <span class="item-name">{{
         entry.kind === ORDER_ENTRY_KIND.COMBO ? entry.menu.name : entry.product.name
       }}</span>
-      <Badge v-if="entry.kind === ORDER_ENTRY_KIND.COMBO" tone="teal" class="combo-tag"
-        >Combo</Badge
+      <Badge
+        v-if="entry.kind === ORDER_ENTRY_KIND.COMBO"
+        :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone"
+        class="combo-tag"
       >
+        {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+      </Badge>
       <span v-else class="category-tag">
         <span
           class="category-dot"
@@ -28,30 +34,16 @@ const emit = defineEmits<{ add: []; remove: [] }>();
       </span>
     </div>
     <div class="qty-control">
-      <button class="qty-btn" aria-label="Quitar uno" @click="emit('remove')">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="16"
-          height="16"
-          aria-hidden="true"
-        >
-          <path d="M19 13H5v-2h14v2z" />
-        </svg>
+      <button
+        class="qty-btn"
+        :aria-label="SERVICE_LABELS.itemRow.removeOneAria"
+        @click="emit('remove')"
+      >
+        <MinusIcon :size="16" />
       </button>
       <span class="qty-value">{{ entry.quantity }}</span>
-      <button class="qty-btn" aria-label="Agregar uno" @click="emit('add')">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="16"
-          height="16"
-          aria-hidden="true"
-        >
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
+      <button class="qty-btn" :aria-label="SERVICE_LABELS.itemRow.addOneAria" @click="emit('add')">
+        <PlusIcon :size="16" />
       </button>
     </div>
   </div>

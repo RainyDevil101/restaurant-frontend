@@ -1,7 +1,8 @@
 import { api } from './client';
+import { ENDPOINTS } from './endpoints';
+import type { PrinterConnection, PaperWidth } from '@/shared/types';
 
-export type PrinterConnection = 'usb' | 'bluetooth';
-export type PaperWidth = 58 | 80;
+export type { PrinterConnection, PaperWidth } from '@/shared/types';
 
 export interface Printer {
   id: string;
@@ -39,25 +40,25 @@ export interface UpdateReceiptInput {
 }
 
 export function listPrinters(): Promise<Printer[]> {
-  return api.get<Printer[]>('/settings/printers');
+  return api.get<Printer[]>(ENDPOINTS.settings.printers);
 }
 
 export function createPrinter(input: CreatePrinterInput): Promise<Printer> {
-  return api.post<Printer>('/settings/printers', input);
+  return api.post<Printer>(ENDPOINTS.settings.printers, input);
 }
 
 export function updatePrinter(id: string, input: UpdatePrinterInput): Promise<Printer> {
-  return api.patch<Printer>(`/settings/printers/${id}`, input);
+  return api.patch<Printer>(ENDPOINTS.settings.printerById(id), input);
 }
 
 export function deletePrinter(id: string): Promise<void> {
-  return api.delete<void>(`/settings/printers/${id}`);
+  return api.delete<void>(ENDPOINTS.settings.printerById(id));
 }
 
 export function getReceiptSettings(): Promise<ReceiptSettings> {
-  return api.get<ReceiptSettings>('/settings/receipt');
+  return api.get<ReceiptSettings>(ENDPOINTS.settings.receipt);
 }
 
 export function updateReceiptSettings(input: UpdateReceiptInput): Promise<ReceiptSettings> {
-  return api.put<ReceiptSettings>('/settings/receipt', input);
+  return api.put<ReceiptSettings>(ENDPOINTS.settings.receipt, input);
 }
