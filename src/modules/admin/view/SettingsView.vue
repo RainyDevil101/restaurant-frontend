@@ -13,6 +13,11 @@ import ConfirmDialog from '../components/ConfirmDialog.vue';
 import Badge from '@/shared/components/Badge.vue';
 import { ApiRequestError } from '@/shared/api/client';
 import type { Printer, PrinterConnection, PaperWidth } from '@/shared/api/settings';
+import { PRINTER_CONNECTION, PAPER_WIDTH, DEFAULT_PAPER_WIDTH } from '@/shared/types';
+import { PRINTER_CONNECTION_LABEL } from '@/shared/constants/labels';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { ADMIN_LABELS } from '../constants';
 import { ADMIN_MESSAGES } from '../domain';
 
 const { printingSupported, usbSupported, bluetoothSupported } = usePrinterSupport();
@@ -32,15 +37,17 @@ const {
 
 const defaultColumns = computed(() => {
   const fallback = printers.value.find((p) => p.isDefault) ?? printers.value[0];
-  return fallback?.paperWidth === 58 ? 32 : 48;
+  return fallback?.paperWidth === PAPER_WIDTH.NARROW ? 32 : 48;
 });
 
 async function connectUsb() {
-  if (await connect('usb')) toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
+  if (await connect(PRINTER_CONNECTION.USB))
+    toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
 }
 
 async function connectBluetooth() {
-  if (await connect('bluetooth')) toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
+  if (await connect(PRINTER_CONNECTION.BLUETOOTH))
+    toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
 }
 
 async function testPrint() {
@@ -59,8 +66,8 @@ const formError = ref('');
 
 const form = reactive({
   name: '',
-  connection: 'usb' as PrinterConnection,
-  paperWidth: 80 as PaperWidth,
+  connection: PRINTER_CONNECTION.USB as PrinterConnection,
+  paperWidth: DEFAULT_PAPER_WIDTH as PaperWidth,
   isDefault: false,
 });
 
@@ -68,8 +75,8 @@ function openCreate() {
   editingId.value = null;
   formError.value = '';
   form.name = '';
-  form.connection = 'usb';
-  form.paperWidth = 80;
+  form.connection = PRINTER_CONNECTION.USB;
+  form.paperWidth = DEFAULT_PAPER_WIDTH;
   form.isDefault = false;
   dialogOpen.value = true;
 }
@@ -183,32 +190,27 @@ async function onSaveReceipt() {
   }
   receiptSaving.value = false;
 }
-
-function connectionLabel(connection: PrinterConnection): string {
-  return connection === 'usb' ? 'USB' : 'Bluetooth';
-}
 </script>
 
 <template>
   <div class="settings-view">
-    <h1 class="page-title">Configuraciones</h1>
+    <h1 class="page-title">{{ ROUTE_TITLES.CONFIGURACION }}</h1>
 
     <div v-if="!printingSupported" class="support-banner" role="alert">
-      La impresión requiere Chrome o Edge en este equipo (con HTTPS). Podés configurar impresoras
-      igual, pero no se podrá imprimir desde este navegador.
+      {{ ADMIN_LABELS.settings.supportBanner }}
     </div>
 
     <section v-if="printingSupported" class="section">
       <div class="section-head">
-        <h2 class="section-title">Conexión de impresora</h2>
+        <h2 class="section-title">{{ ADMIN_LABELS.settings.connectionSection }}</h2>
         <Badge :tone="isConnected ? 'green' : 'gray'">
-          {{ isConnected ? 'Conectada' : 'Sin conectar' }}
+          {{ isConnected ? ADMIN_LABELS.printer.connected : ADMIN_LABELS.printer.notConnected }}
         </Badge>
       </div>
 
       <p v-if="isConnected" class="connected-name">{{ deviceName }}</p>
       <p v-else class="section-muted">
-        Conecta la impresora de este equipo para imprimir precuentas y comandas.
+        {{ ADMIN_LABELS.settings.connectHint }}
       </p>
 
       <div class="connect-actions">
@@ -219,7 +221,7 @@ function connectionLabel(connection: PrinterConnection): string {
             :disabled="connecting"
             @click="connectUsb"
           >
-            {{ connecting ? 'Conectando…' : 'Conectar por USB' }}
+            {{ connecting ? ADMIN_LABELS.printer.connecting : ADMIN_LABELS.printer.connectUsb }}
           </button>
           <button
             v-if="bluetoothSupported"
@@ -227,12 +229,18 @@ function connectionLabel(connection: PrinterConnection): string {
             :disabled="connecting"
             @click="connectBluetooth"
           >
-            {{ connecting ? 'Conectando…' : 'Conectar por Bluetooth' }}
+            {{
+              connecting ? ADMIN_LABELS.printer.connecting : ADMIN_LABELS.printer.connectBluetooth
+            }}
           </button>
         </template>
         <template v-else>
-          <button class="connect-btn" @click="testPrint">Imprimir prueba</button>
-          <button class="disconnect-btn" @click="disconnect">Desconectar</button>
+          <button class="connect-btn" @click="testPrint">
+            {{ ADMIN_LABELS.printer.testPrint }}
+          </button>
+          <button class="disconnect-btn" @click="disconnect">
+            {{ ADMIN_LABELS.printer.disconnect }}
+          </button>
         </template>
       </div>
 
@@ -241,45 +249,53 @@ function connectionLabel(connection: PrinterConnection): string {
 
     <section class="section">
       <div class="section-head">
-        <h2 class="section-title">Impresoras</h2>
-        <button class="new-btn" @click="openCreate">Nueva impresora</button>
+        <h2 class="section-title">{{ ADMIN_LABELS.settings.printersSection }}</h2>
+        <button class="new-btn" @click="openCreate">{{ ADMIN_LABELS.printer.newPrinter }}</button>
       </div>
 
       <p v-if="error" class="section-error" role="alert">{{ error }}</p>
-      <p v-else-if="loading" class="section-muted">Cargando…</p>
-      <p v-else-if="!printers.length" class="section-muted">Sin impresoras configuradas.</p>
+      <p v-else-if="loading" class="section-muted">{{ UI_LABELS.loading }}</p>
+      <p v-else-if="!printers.length" class="section-muted">
+        {{ ADMIN_LABELS.printer.noPrinters }}
+      </p>
 
       <ul v-else class="printer-list">
         <li v-for="printer in printers" :key="printer.id" class="printer-card">
           <div class="printer-info">
             <div class="printer-name-row">
               <span class="printer-name">{{ printer.name }}</span>
-              <Badge v-if="printer.isDefault" tone="amber">Predeterminada</Badge>
+              <Badge v-if="printer.isDefault" tone="amber">{{
+                ADMIN_LABELS.printer.default
+              }}</Badge>
             </div>
             <div class="printer-meta">
-              <Badge :tone="printer.connection === 'usb' ? 'green' : 'blue'">
-                {{ connectionLabel(printer.connection) }}
+              <Badge :tone="printer.connection === PRINTER_CONNECTION.USB ? 'green' : 'blue'">
+                {{ PRINTER_CONNECTION_LABEL[printer.connection] }}
               </Badge>
-              <span class="printer-size">{{ printer.paperWidth }}mm</span>
+              <span class="printer-size">{{
+                ADMIN_LABELS.counts.paperWidth(printer.paperWidth)
+              }}</span>
             </div>
           </div>
 
           <div class="row-actions">
             <button v-if="!printer.isDefault" class="action-btn" @click="setDefault(printer.id)">
-              Hacer predeterminada
+              {{ ADMIN_LABELS.printer.makeDefault }}
             </button>
-            <button class="action-btn" @click="openEdit(printer)">Editar</button>
-            <button class="action-btn danger" @click="openDelete(printer.id)">Eliminar</button>
+            <button class="action-btn" @click="openEdit(printer)">{{ UI_LABELS.edit }}</button>
+            <button class="action-btn danger" @click="openDelete(printer.id)">
+              {{ UI_LABELS.remove }}
+            </button>
           </div>
         </li>
       </ul>
     </section>
 
     <section class="section">
-      <h2 class="section-title">Datos del comprobante</h2>
+      <h2 class="section-title">{{ ADMIN_LABELS.settings.receiptSection }}</h2>
 
       <form class="receipt-form" @submit.prevent="onSaveReceipt">
-        <AdminFormField label="Nombre del local" for="receipt-business-name">
+        <AdminFormField :label="ADMIN_LABELS.settings.businessName" for="receipt-business-name">
           <input
             id="receipt-business-name"
             v-model="receiptForm.businessName"
@@ -287,17 +303,17 @@ function connectionLabel(connection: PrinterConnection): string {
           />
         </AdminFormField>
 
-        <AdminFormField label="Dirección / RUT" for="receipt-address">
+        <AdminFormField :label="ADMIN_LABELS.settings.address" for="receipt-address">
           <input id="receipt-address" v-model="receiptForm.address" class="field-input" />
         </AdminFormField>
 
-        <AdminFormField label="Pie del comprobante" for="receipt-footer">
+        <AdminFormField :label="ADMIN_LABELS.settings.footer" for="receipt-footer">
           <input id="receipt-footer" v-model="receiptForm.footer" class="field-input" />
         </AdminFormField>
 
         <div class="receipt-actions">
           <button type="submit" class="save-btn" :disabled="receiptSaving">
-            {{ receiptSaving ? 'Guardando…' : 'Guardar' }}
+            {{ receiptSaving ? UI_LABELS.saving : UI_LABELS.save }}
           </button>
         </div>
       </form>
@@ -305,40 +321,48 @@ function connectionLabel(connection: PrinterConnection): string {
 
     <ModalDialog
       v-if="dialogOpen"
-      :title="editingId ? 'Editar impresora' : 'Nueva impresora'"
+      :title="editingId ? ADMIN_LABELS.printer.editTitle : ADMIN_LABELS.printer.newPrinter"
       :saving="saving"
       :error="formError"
       @close="closeDialog"
       @submit="savePrinter"
     >
-      <AdminFormField label="Nombre" for="printer-name">
+      <AdminFormField :label="ADMIN_LABELS.fields.name" for="printer-name">
         <input id="printer-name" v-model="form.name" class="field-input" required />
       </AdminFormField>
 
-      <AdminFormField label="Conexión" for="printer-connection">
+      <AdminFormField :label="ADMIN_LABELS.fields.connection" for="printer-connection">
         <select id="printer-connection" v-model="form.connection" class="field-input">
-          <option value="usb">USB</option>
-          <option value="bluetooth">Bluetooth</option>
+          <option :value="PRINTER_CONNECTION.USB">
+            {{ PRINTER_CONNECTION_LABEL[PRINTER_CONNECTION.USB] }}
+          </option>
+          <option :value="PRINTER_CONNECTION.BLUETOOTH">
+            {{ PRINTER_CONNECTION_LABEL[PRINTER_CONNECTION.BLUETOOTH] }}
+          </option>
         </select>
       </AdminFormField>
 
-      <AdminFormField label="Tamaño de papel" for="printer-paper-width">
+      <AdminFormField :label="ADMIN_LABELS.fields.paperWidth" for="printer-paper-width">
         <select id="printer-paper-width" v-model.number="form.paperWidth" class="field-input">
-          <option :value="80">80mm</option>
-          <option :value="58">58mm</option>
+          <option :value="PAPER_WIDTH.WIDE">
+            {{ ADMIN_LABELS.counts.paperWidth(PAPER_WIDTH.WIDE) }}
+          </option>
+          <option :value="PAPER_WIDTH.NARROW">
+            {{ ADMIN_LABELS.counts.paperWidth(PAPER_WIDTH.NARROW) }}
+          </option>
         </select>
       </AdminFormField>
 
       <label class="check-field">
         <input v-model="form.isDefault" type="checkbox" />
-        <span>Predeterminada</span>
+        <span>{{ ADMIN_LABELS.printer.default }}</span>
       </label>
     </ModalDialog>
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar impresora"
-      message="¿Seguro que deseas eliminar esta impresora? Esta acción no se puede deshacer."
+      :title="ADMIN_LABELS.printer.deleteTitle"
+      :message="ADMIN_LABELS.printer.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

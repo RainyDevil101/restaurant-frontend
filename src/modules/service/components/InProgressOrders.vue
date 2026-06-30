@@ -2,8 +2,10 @@
 import Badge from '@/shared/components/Badge.vue';
 import type { ApiOrder } from '@/shared/api/orders';
 import { ORDER_STATUS } from '@/shared/types';
+import { ORDER_STATUS_LABEL } from '@/shared/constants/labels';
 import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
+import { SERVICE_LABELS } from '../domain';
 
 defineProps<{
   orders: ApiOrder[];
@@ -23,7 +25,7 @@ function itemCount(order: ApiOrder): number {
 <template>
   <section class="in-progress">
     <header class="header">
-      <span>Cuenta de la mesa</span>
+      <span>{{ SERVICE_LABELS.inProgress.title }}</span>
     </header>
 
     <p v-if="error" class="error">{{ error }}</p>
@@ -31,8 +33,16 @@ function itemCount(order: ApiOrder): number {
     <ul class="order-list">
       <li v-for="order in orders" :key="order.id" class="order-card">
         <div class="order-top">
-          <Badge v-if="order.status === ORDER_STATUS.PENDING" tone="amber">Pendiente</Badge>
-          <Badge v-else tone="teal">Entregado · pendiente de cobro</Badge>
+          <Badge
+            v-if="order.status === ORDER_STATUS.PENDING"
+            :tone="ORDER_STATUS_LABEL[ORDER_STATUS.PENDING].tone"
+          >
+            {{ ORDER_STATUS_LABEL[ORDER_STATUS.PENDING].label }}
+          </Badge>
+          <Badge v-else tone="teal">
+            {{ ORDER_STATUS_LABEL[ORDER_STATUS.DELIVERED].label
+            }}{{ SERVICE_LABELS.inProgress.deliveredPendingSuffix }}
+          </Badge>
           <span class="total">{{ formatCurrency(order.total) }}</span>
         </div>
 
@@ -44,7 +54,7 @@ function itemCount(order: ApiOrder): number {
         </ul>
 
         <div class="order-bottom">
-          <span class="count">{{ itemCount(order) }} ítems</span>
+          <span class="count">{{ itemCount(order) }} {{ SERVICE_LABELS.items.plural }}</span>
           <button
             v-if="order.status === ORDER_STATUS.PENDING"
             type="button"
@@ -52,7 +62,11 @@ function itemCount(order: ApiOrder): number {
             :disabled="deliveringId === order.id"
             @click="emit('deliver', order.id)"
           >
-            {{ deliveringId === order.id ? 'Marcando…' : 'Marcar entregado' }}
+            {{
+              deliveringId === order.id
+                ? SERVICE_LABELS.inProgress.marking
+                : SERVICE_LABELS.inProgress.markDelivered
+            }}
           </button>
         </div>
       </li>

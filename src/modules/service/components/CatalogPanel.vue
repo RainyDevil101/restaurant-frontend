@@ -5,6 +5,8 @@ import CategoryTabs from './CategoryTabs.vue';
 import ProductRow from './ProductRow.vue';
 import ComboRow from './ComboRow.vue';
 import { colors } from '@/shared/styles/colors';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { SERVICE_LABELS } from '../domain';
 
 const props = defineProps<{
   products: Product[];
@@ -63,14 +65,14 @@ const filteredProducts = computed(() =>
       autocorrect="off"
       autocomplete="off"
       spellcheck="false"
-      aria-label="Buscar producto"
-      placeholder="Buscar producto..."
+      :aria-label="SERVICE_LABELS.catalog.searchAria"
+      :placeholder="SERVICE_LABELS.catalog.searchPlaceholder"
     />
     <button
       v-if="searchQuery"
       type="button"
       class="clear-btn"
-      aria-label="Limpiar búsqueda"
+      :aria-label="SERVICE_LABELS.catalog.clearSearchAria"
       @click="searchQuery = ''"
     >
       <svg
@@ -93,10 +95,10 @@ const filteredProducts = computed(() =>
   <hr class="divider" />
 
   <div class="product-list">
-    <p v-if="loading" class="empty-msg">Cargando…</p>
+    <p v-if="loading" class="empty-msg">{{ UI_LABELS.loading }}</p>
     <div v-else-if="error" class="error-state">
       <p class="error-msg">{{ error }}</p>
-      <button type="button" class="retry-btn" @click="emit('retry')">Reintentar</button>
+      <button type="button" class="retry-btn" @click="emit('retry')">{{ UI_LABELS.retry }}</button>
     </div>
     <template v-else>
       <ProductRow
@@ -107,7 +109,9 @@ const filteredProducts = computed(() =>
         @add="emit('add-product', product)"
         @remove="emit('remove-product', product)"
       />
-      <p v-if="filteredProducts.length === 0" class="empty-msg">Sin resultados.</p>
+      <p v-if="filteredProducts.length === 0" class="empty-msg">
+        {{ SERVICE_LABELS.catalog.noResults }}
+      </p>
     </template>
   </div>
 
@@ -126,7 +130,7 @@ const filteredProducts = computed(() =>
           d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"
         />
       </svg>
-      <span>Combos</span>
+      <span>{{ SERVICE_LABELS.catalog.combos }}</span>
     </div>
     <div class="combo-list">
       <ComboRow

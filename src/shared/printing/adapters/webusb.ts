@@ -1,8 +1,11 @@
 import type { ConnectedPrinter, PrinterAdapter } from '../types';
+import { PRINTER_CONNECTION } from '@/shared/types';
+import { PRINTER_CONNECTION_LABEL } from '@/shared/constants/labels';
+import { PRINTER_MESSAGES } from '../messages';
 
 export const webUsbAdapter: PrinterAdapter = {
-  id: 'usb',
-  label: 'USB',
+  id: PRINTER_CONNECTION.USB,
+  label: PRINTER_CONNECTION_LABEL[PRINTER_CONNECTION.USB],
 
   isSupported() {
     return 'usb' in navigator && window.isSecureContext;
@@ -14,7 +17,7 @@ export const webUsbAdapter: PrinterAdapter = {
     if (!device.configuration) await device.selectConfiguration(1);
 
     const config = device.configuration;
-    if (!config) throw new Error('La impresora no expone una configuración USB.');
+    if (!config) throw new Error(PRINTER_MESSAGES.usbNoConfiguration);
 
     let target: { interfaceNumber: number; endpointNumber: number } | null = null;
     for (const iface of config.interfaces) {
@@ -29,8 +32,7 @@ export const webUsbAdapter: PrinterAdapter = {
         break;
       }
     }
-    if (!target)
-      throw new Error('No se encontró un endpoint de impresión (bulk OUT) en el dispositivo.');
+    if (!target) throw new Error(PRINTER_MESSAGES.usbNoEndpoint);
 
     await device.claimInterface(target.interfaceNumber);
     const endpointNumber = target.endpointNumber;
@@ -38,7 +40,7 @@ export const webUsbAdapter: PrinterAdapter = {
     return {
       name:
         device.productName ||
-        `USB ${device.vendorId.toString(16)}:${device.productId.toString(16)}`,
+        `${PRINTER_CONNECTION_LABEL[PRINTER_CONNECTION.USB]} ${device.vendorId.toString(16)}:${device.productId.toString(16)}`,
       async write(bytes) {
         await device.transferOut(endpointNumber, bytes as BufferSource);
       },

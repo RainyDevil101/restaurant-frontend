@@ -2,7 +2,11 @@
 import { computed, nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store';
-import { Role } from '@/shared/types';
+import { Role, TABLE_STATUS } from '@/shared/types';
+import { TABLE_STATUS_LABEL } from '@/shared/constants/labels';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { PIN_LENGTH } from '@/shared/constants/validation';
+import { MANUAL_SECTION, MANUAL_LABELS } from '../constants';
 import { colors } from '@/shared/styles/colors';
 
 type Step = { title: string; detail: string };
@@ -46,13 +50,17 @@ const ROLE_META: Record<Role, { label: string; icon: string }> = {
 
 const TABLE_STATUSES = [
   {
-    label: 'Libre',
+    label: TABLE_STATUS_LABEL[TABLE_STATUS.FREE].label,
     tone: colors.table.free,
     detail: 'La mesa está vacía y lista para un nuevo pedido.',
   },
-  { label: 'Ocupada', tone: colors.table.occupied, detail: 'Ya tiene un pedido en curso.' },
   {
-    label: 'Por cobrar',
+    label: TABLE_STATUS_LABEL[TABLE_STATUS.OCCUPIED].label,
+    tone: colors.table.occupied,
+    detail: 'Ya tiene un pedido en curso.',
+  },
+  {
+    label: TABLE_STATUS_LABEL[TABLE_STATUS.PENDING_PAYMENT].label,
     tone: colors.table.pendingPayment,
     detail: 'La caja la está cobrando; se libera al confirmar el pago.',
   },
@@ -87,7 +95,7 @@ const GUIDES: Record<Role, Guide> = {
     steps: [
       {
         title: 'Inicia sesión',
-        detail: 'Ingresa tu correo y tu PIN de 4 dígitos en la pantalla de inicio.',
+        detail: `Ingresa tu correo y tu PIN de ${PIN_LENGTH} dígitos en la pantalla de inicio.`,
       },
       {
         title: 'Elige una mesa',
@@ -277,12 +285,12 @@ const GUIDES: Record<Role, Guide> = {
 };
 
 const SECTIONS = [
-  { id: 'pasos', label: 'Paso a paso', icon: ICONS.pasos },
-  { id: 'mesas', label: 'Estados de las mesas', icon: ICONS.mesas, tablesOnly: true },
-  { id: 'tips', label: 'Bueno saber', icon: ICONS.tips },
-  { id: 'problemas', label: '¿Qué hago si…?', icon: ICONS.troubles },
-  { id: 'faq', label: 'Preguntas frecuentes', icon: ICONS.faq },
-  { id: 'glosario', label: 'Glosario', icon: ICONS.glosario },
+  { ...MANUAL_SECTION.STEPS, icon: ICONS.pasos },
+  { ...MANUAL_SECTION.TABLES, icon: ICONS.mesas, tablesOnly: true },
+  { ...MANUAL_SECTION.TIPS, icon: ICONS.tips },
+  { ...MANUAL_SECTION.PROBLEMS, icon: ICONS.troubles },
+  { ...MANUAL_SECTION.FAQ, icon: ICONS.faq },
+  { ...MANUAL_SECTION.GLOSSARY, icon: ICONS.glosario },
 ] as const;
 
 const router = useRouter();
@@ -332,16 +340,16 @@ function goBack() {
   <div class="manual-page">
     <header class="manual-topbar">
       <div class="topbar-row">
-        <button class="back-btn" aria-label="Volver" @click="goBack">
+        <button class="back-btn" :aria-label="UI_LABELS.back" @click="goBack">
           <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
             <path :d="ICONS.back" />
           </svg>
-          <span>Volver</span>
+          <span>{{ UI_LABELS.back }}</span>
         </button>
-        <h1 class="manual-title">Manual de uso</h1>
+        <h1 class="manual-title">{{ MANUAL_LABELS.title }}</h1>
       </div>
 
-      <div class="role-tabs" role="tablist" aria-label="Elige una guía">
+      <div class="role-tabs" role="tablist" :aria-label="MANUAL_LABELS.chooseGuideAria">
         <button
           v-for="role in ROLE_ORDER"
           :key="role"
@@ -369,9 +377,9 @@ function goBack() {
       </div>
     </header>
 
-    <main id="main" tabindex="-1" class="manual-body" aria-label="Manual de uso">
-      <nav class="toc" aria-label="En esta página">
-        <p class="toc-title">En esta página</p>
+    <main id="main" tabindex="-1" class="manual-body" :aria-label="MANUAL_LABELS.title">
+      <nav class="toc" :aria-label="MANUAL_LABELS.tocTitle">
+        <p class="toc-title">{{ MANUAL_LABELS.tocTitle }}</p>
         <a
           v-for="section in visibleSections"
           :key="section.id"
@@ -401,12 +409,12 @@ function goBack() {
           </div>
         </section>
 
-        <section id="pasos" class="block">
+        <section :id="MANUAL_SECTION.STEPS.id" class="block">
           <h3 class="block-title">
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
               <path :d="ICONS.pasos" />
             </svg>
-            Paso a paso
+            {{ MANUAL_SECTION.STEPS.label }}
           </h3>
           <ol class="steps">
             <li v-for="(step, index) in activeGuide.steps" :key="step.title" class="step">
@@ -419,12 +427,12 @@ function goBack() {
           </ol>
         </section>
 
-        <section v-if="activeGuide.showTables" id="mesas" class="block">
+        <section v-if="activeGuide.showTables" :id="MANUAL_SECTION.TABLES.id" class="block">
           <h3 class="block-title">
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
               <path :d="ICONS.mesas" />
             </svg>
-            Estados de las mesas
+            {{ MANUAL_SECTION.TABLES.label }}
           </h3>
           <div class="status-grid">
             <div v-for="status in TABLE_STATUSES" :key="status.label" class="status-card">
@@ -439,24 +447,24 @@ function goBack() {
           </div>
         </section>
 
-        <section id="tips" class="block">
+        <section :id="MANUAL_SECTION.TIPS.id" class="block">
           <h3 class="block-title">
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
               <path :d="ICONS.tips" />
             </svg>
-            Bueno saber
+            {{ MANUAL_SECTION.TIPS.label }}
           </h3>
           <ul class="tips">
             <li v-for="tip in activeGuide.tips" :key="tip" class="tip">{{ tip }}</li>
           </ul>
         </section>
 
-        <section id="problemas" class="block">
+        <section :id="MANUAL_SECTION.PROBLEMS.id" class="block">
           <h3 class="block-title">
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
               <path :d="ICONS.troubles" />
             </svg>
-            ¿Qué hago si…?
+            {{ MANUAL_SECTION.PROBLEMS.label }}
           </h3>
           <div class="cards">
             <div v-for="item in activeGuide.troubles" :key="item.problem" class="card">
@@ -466,12 +474,12 @@ function goBack() {
           </div>
         </section>
 
-        <section id="faq" class="block">
+        <section :id="MANUAL_SECTION.FAQ.id" class="block">
           <h3 class="block-title">
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
               <path :d="ICONS.faq" />
             </svg>
-            Preguntas frecuentes
+            {{ MANUAL_SECTION.FAQ.label }}
           </h3>
           <div class="cards">
             <div v-for="item in activeGuide.faqs" :key="item.question" class="card">
@@ -481,12 +489,12 @@ function goBack() {
           </div>
         </section>
 
-        <section id="glosario" class="block">
+        <section :id="MANUAL_SECTION.GLOSSARY.id" class="block">
           <h3 class="block-title">
             <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
               <path :d="ICONS.glosario" />
             </svg>
-            Glosario
+            {{ MANUAL_SECTION.GLOSSARY.label }}
           </h3>
           <dl class="glossary">
             <div v-for="entry in GLOSSARY" :key="entry.term" class="glossary-row">

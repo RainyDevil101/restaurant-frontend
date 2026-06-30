@@ -4,7 +4,8 @@ import ModalDialog from './ModalDialog.vue';
 import AdminFormField from './AdminFormField.vue';
 import { colors } from '@/shared/styles/colors';
 import type { MenuItem, Product } from '@/shared/types';
-import { PRODUCT_PRICE_MAX } from '../constants';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { ADMIN_LABELS, PRODUCT_PRICE_MAX } from '../constants';
 
 interface MenuForm {
   name: string;
@@ -41,9 +42,10 @@ const formPrice = computed({
   set: (v: number) => emit('update:form', { price: v }),
 });
 
-// Pure UI derivations from props — not business logic
 const productsLabel = computed(() =>
-  props.form.items.length ? `Productos (${props.form.items.length})` : 'Productos',
+  props.form.items.length
+    ? ADMIN_LABELS.menuForm.productsWithCount(props.form.items.length)
+    : ROUTE_TITLES.PRODUCTOS,
 );
 
 function isSelected(productId: string) {
@@ -58,16 +60,16 @@ function getQuantity(productId: string): number {
 <template>
   <ModalDialog
     v-if="props.open"
-    :title="props.editingId ? 'Editar menú' : 'Nuevo menú'"
+    :title="props.editingId ? ADMIN_LABELS.menu.editTitle : ADMIN_LABELS.menu.newLabel"
     :saving="props.saving"
     :error="props.error"
     @close="emit('close')"
     @submit="emit('submit')"
   >
-    <AdminFormField label="Nombre" for="menu-name">
+    <AdminFormField :label="ADMIN_LABELS.fields.name" for="menu-name">
       <input id="menu-name" v-model="formName" class="field-input" required />
     </AdminFormField>
-    <AdminFormField label="Precio" for="menu-price">
+    <AdminFormField :label="ADMIN_LABELS.fields.price" for="menu-price">
       <input
         id="menu-price"
         v-model.number="formPrice"
@@ -102,7 +104,7 @@ function getQuantity(productId: string): number {
               type="button"
               class="qty-btn"
               :disabled="getQuantity(p.id) <= 1"
-              :aria-label="`Reducir cantidad de ${p.name}`"
+              :aria-label="ADMIN_LABELS.menuForm.decreaseQty(p.name)"
               @click="emit('set-quantity', p.id, getQuantity(p.id) - 1)"
             >
               −
@@ -111,14 +113,16 @@ function getQuantity(productId: string): number {
             <button
               type="button"
               class="qty-btn"
-              :aria-label="`Aumentar cantidad de ${p.name}`"
+              :aria-label="ADMIN_LABELS.menuForm.increaseQty(p.name)"
               @click="emit('set-quantity', p.id, getQuantity(p.id) + 1)"
             >
               +
             </button>
           </div>
         </div>
-        <p v-if="props.products.length === 0" class="picker-empty">No hay productos.</p>
+        <p v-if="props.products.length === 0" class="picker-empty">
+          {{ ADMIN_LABELS.menuForm.noProducts }}
+        </p>
       </div>
     </AdminFormField>
   </ModalDialog>

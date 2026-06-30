@@ -3,6 +3,7 @@ import type { Product } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
 import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
+import { SERVICE_LABELS } from '../domain';
 
 const props = withDefaults(defineProps<{ product: Product; quantity?: number }>(), {
   quantity: 0,
@@ -21,14 +22,14 @@ function handleAdd() {
       <span class="product-name">{{ product.name }}</span>
       <span class="product-price">{{ formatCurrency(product.price) }}</span>
     </div>
-    <Badge tone="gray" class="status-badge">Desactivado</Badge>
+    <Badge tone="gray" class="status-badge">{{ SERVICE_LABELS.productRow.disabled }}</Badge>
   </div>
 
   <button
     v-else-if="quantity === 0"
     type="button"
     class="product-row add-mode"
-    :aria-label="`Agregar ${product.name}`"
+    :aria-label="SERVICE_LABELS.entryActions.addAria(product.name)"
     @click="handleAdd"
   >
     <span class="product-info">
@@ -52,14 +53,18 @@ function handleAdd() {
     <button
       type="button"
       class="info-add"
-      :aria-label="`Agregar otro ${product.name}`"
+      :aria-label="SERVICE_LABELS.entryActions.addAnotherAria(product.name)"
       @click="handleAdd"
     >
       <span class="product-name">{{ product.name }}</span>
       <span class="product-price">{{ formatCurrency(product.price) }}</span>
     </button>
     <div class="qty-control">
-      <button class="qty-btn" :aria-label="`Quitar uno de ${product.name}`" @click="emit('remove')">
+      <button
+        class="qty-btn"
+        :aria-label="SERVICE_LABELS.entryActions.removeOneOfAria(product.name)"
+        @click="emit('remove')"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -72,7 +77,11 @@ function handleAdd() {
         </svg>
       </button>
       <span class="qty-value" aria-live="polite">{{ quantity }}</span>
-      <button class="qty-btn add" :aria-label="`Agregar otro ${product.name}`" @click="handleAdd">
+      <button
+        class="qty-btn add"
+        :aria-label="SERVICE_LABELS.entryActions.addAnotherAria(product.name)"
+        @click="handleAdd"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

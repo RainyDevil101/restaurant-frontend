@@ -3,6 +3,10 @@ import { useTables } from '../composables/useTables';
 import { useFloorActivity } from '../composables/useFloorActivity';
 import TableCard from '../components/TableCard.vue';
 import { colors } from '@/shared/styles/colors';
+import { TABLE_STATUS } from '@/shared/types';
+import { TABLE_STATUS_LABEL } from '@/shared/constants/labels';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { SERVICE_LABELS } from '../domain';
 
 const { tables, loading, error, reload } = useTables();
 const { activityByTable, reload: reloadActivity } = useFloorActivity();
@@ -15,27 +19,29 @@ function retry() {
 
 <template>
   <div class="table-selection">
-    <div class="legend" role="list" aria-label="Estado de mesas">
+    <div class="legend" role="list" :aria-label="SERVICE_LABELS.tableSelection.legendAria">
       <div class="legend-item" role="listitem">
         <span class="legend-dot libre" aria-hidden="true" />
-        <span>Libre</span>
+        <span>{{ TABLE_STATUS_LABEL[TABLE_STATUS.FREE].label }}</span>
       </div>
       <div class="legend-item" role="listitem">
         <span class="legend-dot ocupada" aria-hidden="true" />
-        <span>Ocupada</span>
+        <span>{{ TABLE_STATUS_LABEL[TABLE_STATUS.OCCUPIED].label }}</span>
       </div>
       <div class="legend-item" role="listitem">
         <span class="legend-dot por_cobrar" aria-hidden="true" />
-        <span>Por cobrar</span>
+        <span>{{ TABLE_STATUS_LABEL[TABLE_STATUS.PENDING_PAYMENT].label }}</span>
       </div>
     </div>
 
-    <p v-if="loading && tables.length === 0" class="state-msg">Cargando…</p>
+    <p v-if="loading && tables.length === 0" class="state-msg">{{ UI_LABELS.loading }}</p>
     <div v-else-if="error" class="error-state">
       <p class="state-msg">{{ error }}</p>
-      <button type="button" class="retry-btn" @click="retry">Reintentar</button>
+      <button type="button" class="retry-btn" @click="retry">{{ UI_LABELS.retry }}</button>
     </div>
-    <p v-else-if="tables.length === 0" class="state-msg">No hay mesas registradas.</p>
+    <p v-else-if="tables.length === 0" class="state-msg">
+      {{ SERVICE_LABELS.tableSelection.empty }}
+    </p>
 
     <div v-else class="table-grid">
       <TableCard

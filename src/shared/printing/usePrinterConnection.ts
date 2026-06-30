@@ -7,6 +7,7 @@ import {
   type ConnectedPrinter,
   type PrinterTransportId,
 } from './index';
+import { PRINTER_MESSAGES } from './messages';
 
 const printer = ref<ConnectedPrinter | null>(null);
 const activeKind = ref<PrinterTransportId | null>(null);
@@ -33,7 +34,7 @@ export function usePrinterConnection() {
   }
 
   async function write(bytes: Uint8Array): Promise<void> {
-    if (!printer.value) throw new Error('No hay impresora conectada.');
+    if (!printer.value) throw new Error(PRINTER_MESSAGES.notConnected);
     await printer.value.write(bytes);
   }
 

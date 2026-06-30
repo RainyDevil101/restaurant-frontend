@@ -14,3 +14,6 @@ export { ORDER_STATUS } from './order';
 
 export type { Bill, BillItem, Payment, PaymentMethod } from './billing';
 export { PAYMENT_METHOD } from './billing';
+
+export type { PrinterConnection, PaperWidth } from './printer';
+export { PRINTER_CONNECTION, PAPER_WIDTH, DEFAULT_PAPER_WIDTH } from './printer';

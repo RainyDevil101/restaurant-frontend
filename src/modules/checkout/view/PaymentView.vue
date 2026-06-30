@@ -5,7 +5,10 @@ import { usePayment } from '../composables/usePayment';
 import { formatCurrency } from '../helpers/formatCurrency';
 import Badge from '@/shared/components/Badge.vue';
 import { PAYMENT_METHOD, ITEM_KIND } from '@/shared/types';
+import { PAYMENT_METHOD_LABEL, ITEM_KIND_LABEL } from '@/shared/constants/labels';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
 import { EMPTY_VALUE } from '@/shared/constants/display';
+import { CHECKOUT_LABELS } from '../domain';
 import { colors } from '@/shared/styles/colors';
 
 const router = useRouter();
@@ -48,36 +51,44 @@ async function handleConfirm() {
         >
           <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
         </svg>
-        <span>Caja</span>
+        <span>{{ ROUTE_TITLES.CAJA }}</span>
       </button>
-      <h1 class="page-title">{{ table?.name ?? 'Mesa' }} · Registrar pago</h1>
+      <h1 class="page-title">
+        {{ table?.name ?? CHECKOUT_LABELS.common.tableFallback }} ·
+        {{ CHECKOUT_LABELS.common.registerPayment }}
+      </h1>
     </div>
 
     <!-- Two-column content -->
     <div class="content-grid">
       <!-- Left: bill summary -->
       <div class="card bill-card">
-        <h2 class="card-title">Resumen del pedido</h2>
+        <h2 class="card-title">{{ CHECKOUT_LABELS.payment.orderSummary }}</h2>
 
         <div class="bill-lines">
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <Badge v-if="line.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
+              <Badge
+                v-if="line.kind === ITEM_KIND.COMBO"
+                :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone"
+              >
+                {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+              </Badge>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>
         </div>
 
         <div class="bill-total-row">
-          <span class="total-label">Total a cobrar</span>
+          <span class="total-label">{{ CHECKOUT_LABELS.payment.totalDue }}</span>
           <span class="total-amount">{{ formatCurrency(billTotal) }}</span>
         </div>
       </div>
 
       <!-- Right: payment form -->
       <div class="card payment-card">
-        <h2 class="card-title">Método de pago</h2>
+        <h2 class="card-title">{{ CHECKOUT_LABELS.payment.methodTitle }}</h2>
 
         <div class="method-selector">
           <button
@@ -97,7 +108,7 @@ async function handleConfirm() {
                 d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"
               />
             </svg>
-            <span>Efectivo</span>
+            <span>{{ PAYMENT_METHOD_LABEL[PAYMENT_METHOD.CASH].label }}</span>
           </button>
           <button
             class="method-btn"
@@ -116,14 +127,16 @@ async function handleConfirm() {
                 d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
               />
             </svg>
-            <span>Tarjeta</span>
+            <span>{{ PAYMENT_METHOD_LABEL[PAYMENT_METHOD.CARD].label }}</span>
           </button>
         </div>
 
         <!-- Efectivo form -->
         <template v-if="method === PAYMENT_METHOD.CASH">
           <div class="form-group">
-            <label class="form-label" for="cash-input">Monto recibido</label>
+            <label class="form-label" for="cash-input">{{
+              CHECKOUT_LABELS.payment.amountReceived
+            }}</label>
             <div class="input-wrap">
               <span class="input-prefix">$</span>
               <input
@@ -145,7 +158,7 @@ async function handleConfirm() {
               negative: change !== null && change < 0,
             }"
           >
-            <span>Cambio</span>
+            <span>{{ CHECKOUT_LABELS.payment.change }}</span>
             <span class="change-amount">
               {{ change !== null ? formatCurrency(change) : EMPTY_VALUE }}
             </span>
@@ -167,7 +180,7 @@ async function handleConfirm() {
                 d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
               />
             </svg>
-            <p>Pase la tarjeta en el terminal y confirme cuando el cobro sea exitoso.</p>
+            <p>{{ CHECKOUT_LABELS.payment.cardInstructions }}</p>
           </div>
         </template>
 
@@ -178,7 +191,11 @@ async function handleConfirm() {
           :disabled="!canConfirm || processing || loading"
           @click="handleConfirm"
         >
-          {{ processing ? 'Procesando…' : `Confirmar pago · ${formatCurrency(billTotal)}` }}
+          {{
+            processing
+              ? CHECKOUT_LABELS.payment.processing
+              : CHECKOUT_LABELS.payment.confirm(formatCurrency(billTotal))
+          }}
         </button>
       </div>
     </div>

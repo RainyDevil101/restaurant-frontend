@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Category } from '@/shared/types';
+import { ITEM_KIND, type Category } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
+import { ITEM_KIND_LABEL } from '@/shared/constants/labels';
 import { colors } from '@/shared/styles/colors';
-import { ORDER_ENTRY_KIND, type OrderEntry } from '../domain';
+import { ORDER_ENTRY_KIND, SERVICE_LABELS, type OrderEntry } from '../domain';
 import { categoryColor, categoryName } from '../helpers/categoryColor';
 
 defineProps<{ entry: OrderEntry; categories: Category[] }>();
@@ -15,9 +16,13 @@ const emit = defineEmits<{ add: []; remove: [] }>();
       <span class="item-name">{{
         entry.kind === ORDER_ENTRY_KIND.COMBO ? entry.menu.name : entry.product.name
       }}</span>
-      <Badge v-if="entry.kind === ORDER_ENTRY_KIND.COMBO" tone="teal" class="combo-tag"
-        >Combo</Badge
+      <Badge
+        v-if="entry.kind === ORDER_ENTRY_KIND.COMBO"
+        :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone"
+        class="combo-tag"
       >
+        {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+      </Badge>
       <span v-else class="category-tag">
         <span
           class="category-dot"
@@ -28,7 +33,11 @@ const emit = defineEmits<{ add: []; remove: [] }>();
       </span>
     </div>
     <div class="qty-control">
-      <button class="qty-btn" aria-label="Quitar uno" @click="emit('remove')">
+      <button
+        class="qty-btn"
+        :aria-label="SERVICE_LABELS.itemRow.removeOneAria"
+        @click="emit('remove')"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -41,7 +50,7 @@ const emit = defineEmits<{ add: []; remove: [] }>();
         </svg>
       </button>
       <span class="qty-value">{{ entry.quantity }}</span>
-      <button class="qty-btn" aria-label="Agregar uno" @click="emit('add')">
+      <button class="qty-btn" :aria-label="SERVICE_LABELS.itemRow.addOneAria" @click="emit('add')">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

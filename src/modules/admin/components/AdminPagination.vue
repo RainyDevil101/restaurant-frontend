@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ADMIN_LABELS } from '../constants';
+
 defineProps<{
   page: number;
   pageSize: number;
@@ -15,7 +17,7 @@ defineEmits<{
 <template>
   <div class="pagination">
     <div class="page-size">
-      <label for="admin-page-size">Filas por página</label>
+      <label for="admin-page-size">{{ ADMIN_LABELS.pagination.rowsPerPage }}</label>
       <select
         id="admin-page-size"
         :value="pageSize"
@@ -30,17 +32,17 @@ defineEmits<{
         type="button"
         class="page-btn"
         :disabled="page <= 1"
-        aria-label="Página anterior"
+        :aria-label="ADMIN_LABELS.pagination.previous"
         @click="$emit('update:page', page - 1)"
       >
         ◀
       </button>
-      <span class="page-status">Página {{ page }} de {{ totalPages }}</span>
+      <span class="page-status">{{ ADMIN_LABELS.pagination.pageStatus(page, totalPages) }}</span>
       <button
         type="button"
         class="page-btn"
         :disabled="page >= totalPages"
-        aria-label="Página siguiente"
+        :aria-label="ADMIN_LABELS.pagination.next"
         @click="$emit('update:page', page + 1)"
       >
         ▶

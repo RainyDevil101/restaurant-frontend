@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router';
 import { useCheckoutDashboard } from '../composables/useCheckoutDashboard';
 import { formatCurrency } from '../helpers/formatCurrency';
 import Badge from '@/shared/components/Badge.vue';
-import { ITEM_KIND, type TableStatus } from '@/shared/types';
-import { CHECKOUT_MESSAGES } from '../domain';
+import { ITEM_KIND, Route } from '@/shared/types';
+import { TABLE_STATUS_LABEL, ITEM_KIND_LABEL } from '@/shared/constants/labels';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { CHECKOUT_MESSAGES, CHECKOUT_LABELS } from '../domain';
 import { getComandasByTable } from '@/shared/api/orders';
 import { getPrecheck } from '@/shared/api/billing';
 import { listPrinters } from '@/shared/api/settings';
@@ -14,18 +16,6 @@ import { printerErrorMessage } from '@/shared/printing';
 import { toast } from '@/shared/toast';
 import { ApiRequestError } from '@/shared/api/client';
 import { colors } from '@/shared/styles/colors';
-
-const tableStatusTone: Record<TableStatus, 'gray' | 'blue' | 'amber' | 'green'> = {
-  libre: 'green',
-  ocupada: 'blue',
-  por_cobrar: 'amber',
-};
-
-const tableStatusLabel: Record<TableStatus, string> = {
-  libre: 'Libre',
-  ocupada: 'Ocupada',
-  por_cobrar: 'Por cobrar',
-};
 
 const router = useRouter();
 const { activeTables, selectedTableId, selectedSummary, billLines, billTotal, loading, error } =
@@ -40,7 +30,7 @@ function selectTable(id: string) {
 
 function registerPayment() {
   if (selectedTableId.value) {
-    router.push(`/checkout/table/${selectedTableId.value}`);
+    router.push(`${Route.CHECKOUT}/table/${selectedTableId.value}`);
   }
 }
 
@@ -105,11 +95,13 @@ async function onPrintPrecheck() {
   <div class="dashboard">
     <!-- Left panel: active tables -->
     <aside class="left-panel">
-      <h2 class="panel-title">Pedidos activos</h2>
+      <h2 class="panel-title">{{ CHECKOUT_LABELS.dashboard.activeOrdersTitle }}</h2>
 
-      <p v-if="loading" class="state-msg">Cargando…</p>
+      <p v-if="loading" class="state-msg">{{ UI_LABELS.loading }}</p>
       <p v-else-if="error" class="state-msg">{{ error }}</p>
-      <p v-else-if="activeTables.length === 0" class="state-msg">Sin pedidos activos.</p>
+      <p v-else-if="activeTables.length === 0" class="state-msg">
+        {{ CHECKOUT_LABELS.dashboard.noActiveOrders }}
+      </p>
       <ul v-else class="table-list">
         <li
           v-for="summary in activeTables"
@@ -122,14 +114,14 @@ async function onPrintPrecheck() {
         >
           <div class="row-top">
             <span class="table-name">{{ summary.table.name }}</span>
-            <Badge :tone="tableStatusTone[summary.table.status]">
-              {{ tableStatusLabel[summary.table.status] }}
+            <Badge :tone="TABLE_STATUS_LABEL[summary.table.status].tone">
+              {{ TABLE_STATUS_LABEL[summary.table.status].label }}
             </Badge>
           </div>
           <div class="row-bottom">
             <span v-if="summary.hasNewOrder" class="new-order-indicator">
               <span class="new-dot" aria-hidden="true" />
-              Nuevo pedido
+              {{ CHECKOUT_LABELS.dashboard.newOrder }}
             </span>
             <span v-else class="row-spacer" />
             <span class="table-total">{{ formatCurrency(summary.total) }}</span>
@@ -143,21 +135,28 @@ async function onPrintPrecheck() {
       <template v-if="selectedSummary">
         <div class="bill-header">
           <h2 class="bill-table-name">{{ selectedSummary.table.name }}</h2>
-          <span class="bill-meta">Cuenta única · {{ selectedSummary.table.capacity }} pers.</span>
+          <span class="bill-meta">{{
+            CHECKOUT_LABELS.dashboard.singleBill(selectedSummary.table.capacity)
+          }}</span>
         </div>
 
         <div class="bill-items">
           <div v-for="line in billLines" :key="line.productId" class="bill-line">
             <div class="line-left">
               <span class="line-desc">{{ line.quantity }} × {{ line.productName }}</span>
-              <Badge v-if="line.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
+              <Badge
+                v-if="line.kind === ITEM_KIND.COMBO"
+                :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone"
+              >
+                {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+              </Badge>
             </div>
             <span class="line-price">{{ formatCurrency(line.subtotal) }}</span>
           </div>
         </div>
 
         <div class="bill-total">
-          <span class="total-label">Total</span>
+          <span class="total-label">{{ CHECKOUT_LABELS.common.total }}</span>
           <span class="total-amount">{{ formatCurrency(billTotal) }}</span>
         </div>
 
@@ -175,7 +174,7 @@ async function onPrintPrecheck() {
                 d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"
               />
             </svg>
-            Imprimir comanda
+            {{ CHECKOUT_LABELS.dashboard.printComanda }}
           </button>
           <button class="action-btn outlined" :disabled="printing" @click="onPrintPrecheck">
             <svg
@@ -190,7 +189,7 @@ async function onPrintPrecheck() {
                 d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
               />
             </svg>
-            Generar precuenta
+            {{ CHECKOUT_LABELS.dashboard.generatePrecheck }}
           </button>
           <button class="action-btn primary" @click="registerPayment">
             <svg
@@ -205,7 +204,7 @@ async function onPrintPrecheck() {
                 d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
               />
             </svg>
-            Registrar pago
+            {{ CHECKOUT_LABELS.common.registerPayment }}
           </button>
         </div>
       </template>
@@ -223,7 +222,7 @@ async function onPrintPrecheck() {
             d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"
           />
         </svg>
-        <p>Selecciona una mesa para ver el pedido</p>
+        <p>{{ CHECKOUT_LABELS.dashboard.selectTableHint }}</p>
       </div>
     </section>
   </div>

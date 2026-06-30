@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatCurrency } from '../helpers/formatCurrency';
+import { SERVICE_LABELS } from '../domain';
 
 defineProps<{
   disabled: boolean;
@@ -24,10 +25,14 @@ defineEmits<{ submit: [] }>();
         >
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
         </svg>
-        <span>{{ submitting ? 'Enviando…' : 'Enviar a caja' }}</span>
+        <span>{{
+          submitting ? SERVICE_LABELS.submitBar.sending : SERVICE_LABELS.submitBar.submit
+        }}</span>
       </span>
       <span v-if="totalItems > 0 && !submitting" class="submit-summary">
-        {{ totalItems }} {{ totalItems === 1 ? 'ítem' : 'ítems' }} · {{ formatCurrency(total) }}
+        {{ totalItems }}
+        {{ totalItems === 1 ? SERVICE_LABELS.items.singular : SERVICE_LABELS.items.plural }} ·
+        {{ formatCurrency(total) }}
       </span>
     </button>
   </div>

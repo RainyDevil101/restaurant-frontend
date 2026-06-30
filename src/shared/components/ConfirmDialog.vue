@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, useId } from 'vue';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 withDefaults(
   defineProps<{
@@ -10,7 +11,7 @@ withDefaults(
     saving?: boolean;
     error?: string;
   }>(),
-  { confirmLabel: 'Eliminar', savingLabel: 'Eliminando…' },
+  { confirmLabel: UI_LABELS.remove, savingLabel: UI_LABELS.removing },
 );
 
 const emit = defineEmits<{ confirm: []; cancel: [] }>();
@@ -91,7 +92,9 @@ onBeforeUnmount(() => {
         <p v-if="error" class="error" role="alert">{{ error }}</p>
 
         <div class="actions">
-          <button type="button" class="btn-cancel" @click="emit('cancel')">Cancelar</button>
+          <button type="button" class="btn-cancel" @click="emit('cancel')">
+            {{ UI_LABELS.cancel }}
+          </button>
           <button
             type="button"
             class="btn-confirm"

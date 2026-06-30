@@ -1,4 +1,6 @@
-export type PrinterTransportId = 'usb' | 'bluetooth';
+import type { PrinterConnection } from '@/shared/types';
+
+export type PrinterTransportId = PrinterConnection;
 
 export interface ConnectedPrinter {
   name: string;

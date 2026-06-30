@@ -3,6 +3,8 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store';
 import { Role, Route } from '@/shared/types';
 import BrandLogo from '@/shared/components/BrandLogo.vue';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { CHECKOUT_LABELS } from '../domain';
 import { colors } from '@/shared/styles/colors';
 
 const router = useRouter();
@@ -20,7 +22,7 @@ function logout() {
     <header class="header">
       <div class="brand">
         <BrandLogo size="1.25rem" />
-        <span class="brand-section">· Caja</span>
+        <span class="brand-section">· {{ ROUTE_TITLES.CAJA }}</span>
       </div>
       <div class="header-right">
         <button v-if="isAdmin" class="admin-back-btn" @click="router.push(Route.ADMIN)">
@@ -34,13 +36,17 @@ function logout() {
           >
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
           </svg>
-          Admin
+          {{ CHECKOUT_LABELS.layout.admin }}
         </button>
         <div class="live-indicator">
           <span class="live-dot" aria-hidden="true" />
-          <span>En vivo</span>
+          <span>{{ CHECKOUT_LABELS.layout.live }}</span>
         </div>
-        <button class="help-btn" aria-label="Abrir manual" @click="router.push(Route.MANUAL)">
+        <button
+          class="help-btn"
+          :aria-label="CHECKOUT_LABELS.layout.manualAria"
+          @click="router.push(Route.MANUAL)"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -53,7 +59,7 @@ function logout() {
               d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"
             />
           </svg>
-          <span>Manual</span>
+          <span>{{ ROUTE_TITLES.MANUAL }}</span>
         </button>
         <div class="user-info">
           <svg
@@ -70,7 +76,7 @@ function logout() {
           </svg>
           <span>{{ auth.user?.name }}</span>
         </div>
-        <button class="logout-btn" @click="logout">Salir</button>
+        <button class="logout-btn" @click="logout">{{ CHECKOUT_LABELS.layout.logoutShort }}</button>
       </div>
     </header>
 

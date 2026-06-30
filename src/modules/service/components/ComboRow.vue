@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import type { Menu, Product } from '@/shared/types';
+import { ITEM_KIND, type Menu, type Product } from '@/shared/types';
 import Badge from '@/shared/components/Badge.vue';
+import { ITEM_KIND_LABEL } from '@/shared/constants/labels';
 import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
+import { SERVICE_LABELS } from '../domain';
 
 const props = withDefaults(defineProps<{ menu: Menu; products: Product[]; quantity?: number }>(), {
   quantity: 0,
@@ -23,13 +25,15 @@ const memberNames = props.menu.items
     v-if="quantity === 0"
     type="button"
     class="combo-row add-mode"
-    :aria-label="`Agregar ${menu.name}`"
+    :aria-label="SERVICE_LABELS.entryActions.addAria(menu.name)"
     @click="emit('add')"
   >
     <span class="combo-info">
       <span class="combo-head">
         <span class="combo-name">{{ menu.name }}</span>
-        <Badge tone="teal" class="combo-badge">Combo</Badge>
+        <Badge :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone" class="combo-badge">
+          {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+        </Badge>
       </span>
       <span v-if="memberNames" class="combo-members">{{ memberNames }}</span>
       <span class="combo-price">{{ formatCurrency(menu.price) }}</span>
@@ -51,18 +55,24 @@ const memberNames = props.menu.items
     <button
       type="button"
       class="info-add"
-      :aria-label="`Agregar otro ${menu.name}`"
+      :aria-label="SERVICE_LABELS.entryActions.addAnotherAria(menu.name)"
       @click="emit('add')"
     >
       <span class="combo-head">
         <span class="combo-name">{{ menu.name }}</span>
-        <Badge tone="teal" class="combo-badge">Combo</Badge>
+        <Badge :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone" class="combo-badge">
+          {{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}
+        </Badge>
       </span>
       <span v-if="memberNames" class="combo-members">{{ memberNames }}</span>
       <span class="combo-price">{{ formatCurrency(menu.price) }}</span>
     </button>
     <div class="qty-control">
-      <button class="qty-btn" :aria-label="`Quitar uno de ${menu.name}`" @click="emit('remove')">
+      <button
+        class="qty-btn"
+        :aria-label="SERVICE_LABELS.entryActions.removeOneOfAria(menu.name)"
+        @click="emit('remove')"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -75,7 +85,11 @@ const memberNames = props.menu.items
         </svg>
       </button>
       <span class="qty-value" aria-live="polite">{{ quantity }}</span>
-      <button class="qty-btn add" :aria-label="`Agregar otro ${menu.name}`" @click="emit('add')">
+      <button
+        class="qty-btn add"
+        :aria-label="SERVICE_LABELS.entryActions.addAnotherAria(menu.name)"
+        @click="emit('add')"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
