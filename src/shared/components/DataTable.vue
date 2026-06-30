@@ -22,6 +22,9 @@ export interface Column<T> {
 import { computed, toRef } from 'vue';
 import {
   useDataTable,
+  SORT_DIR,
+  FILTER_MATCH,
+  COLUMN_FILTER_TYPE,
   type ColumnFilter,
   type SortAccessor,
   type SortDir,
@@ -29,7 +32,13 @@ import {
 import AdminSearchBar from '@/modules/admin/components/AdminSearchBar.vue';
 import AdminPagination from '@/modules/admin/components/AdminPagination.vue';
 import { PAGE_SIZE_OPTIONS } from '@/modules/admin/constants';
+import { UI_LABELS } from '@/shared/constants/ui';
 import { colors } from '@/shared/styles/colors';
+
+const SORT_GLYPH = {
+  [SORT_DIR.ASC]: '▲',
+  [SORT_DIR.DESC]: '▼',
+} as const;
 
 const props = withDefaults(
   defineProps<{
@@ -50,9 +59,9 @@ const props = withDefaults(
     pageSize: 10,
     pageSizeOptions: () => PAGE_SIZE_OPTIONS,
     defaultSort: '',
-    defaultSortDir: 'asc',
-    searchPlaceholder: 'Buscar...',
-    emptyText: 'Sin resultados',
+    defaultSortDir: SORT_DIR.ASC,
+    searchPlaceholder: UI_LABELS.searchPlaceholder,
+    emptyText: UI_LABELS.noResults,
   },
 );
 
@@ -82,7 +91,10 @@ const columnFilters = computed<Array<ColumnFilter<T>>>(() =>
   filterableColumns.value.map((column) => ({
     key: column.key,
     accessor: (row) => resolveText(column, row),
-    match: column.filter?.type === 'select' ? 'equals' : 'includes',
+    match:
+      column.filter?.type === COLUMN_FILTER_TYPE.SELECT
+        ? FILTER_MATCH.EQUALS
+        : FILTER_MATCH.INCLUDES,
   })),
 );
 
@@ -129,12 +141,12 @@ const isEmpty = computed(() => table.totalItems.value === 0);
         <label v-for="column in filterableColumns" :key="column.key" class="filter-field">
           <span class="filter-label">{{ column.label }}</span>
           <select
-            v-if="column.filter && column.filter.type === 'select'"
+            v-if="column.filter && column.filter.type === COLUMN_FILTER_TYPE.SELECT"
             class="filter-control"
             :value="table.filters.value[column.key] ?? ''"
             @change="table.setFilter(column.key, ($event.target as HTMLSelectElement).value)"
           >
-            <option value="">Todos</option>
+            <option value="">{{ UI_LABELS.all }}</option>
             <option
               v-for="option in column.filter.options"
               :key="option.value"
@@ -152,7 +164,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
           />
         </label>
         <button v-if="hasActiveFilters" type="button" class="filter-clear" @click="clearFilters">
-          Limpiar filtros
+          {{ UI_LABELS.clearFilters }}
         </button>
       </div>
     </div>
@@ -176,11 +188,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
               >
                 {{ column.label }}
                 <span class="sort-indicator">{{
-                  table.sortBy.value === column.key
-                    ? table.sortDir.value === 'asc'
-                      ? '▲'
-                      : '▼'
-                    : ''
+                  table.sortBy.value === column.key ? SORT_GLYPH[table.sortDir.value] : ''
                 }}</span>
               </button>
               <span v-else>{{ column.label }}</span>
@@ -211,7 +219,7 @@ const isEmpty = computed(() => table.totalItems.value === 0);
 
           <tr v-if="isEmpty">
             <td :colspan="columns.length" class="empty-row">
-              <span v-if="loading">Cargando…</span>
+              <span v-if="loading">{{ UI_LABELS.loading }}</span>
               <span v-else-if="error" class="error-text">{{ error }}</span>
               <span v-else>{{ emptyText }}</span>
             </td>

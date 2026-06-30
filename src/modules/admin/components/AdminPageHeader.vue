@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PlusIcon } from '@/modules/shared/components/icons';
+
 defineProps<{
   title: string;
   newLabel: string;
@@ -13,16 +15,7 @@ defineEmits<{
   <div class="page-header">
     <h1 class="page-title">{{ title }}</h1>
     <button class="new-btn" @click="$emit('create')">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="18"
-        height="18"
-        aria-hidden="true"
-      >
-        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-      </svg>
+      <PlusIcon :size="18" />
       {{ newLabel }}
     </button>
   </div>

@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue';
 import Badge from '@/shared/components/Badge.vue';
-import { PAYMENT_METHOD, ITEM_KIND } from '@/shared/types';
+import { PAYMENT_METHOD, ITEM_KIND, PRINTER_CONNECTION } from '@/shared/types';
+import { PAYMENT_METHOD_LABEL, ITEM_KIND_LABEL } from '@/shared/constants/labels';
 import { LOCALE } from '@/shared/constants/locale';
+import { UI_LABELS } from '@/shared/constants/ui';
 import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
 import { usePaymentPrinting } from '../composables/usePaymentPrinting';
 import { usePrinterSupport } from '../composables/usePrinterSupport';
 import { usePrinterConnection } from '@/shared/printing/usePrinterConnection';
 import { toast } from '@/shared/toast';
+import { ADMIN_LABELS } from '../constants';
 import { ADMIN_MESSAGES, type PaymentRow } from '../domain';
+import { DocumentTextIcon, PrinterIcon } from '@/modules/shared/components/icons';
 
 const props = defineProps<{ payment: PaymentRow }>();
 const emit = defineEmits<{ close: [] }>();
@@ -19,11 +23,13 @@ const { printing, reprintReceipt, reprintComanda } = usePaymentPrinting();
 const { isConnected, deviceName, connecting, connect } = usePrinterConnection();
 
 async function connectUsb() {
-  if (await connect('usb')) toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
+  if (await connect(PRINTER_CONNECTION.USB))
+    toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
 }
 
 async function connectBluetooth() {
-  if (await connect('bluetooth')) toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
+  if (await connect(PRINTER_CONNECTION.BLUETOOTH))
+    toast.success(ADMIN_MESSAGES.printerConnected(deviceName.value));
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -54,7 +60,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
               }}
             </p>
           </div>
-          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">
+          <button
+            type="button"
+            class="close-x"
+            :aria-label="UI_LABELS.close"
+            @click="emit('close')"
+          >
             ×
           </button>
         </div>
@@ -66,7 +77,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
               <div class="item-left">
                 <span class="item-qty">{{ item.quantity }}×</span>
                 <span class="item-name">{{ item.productName }}</span>
-                <Badge v-if="item.kind === ITEM_KIND.COMBO" tone="teal">Combo</Badge>
+                <Badge
+                  v-if="item.kind === ITEM_KIND.COMBO"
+                  :tone="ITEM_KIND_LABEL[ITEM_KIND.COMBO].tone"
+                  >{{ ITEM_KIND_LABEL[ITEM_KIND.COMBO].label }}</Badge
+                >
               </div>
               <span class="item-subtotal">{{ formatCurrency(item.subtotal) }}</span>
             </div>
@@ -75,21 +90,21 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
           <!-- Summary -->
           <div class="summary">
             <div class="summary-row total-row">
-              <span>Total cobrado</span>
+              <span>{{ ADMIN_LABELS.fields.totalCharged }}</span>
               <span class="total-amount">{{ formatCurrency(payment.amount) }}</span>
             </div>
             <div v-if="payment.method === PAYMENT_METHOD.CASH" class="summary-row">
-              <span class="label-muted">Cambio</span>
+              <span class="label-muted">{{ ADMIN_LABELS.fields.change }}</span>
               <span class="label-muted">{{ formatCurrency(payment.change) }}</span>
             </div>
             <div class="summary-row">
-              <span class="label-muted">Método</span>
-              <Badge :tone="payment.method === PAYMENT_METHOD.CASH ? 'green' : 'blue'">
-                {{ payment.method === PAYMENT_METHOD.CASH ? 'Efectivo' : 'Tarjeta' }}
+              <span class="label-muted">{{ ADMIN_LABELS.fields.method }}</span>
+              <Badge :tone="PAYMENT_METHOD_LABEL[payment.method].tone">
+                {{ PAYMENT_METHOD_LABEL[payment.method].label }}
               </Badge>
             </div>
             <div v-if="payment.waiterNames.length" class="summary-row">
-              <span class="label-muted">Atendido por</span>
+              <span class="label-muted">{{ ADMIN_LABELS.payments.servedBy }}</span>
               <span class="waiter-names">{{ payment.waiterNames.join(', ') }}</span>
             </div>
           </div>
@@ -105,19 +120,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                 :disabled="printing"
                 @click="reprintReceipt(props.payment.id)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  width="18"
-                  height="18"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-                  />
-                </svg>
-                Recibo
+                <DocumentTextIcon :size="18" />
+                {{ ADMIN_LABELS.printer.receipt }}
               </button>
               <button
                 type="button"
@@ -125,19 +129,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                 :disabled="printing"
                 @click="reprintComanda(props.payment.id)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  width="18"
-                  height="18"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"
-                  />
-                </svg>
-                Comanda
+                <PrinterIcon :size="18" />
+                {{ ADMIN_LABELS.printer.comanda }}
               </button>
             </template>
             <template v-else>
@@ -148,7 +141,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                 :disabled="connecting"
                 @click="connectUsb"
               >
-                {{ connecting ? 'Conectando…' : 'Conectar USB' }}
+                {{
+                  connecting
+                    ? ADMIN_LABELS.printer.connecting
+                    : ADMIN_LABELS.printer.connectUsbShort
+                }}
               </button>
               <button
                 v-if="bluetoothSupported"
@@ -157,11 +154,17 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                 :disabled="connecting"
                 @click="connectBluetooth"
               >
-                {{ connecting ? 'Conectando…' : 'Conectar Bluetooth' }}
+                {{
+                  connecting
+                    ? ADMIN_LABELS.printer.connecting
+                    : ADMIN_LABELS.printer.connectBluetoothShort
+                }}
               </button>
             </template>
           </div>
-          <button type="button" class="btn-close" @click="emit('close')">Cerrar</button>
+          <button type="button" class="btn-close" @click="emit('close')">
+            {{ UI_LABELS.close }}
+          </button>
         </div>
       </div>
     </div>

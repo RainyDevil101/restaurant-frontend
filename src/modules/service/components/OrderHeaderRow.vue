@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { SERVICE_LABELS } from '../domain';
+
 defineProps<{ tableName: string }>();
 </script>
 
 <template>
   <div class="order-header">
-    <h1 class="order-title">Nuevo pedido</h1>
+    <h1 class="order-title">{{ SERVICE_LABELS.orderHeader.title }}</h1>
     <span class="table-badge">{{ tableName }}</span>
   </div>
 </template>

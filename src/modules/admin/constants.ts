@@ -1,10 +1,17 @@
-import type { BadgeTone } from '@/shared/components/Badge.vue';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
 
 export const PRODUCT_PRICE_MAX = 999_999;
 export const TABLE_CAPACITY_MAX = 20;
 
 export const PRODUCTS_PER_PAGE = 10;
 export const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
+const editTitle = (entity: string): string => `${UI_LABELS.edit} ${entity}`;
+const deleteTitle = (entity: string): string => `${UI_LABELS.remove} ${entity}`;
+const deleteConfirm = (subject: string): string =>
+  `¿Seguro que deseas eliminar ${subject}? ${UI_LABELS.irreversible}`;
+const searchFor = (noun: string): string => `Buscar ${noun}...`;
 
 export const ADMIN_LABELS = {
   product: {
@@ -18,6 +25,15 @@ export const ADMIN_LABELS = {
     categoryNamePlaceholder: 'Nombre de la categoría',
     creating: 'Creando…',
     priceInvalid: 'El precio debe ser un número entero entre $0 y $999.999.',
+    newLabel: 'Nuevo producto',
+    editTitle: editTitle('producto'),
+    deleteTitle: deleteTitle('producto'),
+    deleteMessage: deleteConfirm('este producto'),
+    searchPlaceholder: searchFor('producto'),
+    createAreaThenCategoryHint: 'Primero crea un área, luego una categoría.',
+    stepNewArea: '1. Nueva área',
+    stepNewCategory: 'Nueva categoría',
+    stepNewCategoryNumbered: '2. Nueva categoría',
   },
   user: {
     nameRequired: 'El nombre del usuario es obligatorio.',
@@ -25,30 +41,150 @@ export const ADMIN_LABELS = {
     emailInvalid: 'Ingresa un correo electrónico válido.',
     credentialRequired: 'El PIN es obligatorio para usuarios nuevos.',
     credentialInvalid: 'El PIN debe ser de 6 dígitos numéricos.',
+    newLabel: 'Nuevo usuario',
+    editTitle: editTitle('usuario'),
+    deleteTitle: deleteTitle('usuario'),
+    deleteMessage:
+      '¿Seguro que deseas eliminar este usuario? Quedará desactivado y no podrá iniciar sesión.',
+    searchPlaceholder: searchFor('usuario'),
+    ownerBadge: 'Dueño',
+    pinFieldLabel: (length: number): string => `PIN (${length} dígitos)`,
+    pinDigitsPlaceholder: (length: number): string => `${length} dígitos`,
+    pinKeepPlaceholder: 'Dejar en blanco para no cambiar',
   },
   table: {
     nameRequired: 'El nombre de la mesa es obligatorio.',
     capacityInvalid: 'La capacidad debe ser un número entero entre 1 y 20.',
-    statusLabels: {
-      libre: { label: 'Libre', tone: 'green' },
-      ocupada: { label: 'Ocupada', tone: 'blue' },
-      por_cobrar: { label: 'Por cobrar', tone: 'amber' },
-    } as Record<string, { label: string; tone: BadgeTone }>,
+    newLabel: 'Nueva mesa',
+    editTitle: editTitle('mesa'),
+    deleteTitle: deleteTitle('mesa'),
+    deleteMessage: deleteConfirm('esta mesa'),
+    searchPlaceholder: searchFor('mesa'),
   },
   area: {
     nameRequired: 'El nombre del área es obligatorio.',
     deleteBlockedTitle:
       'No se puede eliminar: esta área tiene categorías asociadas. Elimina o reasigna las categorías primero.',
+    newLabel: 'Nueva área',
+    editTitle: editTitle('área'),
+    deleteTitle: deleteTitle('área'),
+    deleteMessage: deleteConfirm('esta área'),
+    searchPlaceholder: searchFor('área'),
+    emptyText: 'Sin áreas registradas',
+    namePlaceholder: 'Nombre del área...',
+    createButton: '+ Crear área',
+    selectPlaceholder: 'Seleccione un área',
+    noAreasNotice: 'No hay áreas disponibles.',
+    noAreasHint: 'Crea un área para poder asignarla a la categoría.',
   },
   menu: {
     nameRequired: 'El nombre del menú es obligatorio.',
     productsRequired: 'Selecciona al menos un producto para el menú.',
     priceInvalid: 'El precio debe ser un número entero entre $0 y $999.999.',
+    newLabel: 'Nuevo menú',
+    editTitle: editTitle('menú'),
+    deleteTitle: deleteTitle('menú'),
+    deleteMessage: deleteConfirm('este menú'),
+    searchPlaceholder: searchFor('menú'),
   },
   category: {
     nameRequired: 'El nombre de la categoría es obligatorio.',
     areaRequired: 'Selecciona un área para la categoría.',
     deleteBlockedTitle:
       'No se puede eliminar: esta categoría tiene productos asociados. Elimina o reasigna los productos primero.',
+    newLabel: 'Nueva categoría',
+    editTitle: editTitle('categoría'),
+    deleteTitle: deleteTitle('categoría'),
+    deleteMessage: deleteConfirm('esta categoría'),
+    searchPlaceholder: searchFor('categoría'),
+  },
+  fields: {
+    name: 'Nombre',
+    description: 'Descripción',
+    price: 'Precio',
+    capacity: 'Capacidad',
+    email: 'Correo',
+    role: 'Rol',
+    area: 'Área',
+    category: 'Categoría',
+    connection: 'Conexión',
+    paperWidth: 'Tamaño de papel',
+    product: 'Producto',
+    status: 'Estado',
+    actions: 'Acciones',
+    menu: 'Menú',
+    table: 'Mesa',
+    user: 'Usuario',
+    method: 'Método',
+    totalCharged: 'Total cobrado',
+    change: 'Cambio',
+    dateTime: 'Fecha y hora',
+  },
+  status: {
+    available: 'Disponible',
+    unavailable: 'Agotado',
+    active: 'Activo',
+    inactive: 'Inactivo',
+  },
+  counts: {
+    products: (n: number): string => `${n} productos`,
+    categories: (n: number): string => `${n} categorías`,
+    persons: (n: number): string => `${n} pers.`,
+    paperWidth: (mm: number): string => `${mm}mm`,
+  },
+  layout: {
+    navAria: 'Administración',
+    goToCheckout: 'Ir a caja',
+  },
+  pagination: {
+    rowsPerPage: 'Filas por página',
+    previous: 'Página anterior',
+    next: 'Página siguiente',
+    pageStatus: (page: number, total: number): string => `Página ${page} de ${total}`,
+  },
+  payments: {
+    title: 'Historial de pagos',
+    refresh: 'Actualizar',
+    searchPlaceholder: 'Buscar por mesa…',
+    emptyText: 'Sin pagos registrados',
+    viewBreakdown: 'Ver desglose',
+    servedBy: 'Atendido por',
+  },
+  menuForm: {
+    productsWithCount: (n: number): string => `${ROUTE_TITLES.PRODUCTOS} (${n})`,
+    noProducts: 'No hay productos.',
+    decreaseQty: (name: string): string => `Reducir cantidad de ${name}`,
+    increaseQty: (name: string): string => `Aumentar cantidad de ${name}`,
+  },
+  printer: {
+    connecting: 'Conectando…',
+    connectUsb: 'Conectar por USB',
+    connectBluetooth: 'Conectar por Bluetooth',
+    connectUsbShort: 'Conectar USB',
+    connectBluetoothShort: 'Conectar Bluetooth',
+    testPrint: 'Imprimir prueba',
+    disconnect: 'Desconectar',
+    connected: 'Conectada',
+    notConnected: 'Sin conectar',
+    default: 'Predeterminada',
+    makeDefault: 'Hacer predeterminada',
+    newPrinter: 'Nueva impresora',
+    editTitle: editTitle('impresora'),
+    deleteTitle: deleteTitle('impresora'),
+    deleteMessage: deleteConfirm('esta impresora'),
+    noPrinters: 'Sin impresoras configuradas.',
+    receipt: 'Recibo',
+    comanda: 'Comanda',
+  },
+  settings: {
+    supportBanner:
+      'La impresión requiere Chrome o Edge en este equipo (con HTTPS). Podés configurar impresoras igual, pero no se podrá imprimir desde este navegador.',
+    connectionSection: 'Conexión de impresora',
+    connectHint: 'Conecta la impresora de este equipo para imprimir precuentas y comandas.',
+    printersSection: 'Impresoras',
+    receiptSection: 'Datos del comprobante',
+    businessName: 'Nombre del local',
+    address: 'Dirección / RUT',
+    footer: 'Pie del comprobante',
   },
 } as const;

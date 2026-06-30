@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { formatCurrency } from '../helpers/formatCurrency';
+import { SERVICE_LABELS } from '../domain';
+import { PaperAirplaneIcon } from '@/modules/shared/components/icons';
 
 defineProps<{
   disabled: boolean;
@@ -14,20 +16,15 @@ defineEmits<{ submit: [] }>();
   <div class="bottom-bar">
     <button class="submit-btn" :disabled="disabled" @click="$emit('submit')">
       <span class="submit-main">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="20"
-          height="20"
-          aria-hidden="true"
-        >
-          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-        </svg>
-        <span>{{ submitting ? 'Enviando…' : 'Enviar a caja' }}</span>
+        <PaperAirplaneIcon :size="20" />
+        <span>{{
+          submitting ? SERVICE_LABELS.submitBar.sending : SERVICE_LABELS.submitBar.submit
+        }}</span>
       </span>
       <span v-if="totalItems > 0 && !submitting" class="submit-summary">
-        {{ totalItems }} {{ totalItems === 1 ? 'ítem' : 'ítems' }} · {{ formatCurrency(total) }}
+        {{ totalItems }}
+        {{ totalItems === 1 ? SERVICE_LABELS.items.singular : SERVICE_LABELS.items.plural }} ·
+        {{ formatCurrency(total) }}
       </span>
     </button>
   </div>

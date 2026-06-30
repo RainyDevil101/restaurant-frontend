@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useLogin } from '../composables/useLogin';
+import { LOGIN_LABELS } from '../constants';
 import BrandLogo from '@/shared/components/BrandLogo.vue';
 import { colors } from '@/shared/styles/colors';
 
@@ -33,22 +34,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
 <template>
   <div class="login-page">
     <div class="login-card">
-      <!-- Brand -->
       <div class="brand">
         <BrandLogo size="2rem" tagline />
       </div>
 
-      <!-- Form -->
       <form class="form" novalidate @submit.prevent="submit">
         <div class="field-group">
-          <label class="field-label" for="email">Correo</label>
+          <label class="field-label" for="email">{{ LOGIN_LABELS.emailLabel }}</label>
           <input
             id="email"
             v-model="email"
             class="field-input"
             type="email"
             inputmode="email"
-            placeholder="nombre@restaurante.cl"
+            :placeholder="LOGIN_LABELS.emailPlaceholder"
             autocomplete="email"
             required
           />
@@ -57,7 +56,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
         <div class="field-group">
           <span class="field-label">{{ pinLabel }}</span>
 
-          <!-- PIN progress dots -->
           <div class="pin-dots" aria-hidden="true">
             <span
               v-for="i in pinLength"
@@ -67,7 +65,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
             />
           </div>
 
-          <!-- On-screen numeric keypad -->
           <div class="keypad">
             <button
               v-for="key in digitKeys"
@@ -83,16 +80,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
               type="button"
               class="key key-muted"
               :disabled="loading || pin.length === 0"
-              aria-label="Borrar"
+              :aria-label="LOGIN_LABELS.backspaceAria"
               @click="backspace"
             >
-              ⌫
+              {{ LOGIN_LABELS.backspaceGlyph }}
             </button>
             <button type="button" class="key" :disabled="loading" @click="pressDigit('0')">
               0
             </button>
-            <button type="submit" class="key key-primary" :disabled="loading" aria-label="Ingresar">
-              ↵
+            <button
+              type="submit"
+              class="key key-primary"
+              :disabled="loading"
+              :aria-label="LOGIN_LABELS.submitAria"
+            >
+              {{ LOGIN_LABELS.submitGlyph }}
             </button>
           </div>
         </div>
@@ -100,7 +102,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown));
         <p v-if="error" class="error-msg" role="alert">{{ error }}</p>
 
         <button type="submit" class="submit-btn" :disabled="loading">
-          {{ loading ? 'Ingresando…' : 'Ingresar' }}
+          {{ loading ? LOGIN_LABELS.submitting : LOGIN_LABELS.submit }}
         </button>
       </form>
     </div>

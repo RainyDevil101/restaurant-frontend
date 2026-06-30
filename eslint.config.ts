@@ -31,6 +31,14 @@ export default defineConfigWithVueTs(
   },
 
   {
+    name: 'app/icon-component-names',
+    files: ['src/modules/shared/components/icons/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
+  {
     ...pluginCypress.configs.recommended,
     files: [
       'cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}',

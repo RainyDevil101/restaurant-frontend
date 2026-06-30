@@ -2,7 +2,11 @@
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/modules/auth/store';
 import { Route } from '@/shared/types';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { ADMIN_LABELS } from '../constants';
 import BrandLogo from '@/shared/components/BrandLogo.vue';
+import { UserIcon } from '@/modules/shared/components/icons';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -13,15 +17,15 @@ function logout() {
 }
 
 const navItems = [
-  { label: 'Productos', to: Route.ADMIN_PRODUCTS },
-  { label: 'Categorías', to: Route.ADMIN_CATEGORIES },
-  { label: 'Menús', to: Route.ADMIN_MENUS },
-  { label: 'Áreas', to: Route.ADMIN_AREAS },
-  { label: 'Mesas', to: Route.ADMIN_TABLES },
-  { label: 'Usuarios', to: Route.ADMIN_USERS },
-  { label: 'Pagos', to: Route.ADMIN_PAYMENTS },
-  { label: 'Configuraciones', to: Route.ADMIN_SETTINGS },
-  { label: 'Manual', to: Route.MANUAL },
+  { label: ROUTE_TITLES.PRODUCTOS, to: Route.ADMIN_PRODUCTS },
+  { label: ROUTE_TITLES.CATEGORIAS, to: Route.ADMIN_CATEGORIES },
+  { label: ROUTE_TITLES.MENUS, to: Route.ADMIN_MENUS },
+  { label: ROUTE_TITLES.AREAS, to: Route.ADMIN_AREAS },
+  { label: ROUTE_TITLES.MESAS, to: Route.ADMIN_TABLES },
+  { label: ROUTE_TITLES.USUARIOS, to: Route.ADMIN_USERS },
+  { label: ROUTE_TITLES.PAGOS, to: Route.ADMIN_PAYMENTS },
+  { label: ROUTE_TITLES.CONFIGURACION, to: Route.ADMIN_SETTINGS },
+  { label: ROUTE_TITLES.MANUAL, to: Route.MANUAL },
 ];
 </script>
 
@@ -33,7 +37,7 @@ const navItems = [
         <BrandLogo size="1.375rem" />
       </div>
 
-      <nav class="nav" aria-label="Administración">
+      <nav class="nav" :aria-label="ADMIN_LABELS.layout.navAria">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
@@ -46,24 +50,17 @@ const navItems = [
       </nav>
 
       <div class="sidebar-bottom">
-        <button class="mode-btn" @click="router.push(Route.SERVICE)">Tomar pedido</button>
-        <button class="mode-btn" @click="router.push(Route.CHECKOUT)">Ir a caja</button>
+        <button class="mode-btn" @click="router.push(Route.SERVICE)">
+          {{ ROUTE_TITLES.TOMAR_PEDIDO }}
+        </button>
+        <button class="mode-btn" @click="router.push(Route.CHECKOUT)">
+          {{ ADMIN_LABELS.layout.goToCheckout }}
+        </button>
         <div class="user-row">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            width="18"
-            height="18"
-            aria-hidden="true"
-          >
-            <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-            />
-          </svg>
+          <UserIcon :size="18" />
           <span>{{ auth.user?.name }}</span>
         </div>
-        <button class="logout-btn" @click="logout">Cerrar sesión</button>
+        <button class="logout-btn" @click="logout">{{ UI_LABELS.logout }}</button>
       </div>
     </aside>
 

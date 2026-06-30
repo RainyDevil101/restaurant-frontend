@@ -1,4 +1,7 @@
 import { api } from './client';
+import { ENDPOINTS } from './endpoints';
+import { buildQuery } from './query';
+import { DEFAULT_PAPER_WIDTH } from '@/shared/types';
 import type { OrderStatus, ItemKind } from '@/shared/types';
 
 export interface ApiOrderItem {
@@ -45,24 +48,23 @@ export interface CreateOrderInput {
 }
 
 export function listOrders(tableId?: string): Promise<ApiOrder[]> {
-  const query = tableId ? `?tableId=${encodeURIComponent(tableId)}` : '';
-  return api.get<ApiOrder[]>(`/orders${query}`);
+  return api.get<ApiOrder[]>(`${ENDPOINTS.orders.root}${buildQuery({ tableId })}`);
 }
 
 export function listOrdersByTable(tableId: string): Promise<ApiOrder[]> {
-  return api.get<ApiOrder[]>(`/orders/table/${tableId}`);
+  return api.get<ApiOrder[]>(ENDPOINTS.orders.byTable(tableId));
 }
 
 export function createOrder(input: CreateOrderInput): Promise<ApiOrder> {
-  return api.post<ApiOrder>('/orders', input);
+  return api.post<ApiOrder>(ENDPOINTS.orders.root, input);
 }
 
 export function updateOrderStatus(id: string, status: OrderStatus): Promise<ApiOrder> {
-  return api.patch<ApiOrder>(`/orders/${id}/status`, { status });
+  return api.patch<ApiOrder>(ENDPOINTS.orders.status(id), { status });
 }
 
 export function cancelOrder(id: string, body: CancelOrderInput): Promise<ApiOrder> {
-  return api.postKeepingSession<ApiOrder>(`/orders/${id}/cancel`, body);
+  return api.postKeepingSession<ApiOrder>(ENDPOINTS.orders.cancel(id), body);
 }
 
 export interface ComandaDto {
@@ -72,8 +74,11 @@ export interface ComandaDto {
   escposBase64: string;
 }
 
-export function getComandasByTable(tableId: string, width = 80): Promise<ComandaDto[]> {
+export function getComandasByTable(
+  tableId: string,
+  width: number = DEFAULT_PAPER_WIDTH,
+): Promise<ComandaDto[]> {
   return api.get<ComandaDto[]>(
-    `/orders/table/${encodeURIComponent(tableId)}/comandas?width=${width}`,
+    `${ENDPOINTS.orders.comandasByTable(tableId)}${buildQuery({ width })}`,
   );
 }

@@ -1,14 +1,14 @@
 import type { Product } from './product';
 
-export type OrderStatus = 'pendiente' | 'en_proceso' | 'listo' | 'entregado' | 'cancelado';
-
 export const ORDER_STATUS = {
-  PENDING: 'pendiente' as OrderStatus,
-  IN_PROGRESS: 'en_proceso' as OrderStatus,
-  READY: 'listo' as OrderStatus,
-  DELIVERED: 'entregado' as OrderStatus,
-  CANCELLED: 'cancelado' as OrderStatus,
+  PENDING: 'pendiente',
+  IN_PROGRESS: 'en_proceso',
+  READY: 'listo',
+  DELIVERED: 'entregado',
+  CANCELLED: 'cancelado',
 } as const;
+
+export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
 
 export interface OrderItem {
   id: string;

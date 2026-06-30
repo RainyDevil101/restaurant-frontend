@@ -1,4 +1,7 @@
 import type { ConnectedPrinter, PrinterAdapter } from '../types';
+import { PRINTER_CONNECTION } from '@/shared/types';
+import { PRINTER_CONNECTION_LABEL } from '@/shared/constants/labels';
+import { PRINTER_MESSAGES } from '../messages';
 
 const PRINTER_SERVICES: BluetoothServiceUUID[] = [
   0x18f0,
@@ -12,8 +15,8 @@ const PRINTER_SERVICES: BluetoothServiceUUID[] = [
 const CHUNK_SIZE = 180;
 
 export const webBluetoothAdapter: PrinterAdapter = {
-  id: 'bluetooth',
-  label: 'Bluetooth',
+  id: PRINTER_CONNECTION.BLUETOOTH,
+  label: PRINTER_CONNECTION_LABEL[PRINTER_CONNECTION.BLUETOOTH],
 
   isSupported() {
     return 'bluetooth' in navigator && window.isSecureContext;
@@ -25,7 +28,7 @@ export const webBluetoothAdapter: PrinterAdapter = {
       optionalServices: PRINTER_SERVICES,
     });
     const server = await device.gatt?.connect();
-    if (!server) throw new Error('No se pudo conectar al servicio GATT de la impresora.');
+    if (!server) throw new Error(PRINTER_MESSAGES.bleNoGatt);
 
     let characteristic: BluetoothRemoteGATTCharacteristic | undefined;
     for (const service of await server.getPrimaryServices()) {
@@ -34,12 +37,12 @@ export const webBluetoothAdapter: PrinterAdapter = {
       if (characteristic) break;
     }
     if (!characteristic) {
-      throw new Error('La impresora no expone una característica de escritura (BLE).');
+      throw new Error(PRINTER_MESSAGES.bleNoCharacteristic);
     }
     const writable = characteristic;
 
     return {
-      name: device.name || 'Impresora Bluetooth',
+      name: device.name || PRINTER_MESSAGES.bluetoothDeviceFallback,
       async write(bytes) {
         for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
           const chunk = bytes.slice(i, i + CHUNK_SIZE);

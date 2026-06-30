@@ -11,7 +11,9 @@ import ProductFormDialog from '../components/ProductFormDialog.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import DataTable, { type Column } from '@/shared/components/DataTable.vue';
 import { formatCurrency } from '../helpers/formatCurrency';
-import { PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
+import { ADMIN_LABELS, PRODUCTS_PER_PAGE, PAGE_SIZE_OPTIONS } from '../constants';
+import { ROUTE_TITLES } from '@/shared/constants/brand';
+import { UI_LABELS } from '@/shared/constants/ui';
 
 const {
   products,
@@ -47,32 +49,32 @@ const { confirmOpen, deleting, deleteError, openDelete, closeConfirm, runDelete 
   useAdminConfirm();
 
 const columns = computed<Column<ProductRow>[]>(() => [
-  { key: 'name', label: 'Producto', sortable: true },
+  { key: 'name', label: ADMIN_LABELS.fields.product, sortable: true },
   {
     key: 'categoryName',
-    label: 'Categoría',
+    label: ADMIN_LABELS.fields.category,
     sortable: true,
     filter: {
       type: 'select',
       options: categories.value.map((category) => ({ value: category.name, label: category.name })),
     },
   },
-  { key: 'price', label: 'Precio', sortable: true, align: 'right' },
+  { key: 'price', label: ADMIN_LABELS.fields.price, sortable: true, align: 'right' },
   {
     key: 'available',
-    label: 'Estado',
+    label: ADMIN_LABELS.fields.status,
     align: 'right',
     sortable: true,
     accessor: (product) => String(product.available),
     filter: {
       type: 'select',
       options: [
-        { value: 'true', label: 'Disponible' },
-        { value: 'false', label: 'Agotado' },
+        { value: 'true', label: ADMIN_LABELS.status.available },
+        { value: 'false', label: ADMIN_LABELS.status.unavailable },
       ],
     },
   },
-  { key: 'actions', label: 'Acciones', align: 'right' },
+  { key: 'actions', label: ADMIN_LABELS.fields.actions, align: 'right' },
 ]);
 
 function patchForm(patch: Partial<typeof form>) {
@@ -86,7 +88,11 @@ async function confirmDelete() {
 
 <template>
   <div class="products-view">
-    <AdminPageHeader title="Productos" new-label="Nuevo producto" @create="openCreate" />
+    <AdminPageHeader
+      :title="ROUTE_TITLES.PRODUCTOS"
+      :new-label="ADMIN_LABELS.product.newLabel"
+      @create="openCreate"
+    />
 
     <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
 
@@ -98,7 +104,7 @@ async function confirmDelete() {
       :page-size="PRODUCTS_PER_PAGE"
       :page-size-options="PAGE_SIZE_OPTIONS"
       default-sort="name"
-      search-placeholder="Buscar producto..."
+      :search-placeholder="ADMIN_LABELS.product.searchPlaceholder"
     >
       <template #cell-price="{ row }">{{ formatCurrency(row.price) }}</template>
 
@@ -109,14 +115,16 @@ async function confirmDelete() {
           :class="row.available ? 'status-available' : 'status-unavailable'"
           @click="toggle(row.id)"
         >
-          {{ row.available ? 'Disponible' : 'Agotado' }}
+          {{ row.available ? ADMIN_LABELS.status.available : ADMIN_LABELS.status.unavailable }}
         </button>
       </template>
 
       <template #cell-actions="{ row }">
         <div class="row-actions">
-          <button class="action-btn" @click="openEdit(row)">Editar</button>
-          <button class="action-btn danger" @click="openDelete(row.id)">Eliminar</button>
+          <button class="action-btn" @click="openEdit(row)">{{ UI_LABELS.edit }}</button>
+          <button class="action-btn danger" @click="openDelete(row.id)">
+            {{ UI_LABELS.remove }}
+          </button>
         </div>
       </template>
     </DataTable>
@@ -142,8 +150,8 @@ async function confirmDelete() {
 
     <ConfirmDialog
       v-if="confirmOpen"
-      title="Eliminar producto"
-      message="¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer."
+      :title="ADMIN_LABELS.product.deleteTitle"
+      :message="ADMIN_LABELS.product.deleteMessage"
       :saving="deleting"
       :error="deleteError"
       @close="closeConfirm"

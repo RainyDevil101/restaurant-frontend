@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { CHECKOUT_LABELS } from '../domain';
 import { colors } from '@/shared/styles/colors';
 
 const props = defineProps<{ orderId: string; saving?: boolean; error?: string }>();
@@ -36,35 +38,39 @@ function onSubmit() {
     <div class="overlay" role="dialog" aria-modal="true" @click.self="emit('close')">
       <div class="dialog">
         <div class="dialog-header">
-          <h2 class="title">Cancelar pedido #{{ orderLabel }}</h2>
-          <button type="button" class="close-x" aria-label="Cerrar" @click="emit('close')">
+          <h2 class="title">{{ CHECKOUT_LABELS.common.cancelOrder }} #{{ orderLabel }}</h2>
+          <button
+            type="button"
+            class="close-x"
+            :aria-label="UI_LABELS.close"
+            @click="emit('close')"
+          >
             ×
           </button>
         </div>
 
         <p class="note">
-          Un administrador debe autorizar esta cancelación con sus credenciales. El pedido cancelado
-          se excluye de la cuenta.
+          {{ CHECKOUT_LABELS.cancelDialog.note }}
         </p>
 
         <form class="form" novalidate @submit.prevent="onSubmit">
           <label class="field">
-            <span class="field-label">Motivo</span>
+            <span class="field-label">{{ CHECKOUT_LABELS.cancelDialog.reasonLabel }}</span>
             <textarea
               v-model="reason"
               class="input textarea"
               rows="3"
-              placeholder="Describe el motivo de la cancelación"
+              :placeholder="CHECKOUT_LABELS.cancelDialog.reasonPlaceholder"
             ></textarea>
           </label>
 
           <label class="field">
-            <span class="field-label">Email del admin</span>
+            <span class="field-label">{{ CHECKOUT_LABELS.cancelDialog.adminEmailLabel }}</span>
             <input v-model="adminEmail" type="email" class="input" autocomplete="off" />
           </label>
 
           <label class="field">
-            <span class="field-label">PIN o contraseña del admin</span>
+            <span class="field-label">{{ CHECKOUT_LABELS.cancelDialog.adminCredentialLabel }}</span>
             <input
               v-model="adminCredential"
               type="password"
@@ -76,9 +82,15 @@ function onSubmit() {
           <p v-if="error" class="error" role="alert">{{ error }}</p>
 
           <div class="actions">
-            <button type="button" class="btn-cancel" @click="emit('close')">Cancelar</button>
+            <button type="button" class="btn-cancel" @click="emit('close')">
+              {{ UI_LABELS.cancel }}
+            </button>
             <button type="submit" class="btn-confirm" :disabled="saving || !canSubmit">
-              {{ saving ? 'Cancelando…' : 'Cancelar pedido' }}
+              {{
+                saving
+                  ? CHECKOUT_LABELS.cancelDialog.cancelling
+                  : CHECKOUT_LABELS.common.cancelOrder
+              }}
             </button>
           </div>
         </form>

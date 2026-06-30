@@ -1,4 +1,5 @@
 import { api } from './client';
+import { ENDPOINTS } from './endpoints';
 import type { User, Role } from '@/modules/auth/store';
 
 export interface CreateUserInput {
@@ -17,17 +18,17 @@ export interface UpdateUserInput {
 }
 
 export function listUsers(): Promise<User[]> {
-  return api.get<User[]>('/users');
+  return api.get<User[]>(ENDPOINTS.users.root);
 }
 
 export function createUser(input: CreateUserInput): Promise<User> {
-  return api.post<User>('/users', input);
+  return api.post<User>(ENDPOINTS.users.root, input);
 }
 
 export function updateUser(id: string, input: UpdateUserInput): Promise<User> {
-  return api.patch<User>(`/users/${id}`, input);
+  return api.patch<User>(ENDPOINTS.users.byId(id), input);
 }
 
 export function deactivateUser(id: string): Promise<void> {
-  return api.delete<void>(`/users/${id}`);
+  return api.delete<void>(ENDPOINTS.users.byId(id));
 }

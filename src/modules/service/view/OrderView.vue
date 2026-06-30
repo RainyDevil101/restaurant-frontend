@@ -15,7 +15,8 @@ import SubmitOrderBar from '../components/SubmitOrderBar.vue';
 import ConfirmRemoveDialog from '../components/ConfirmRemoveDialog.vue';
 import ConfirmLeaveDialog from '../components/ConfirmLeaveDialog.vue';
 import type { Product, Menu } from '@/shared/types';
-import { ORDER_ENTRY_KIND, type OrderEntry } from '../domain';
+import { UI_LABELS } from '@/shared/constants/ui';
+import { ORDER_ENTRY_KIND, SERVICE_LABELS, type OrderEntry } from '../domain';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -130,11 +131,13 @@ async function handleSubmit() {
     <OrderNavBar :user-name="auth.user?.name" @back="goBack" />
 
     <div class="scroll-area">
-      <OrderHeaderRow :table-name="table?.name ?? 'Mesa'" />
+      <OrderHeaderRow :table-name="table?.name ?? SERVICE_LABELS.order.tableFallback" />
 
       <div v-if="ordersError && openAccountOrders.length === 0" class="orders-error">
         <span>{{ ordersError }}</span>
-        <button type="button" class="retry-inline" @click="reloadOrders">Reintentar</button>
+        <button type="button" class="retry-inline" @click="reloadOrders">
+          {{ UI_LABELS.retry }}
+        </button>
       </div>
 
       <InProgressOrders
@@ -174,14 +177,14 @@ async function handleSubmit() {
     <ConfirmRemoveDialog
       v-if="pendingRemoveId"
       :product-name="pendingRemoveName"
-      :table-name="table?.name ?? 'la mesa'"
+      :table-name="table?.name ?? SERVICE_LABELS.order.tableGenericFallback"
       @confirm="confirmRemove"
       @cancel="cancelRemove"
     />
 
     <ConfirmLeaveDialog
       v-if="showLeaveDialog"
-      :table-name="table?.name ?? 'la mesa'"
+      :table-name="table?.name ?? SERVICE_LABELS.order.tableGenericFallback"
       @confirm="confirmLeave"
       @cancel="cancelLeave"
     />
