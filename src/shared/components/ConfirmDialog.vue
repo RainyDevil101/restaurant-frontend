@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, useId } from 'vue';
 import { UI_LABELS } from '@/shared/constants/ui';
+import { TrashIcon } from '@/modules/shared/components/icons';
 
 withDefaults(
   defineProps<{
@@ -70,17 +71,7 @@ onBeforeUnmount(() => {
         :aria-labelledby="titleId"
       >
         <div class="icon-circle" aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            width="26"
-            height="26"
-          >
-            <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-            />
-          </svg>
+          <TrashIcon :size="26" />
         </div>
 
         <h2 :id="titleId" class="title">{{ title }}</h2>

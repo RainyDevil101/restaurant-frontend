@@ -13,6 +13,7 @@ import { usePrinterConnection } from '@/shared/printing/usePrinterConnection';
 import { toast } from '@/shared/toast';
 import { ADMIN_LABELS } from '../constants';
 import { ADMIN_MESSAGES, type PaymentRow } from '../domain';
+import { DocumentTextIcon, PrinterIcon } from '@/modules/shared/components/icons';
 
 const props = defineProps<{ payment: PaymentRow }>();
 const emit = defineEmits<{ close: [] }>();
@@ -119,18 +120,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                 :disabled="printing"
                 @click="reprintReceipt(props.payment.id)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  width="18"
-                  height="18"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-                  />
-                </svg>
+                <DocumentTextIcon :size="18" />
                 {{ ADMIN_LABELS.printer.receipt }}
               </button>
               <button
@@ -139,18 +129,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                 :disabled="printing"
                 @click="reprintComanda(props.payment.id)"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  width="18"
-                  height="18"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"
-                  />
-                </svg>
+                <PrinterIcon :size="18" />
                 {{ ADMIN_LABELS.printer.comanda }}
               </button>
             </template>

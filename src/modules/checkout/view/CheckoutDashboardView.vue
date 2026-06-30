@@ -16,6 +16,12 @@ import { printerErrorMessage } from '@/shared/printing';
 import { toast } from '@/shared/toast';
 import { ApiRequestError } from '@/shared/api/client';
 import { colors } from '@/shared/styles/colors';
+import {
+  PrinterIcon,
+  DocumentTextIcon,
+  CreditCardIcon,
+  UserSquareIcon,
+} from '@/modules/shared/components/icons';
 
 const router = useRouter();
 const { activeTables, selectedTableId, selectedSummary, billLines, billTotal, loading, error } =
@@ -162,66 +168,22 @@ async function onPrintPrecheck() {
 
         <div class="bill-actions">
           <button class="action-btn outlined" :disabled="printing" @click="onPrintComanda">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              width="20"
-              height="20"
-              aria-hidden="true"
-            >
-              <path
-                d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"
-              />
-            </svg>
+            <PrinterIcon :size="20" />
             {{ CHECKOUT_LABELS.dashboard.printComanda }}
           </button>
           <button class="action-btn outlined" :disabled="printing" @click="onPrintPrecheck">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              width="20"
-              height="20"
-              aria-hidden="true"
-            >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-              />
-            </svg>
+            <DocumentTextIcon :size="20" />
             {{ CHECKOUT_LABELS.dashboard.generatePrecheck }}
           </button>
           <button class="action-btn primary" @click="registerPayment">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              width="20"
-              height="20"
-              aria-hidden="true"
-            >
-              <path
-                d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
-              />
-            </svg>
+            <CreditCardIcon :size="20" />
             {{ CHECKOUT_LABELS.common.registerPayment }}
           </button>
         </div>
       </template>
 
       <div v-else class="empty-state">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="40"
-          height="40"
-          aria-hidden="true"
-        >
-          <path
-            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"
-          />
-        </svg>
+        <UserSquareIcon :size="40" />
         <p>{{ CHECKOUT_LABELS.dashboard.selectTableHint }}</p>
       </div>
     </section>

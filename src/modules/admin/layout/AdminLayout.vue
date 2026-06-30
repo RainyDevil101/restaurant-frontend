@@ -6,6 +6,7 @@ import { ROUTE_TITLES } from '@/shared/constants/brand';
 import { UI_LABELS } from '@/shared/constants/ui';
 import { ADMIN_LABELS } from '../constants';
 import BrandLogo from '@/shared/components/BrandLogo.vue';
+import { UserIcon } from '@/modules/shared/components/icons';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -56,18 +57,7 @@ const navItems = [
           {{ ADMIN_LABELS.layout.goToCheckout }}
         </button>
         <div class="user-row">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            width="18"
-            height="18"
-            aria-hidden="true"
-          >
-            <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-            />
-          </svg>
+          <UserIcon :size="18" />
           <span>{{ auth.user?.name }}</span>
         </div>
         <button class="logout-btn" @click="logout">{{ UI_LABELS.logout }}</button>

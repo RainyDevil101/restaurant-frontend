@@ -7,6 +7,7 @@ import ComboRow from './ComboRow.vue';
 import { colors } from '@/shared/styles/colors';
 import { UI_LABELS } from '@/shared/constants/ui';
 import { SERVICE_LABELS } from '../domain';
+import { MagnifyingGlassIcon, XMarkIcon, UtensilsIcon } from '@/modules/shared/components/icons';
 
 const props = defineProps<{
   products: Product[];
@@ -42,19 +43,7 @@ const filteredProducts = computed(() =>
 
 <template>
   <div class="search-wrap">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      width="18"
-      height="18"
-      class="search-icon"
-      aria-hidden="true"
-    >
-      <path
-        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-      />
-    </svg>
+    <MagnifyingGlassIcon class="search-icon" :size="18" />
     <input
       v-model="searchQuery"
       class="search-input"
@@ -75,18 +64,7 @@ const filteredProducts = computed(() =>
       :aria-label="SERVICE_LABELS.catalog.clearSearchAria"
       @click="searchQuery = ''"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="18"
-        height="18"
-        aria-hidden="true"
-      >
-        <path
-          d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-        />
-      </svg>
+      <XMarkIcon :size="18" />
     </button>
   </div>
 
@@ -118,18 +96,7 @@ const filteredProducts = computed(() =>
   <template v-if="!loading && !error && combos.length > 0">
     <hr class="divider" />
     <div class="combos-header">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="18"
-        height="18"
-        aria-hidden="true"
-      >
-        <path
-          d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"
-        />
-      </svg>
+      <UtensilsIcon :size="18" />
       <span>{{ SERVICE_LABELS.catalog.combos }}</span>
     </div>
     <div class="combo-list">

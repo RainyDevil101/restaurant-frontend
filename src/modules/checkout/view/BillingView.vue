@@ -15,6 +15,7 @@ import { UI_LABELS } from '@/shared/constants/ui';
 import { ROUTE_TITLES } from '@/shared/constants/brand';
 import { LOCALE } from '@/shared/constants/locale';
 import { colors } from '@/shared/styles/colors';
+import { ArrowLeftIcon, CreditCardIcon } from '@/modules/shared/components/icons';
 
 const router = useRouter();
 const {
@@ -83,16 +84,7 @@ function goToPayment() {
     <!-- Header -->
     <div class="page-header">
       <button class="back-btn" @click="goBack">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="20"
-          height="20"
-          aria-hidden="true"
-        >
-          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-        </svg>
+        <ArrowLeftIcon :size="20" />
         <span>{{ ROUTE_TITLES.CAJA }}</span>
       </button>
       <div class="header-title">
@@ -208,18 +200,7 @@ function goToPayment() {
         {{ CHECKOUT_LABELS.billing.pendingWarning }}
       </p>
       <button class="pay-btn" :disabled="billLines.length === 0" @click="goToPayment">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="20"
-          height="20"
-          aria-hidden="true"
-        >
-          <path
-            d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"
-          />
-        </svg>
+        <CreditCardIcon :size="20" />
         {{ CHECKOUT_LABELS.billing.proceedToPayment(formatCurrency(billTotal)) }}
       </button>
     </div>

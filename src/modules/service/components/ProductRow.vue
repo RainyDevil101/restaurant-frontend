@@ -4,6 +4,7 @@ import Badge from '@/shared/components/Badge.vue';
 import { colors } from '@/shared/styles/colors';
 import { formatCurrency } from '../helpers/formatCurrency';
 import { SERVICE_LABELS } from '../domain';
+import { PlusIcon, MinusIcon } from '@/modules/shared/components/icons';
 
 const props = withDefaults(defineProps<{ product: Product; quantity?: number }>(), {
   quantity: 0,
@@ -37,15 +38,7 @@ function handleAdd() {
       <span class="product-price">{{ formatCurrency(product.price) }}</span>
     </span>
     <span class="add-hint" aria-hidden="true">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="20"
-        height="20"
-      >
-        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-      </svg>
+      <PlusIcon :size="20" />
     </span>
   </button>
 
@@ -65,16 +58,7 @@ function handleAdd() {
         :aria-label="SERVICE_LABELS.entryActions.removeOneOfAria(product.name)"
         @click="emit('remove')"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        >
-          <path d="M19 13H5v-2h14v2z" />
-        </svg>
+        <MinusIcon :size="18" />
       </button>
       <span class="qty-value" aria-live="polite">{{ quantity }}</span>
       <button
@@ -82,16 +66,7 @@ function handleAdd() {
         :aria-label="SERVICE_LABELS.entryActions.addAnotherAria(product.name)"
         @click="handleAdd"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          width="18"
-          height="18"
-          aria-hidden="true"
-        >
-          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-        </svg>
+        <PlusIcon :size="18" />
       </button>
     </div>
   </div>

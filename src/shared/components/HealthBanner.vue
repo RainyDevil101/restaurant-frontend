@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { colors } from '@/shared/styles/colors';
 import { API_BASE_URL, HEALTH_PATH } from '@/shared/api/config';
 import { HEALTH_BANNER } from '@/shared/constants/ui';
+import { WarningTriangleIcon } from '@/modules/shared/components/icons';
 
 const POLL_MS = 30_000;
 
@@ -31,21 +32,7 @@ onUnmounted(() => {
 <template>
   <Transition name="health-banner">
     <div v-if="degraded" role="status" aria-live="polite" class="health-banner">
-      <svg
-        class="icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path
-          d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-        />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
+      <WarningTriangleIcon class="icon" :size="16" />
       <span class="title">{{ HEALTH_BANNER.title }}</span>
       <span class="hint">{{ HEALTH_BANNER.hint }}</span>
     </div>

@@ -3,6 +3,7 @@ import type { Category } from '@/shared/types';
 import { colors } from '@/shared/styles/colors';
 import { ORDER_ENTRY_KIND, SERVICE_LABELS, type OrderEntry } from '../domain';
 import OrderItemRow from './OrderItemRow.vue';
+import { ClipboardDocumentListIcon } from '@/modules/shared/components/icons';
 
 defineProps<{
   entries: OrderEntry[];
@@ -19,18 +20,7 @@ const emit = defineEmits<{
 <template>
   <div class="order-section-header">
     <div class="section-left">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="18"
-        height="18"
-        aria-hidden="true"
-      >
-        <path
-          d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-        />
-      </svg>
+      <ClipboardDocumentListIcon :size="18" />
       <span>{{ SERVICE_LABELS.summary.title }}</span>
     </div>
     <span class="item-count">{{ totalItems }} {{ SERVICE_LABELS.items.plural }}</span>
